@@ -1,0 +1,63 @@
+﻿<metro:MetroWindow x:Class="RegimenCondominio.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:cscontrol ="clr-namespace:RegimenCondominio.Controls"
+        xmlns:metro="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:local="clr-namespace:RegimenCondominio"
+        mc:Ignorable="d"
+        Title="Regimen de Condominio" 
+                   Height="525" Width="450" TitleCaps="False"
+                   Icon="/Images/JaverIcono.png" IconBitmapScalingMode="HighQuality" IconEdgeMode="Aliased">
+    <Window.Resources>
+        <ResourceDictionary>
+            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#00897B" />
+
+            <Storyboard x:Name="showLabel" x:Key="expandlabel">
+                <DoubleAnimation Storyboard.TargetName="HidText" 
+                                 Storyboard.TargetProperty="Opacity" From="0.0" To="1" Duration="0:0:0.10"/>
+            </Storyboard>
+            <Storyboard x:Name="ReduceBox" x:Key="kRedBox"/>
+            <Storyboard x:Name="HideLabel" x:Key="hidelabel">
+                <DoubleAnimation Storyboard.TargetName="HidText" 
+                                 Storyboard.TargetProperty="Opacity" From="1" To="0.0" Duration="0:0:0.10"/>
+            </Storyboard>
+            <Storyboard x:Name="ExpandBox" x:Key="kExpBox"/>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
+                <!-- Accent and AppTheme setting -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Teal.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseDark.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="124*"/>
+            <ColumnDefinition Width="284*"/>
+            <ColumnDefinition Width="109*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+
+            <RowDefinition Height="7*"/>
+            <RowDefinition Height="14*"/>
+            <RowDefinition Height="59*"/>
+
+        </Grid.RowDefinitions>
+        <TextBlock Text="Sector" FontWeight="DemiBold" Foreground="SteelBlue"
+                   x:Name="HidText"  Opacity="0" FontSize="15" HorizontalAlignment="Left" 
+                   Grid.Column="1" Margin="10,7,0,3" Width="43"/>
+        <cscontrol:CsTextbox Message="Sector" Margin="10,2,24,7" Grid.Row="1" HorizontalAlignment="Center"
+                             InputType="Number" TextChanged="CsTextbox_TextChanged"
+                             x:Name="Sector" Width="250" Grid.Column="1"/>
+        <Button Grid.Column="1" Grid.Row="2" 
+                Content="Reset" Click="Button_Click" Margin="102,105,102,92"/>
+        <Image x:Name="image" HorizontalAlignment="Left" 
+               Height="62" Margin="24,132,0,0" Grid.Row="2" VerticalAlignment="Top" Width="133"
+               Source="/Images/Javerlogo.png" Grid.ColumnSpan="2" />
+    </Grid>
+</metro:MetroWindow>

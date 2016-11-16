@@ -1,0 +1,187 @@
+﻿<metro:MetroWindow x:Class="RegimenCondominio.View.ModuloInicial"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:metro="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:cscontrol ="clr-namespace:RegimenCondominio.Controls"
+        xmlns:local="clr-namespace:RegimenCondominio.View"
+        mc:Ignorable="d"
+        Title="Módulo Inicial" Height="450" Width="450"
+                   TitleCaps="False"
+                   WindowStartupLocation="CenterScreen"
+                   ResizeMode="CanMinimize"
+                   Loaded="MetroWindow_Loaded"
+                   Icon="pack://application:,,,/RegimenCondominio;component/Images/JaverIcono.png">
+    <Window.Resources>
+        <ResourceDictionary>
+            <BitmapImage x:Key="Fondo" UriSource="pack://application:,,,/RegimenCondominio;component/Images/fondo.png" />
+            <BitmapImage x:Key="Usuario" UriSource="pack://application:,,,/RegimenCondominio;component/Images/user.png" />
+            <BitmapImage x:Key="Next" UriSource="pack://application:,,,/RegimenCondominio;component/Images/GoNext.png" 
+                         />
+            <Image x:Key="NextBtn" Source="pack://application:,,,/RegimenCondominio;component/Images/GoNext.png" Width="60" Height="60" 
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#00897B" />
+            <!--Fraccionamiento-->
+            <Storyboard x:Name="showFracc" x:Key="expandFracc">
+                <DoubleAnimation Storyboard.TargetName="lblFracc" 
+                                 Storyboard.TargetProperty="Opacity" From="0.0" To="1" Duration="0:0:0.10"/>
+            </Storyboard>
+            <Storyboard x:Name="HideFracc" x:Key="hideFracc">
+                <DoubleAnimation Storyboard.TargetName="lblFracc" 
+                                 Storyboard.TargetProperty="Opacity" From="1" To="0.0" Duration="0:0:0.10"/>
+            </Storyboard>
+
+            <!--Estado-->
+            <Storyboard x:Name="showLabel" x:Key="expandlabel">
+                <DoubleAnimation Storyboard.TargetName="lblEstado" 
+                                 Storyboard.TargetProperty="Opacity" From="0.0" To="1" Duration="0:0:0.10"/>
+            </Storyboard>
+            <Storyboard x:Name="HideLabel" x:Key="hidelabel">
+                <DoubleAnimation Storyboard.TargetName="lblEstado" 
+                                 Storyboard.TargetProperty="Opacity" From="1" To="0.0" Duration="0:0:0.10"/>
+            </Storyboard>
+
+            <!--Municipio-->
+            <Storyboard x:Name="showMunicipio" x:Key="expandMunicipio">
+                <DoubleAnimation Storyboard.TargetName="lblMunicipio" 
+                                 Storyboard.TargetProperty="Opacity" From="0.0" To="1" Duration="0:0:0.10"/>
+            </Storyboard>
+            <Storyboard x:Name="HideMunicipio" x:Key="hideMunicipio">
+                <DoubleAnimation Storyboard.TargetName="lblMunicipio" 
+                                 Storyboard.TargetProperty="Opacity" From="1" To="0.0" Duration="0:0:0.10"/>
+            </Storyboard>
+            <!--Sector-->
+            <Storyboard x:Name="showSector" x:Key="expandSector">
+                <DoubleAnimation Storyboard.TargetName="lblSector" 
+                                 Storyboard.TargetProperty="Opacity" From="0.0" To="1" Duration="0:0:0.10"/>
+            </Storyboard>
+            <Storyboard x:Name="HideSector" x:Key="hideSector">
+                <DoubleAnimation Storyboard.TargetName="lblSector" 
+                                 Storyboard.TargetProperty="Opacity" From="1" To="0.0" Duration="0:0:0.10"/>
+            </Storyboard>
+            <!--Sector-->
+            <Storyboard x:Name="showRegion" x:Key="expandRegion">
+                <DoubleAnimation Storyboard.TargetName="lblRegion" 
+                                 Storyboard.TargetProperty="Opacity" From="0.0" To="1" Duration="0:0:0.10"/>
+            </Storyboard>
+            <Storyboard x:Name="HideRegion" x:Key="hideRegion">
+                <DoubleAnimation Storyboard.TargetName="lblRegion" 
+                                 Storyboard.TargetProperty="Opacity" From="1" To="0.0" Duration="0:0:0.10"/>
+            </Storyboard>
+            <!--Tipo de Vivienda-->
+            <Storyboard x:Name="showTipoViv" x:Key="expandTipoViv">
+                <DoubleAnimation Storyboard.TargetName="lblTipoViv" 
+                                 Storyboard.TargetProperty="Opacity" From="0.0" To="1" Duration="0:0:0.10"/>
+            </Storyboard>
+            <Storyboard x:Name="HideTipoViv" x:Key="hideTipoViv">
+                <DoubleAnimation Storyboard.TargetName="lblTipoViv" 
+                                 Storyboard.TargetProperty="Opacity" From="1" To="0.0" Duration="0:0:0.10"/>
+            </Storyboard>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
+                <!-- Accent and AppTheme setting -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Teal.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid IsEnabled="False">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1.5*"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="4.5*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100*"/>
+            <ColumnDefinition Width="250*"/>
+            <ColumnDefinition Width="100*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.Background>
+            <ImageBrush ImageSource="{StaticResource Fondo}"/>
+        </Grid.Background>
+        <Image x:Name="image" HorizontalAlignment="Left" 
+               Height="40" VerticalAlignment="Top" Width="40"
+               Source="{StaticResource Usuario}" Margin="29,10,0,0" Grid.RowSpan="2"  />
+        <TextBlock Text="USER" Grid.Row="1" HorizontalAlignment="Center" FontFamily="Calibri"  TextAlignment="Center"
+                   FontWeight="Bold" Foreground="#00897B" x:Name="Usuariotxt" Visibility="Collapsed"
+                    Grid.RowSpan="4" Width="98" Margin="0,18,0,3" />
+        <Image Source="/Images/JaverLogo2016.png" Visibility="Collapsed"
+               Grid.ColumnSpan="2"  Grid.Row="10" Width="170" Height="42" 
+               x:Name="Logo" Stretch="Fill" Margin="20,27,156,26"
+                />
+        <Button Grid.Column="2" Grid.Row="10" x:Name="btnSiguiente"
+                Width="70" Height="70" Background="Transparent" Content="{StaticResource NextBtn}" VerticalAlignment="Center"
+                HorizontalAlignment="Center" BorderThickness="0"
+                BorderBrush="Transparent" Focusable="False" Visibility="Collapsed">
+        </Button>
+
+        <!--*************************************Fraccionamiento*************************************-->
+        <TextBlock Grid.Column="1" Text="Fraccionamiento" FontSize="14" FontWeight="DemiBold"
+                   HorizontalAlignment="Center" 
+                   x:Name="lblFracc" VerticalAlignment="Bottom" Margin="22,0,118,39" 
+                   Opacity="0" Grid.RowSpan="2"/>
+        <cscontrol:CsComboBox  Grid.Column="1" Grid.Row="1" MessageCombo="Fraccionamiento"
+                             x:Name="FraccionamientoCombo" Margin="23,4,10,2" Height="36" 
+                               SelectChanged="FraccionamientoCombo_SelectChanged"/>
+        <!--<ComboBox Grid.Column="1" Grid.Row="1" x:Name="FraccionamientoCombo" Margin="23,1,23,0" Height="36"/>-->
+        <!--*************************************Estado*************************************-->
+        <TextBlock Grid.Column="1" Text="Estado" FontSize="14" FontWeight="DemiBold"
+                   x:Name="lblEstado" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
+                   Margin="26,0,178,39" Grid.Row="2" Opacity="0" Height="19" Width="42" Grid.RowSpan="2" 
+                   />
+        <cscontrol:CsTextbox Message="Estado" Grid.Column="1" Grid.Row="3"  Width="213"
+                             HorizontalAlignment="Center" Height="36"
+                             x:Name="EstadoBox" 
+                             TextChanged="EstadoBox_TextChanged" Margin="24,3,10,3" IsEnabled="False"/>
+
+        <!--*************************************Municipio*************************************-->
+        <TextBlock Grid.Column="1" Text="Municipio" FontSize="14" FontWeight="DemiBold"
+                   x:Name="lblMunicipio" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
+                    Grid.Row="4" Opacity="0" Margin="26,0,156,39" Grid.RowSpan="2" />
+        <cscontrol:CsTextbox Message="Municipio" Grid.Column="1" Grid.Row="5"  Width="213"
+                             HorizontalAlignment="Center" Height="36" IsEnabled="False"
+                             x:Name="municipioBox" TextChanged="municipioBox_TextChanged" Margin="24,3,10,3"/>
+
+        <!--*************************************Sector*************************************-->
+        <TextBlock Grid.Column="1" Text="Sector" FontSize="14" FontWeight="DemiBold"
+                   x:Name="lblSector" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
+                    Grid.Row="6" Opacity="0" Margin="26,0,179,38" Grid.RowSpan="2"  />
+        <cscontrol:CsTextbox Message="Sector" Grid.Column="1" Grid.Row="7"  Width="83"
+                             HorizontalAlignment="Center" Height="36"
+                             x:Name="sectorBox" Margin="23,4,141,2" TextChanged="sectorBox_TextChanged" />
+
+        <!--*************************************Region*************************************-->
+        <TextBlock Grid.Column="1" Text="Región" FontSize="14" FontWeight="DemiBold"
+                   x:Name="lblRegion" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
+                    Grid.Row="6" Opacity="0" Margin="154,0,49,38" Grid.RowSpan="2"  />
+        <cscontrol:CsTextbox Message="Region" Grid.Column="1" Grid.Row="7"  Width="84"
+                             HorizontalAlignment="Center" Height="36"
+                             x:Name="RegionBox" Margin="153,3,10,3" TextChanged="RegionBox_TextChanged" />
+
+        <!--*************************************Tipo de Vivienda*************************************-->
+        <TextBlock Grid.Column="1" Text="Tipo de Vivienda" FontSize="14" FontWeight="DemiBold"
+                   x:Name="lblTipoViv" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
+                    Grid.Row="8" Opacity="0" Margin="26,0,113,39" Grid.RowSpan="2" />
+        <cscontrol:CsComboBox MessageCombo="Tipo de Vivienda" Grid.Column="1" Grid.Row="9"  Width="211"
+                             HorizontalAlignment="Center" Height="36"
+                             x:Name="tipoVivCombo" Margin="26,3,10,3" SelectChanged="tipoVivCombo_SelectChanged"                                  
+                             />
+        <metro:ProgressRing Foreground="#6cb1e6" 
+                            Grid.Column="1"  Grid.Row="10" Grid.RowSpan="2" 
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            x:Name="Progress"/>
+    </Grid>
+</metro:MetroWindow>
