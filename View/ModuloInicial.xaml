@@ -42,7 +42,10 @@
                 <DoubleAnimation Storyboard.TargetName="lblEstado" 
                                  Storyboard.TargetProperty="Opacity" From="1" To="0.0" Duration="0:0:0.10"/>
             </Storyboard>
-
+            <Storyboard x:Name="ExpandEstadoBox" x:Key="kExpEstadoBox">
+                <DoubleAnimation Storyboard.TargetName="EstadoBox" 
+                                 Storyboard.TargetProperty="Height" From="36" To="28" Duration="0:0:0.10"/>
+            </Storyboard>
             <!--Municipio-->
             <Storyboard x:Name="showMunicipio" x:Key="expandMunicipio">
                 <DoubleAnimation Storyboard.TargetName="lblMunicipio" 
@@ -51,6 +54,10 @@
             <Storyboard x:Name="HideMunicipio" x:Key="hideMunicipio">
                 <DoubleAnimation Storyboard.TargetName="lblMunicipio" 
                                  Storyboard.TargetProperty="Opacity" From="1" To="0.0" Duration="0:0:0.10"/>
+            </Storyboard>
+            <Storyboard x:Name="ExpandMunicipioBox" x:Key="kExpMunicipioBox">
+                <DoubleAnimation Storyboard.TargetName="municipioBox" 
+                                 Storyboard.TargetProperty="Height" From="36" To="28" Duration="0:0:0.10"/>
             </Storyboard>
             <!--Sector-->
             <Storyboard x:Name="showSector" x:Key="expandSector">
@@ -90,7 +97,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Grid IsEnabled="False">
+    <Grid IsEnabled="False" x:Name="GridPrincipal">
         <Grid.RowDefinitions>
             <RowDefinition Height="1.5*"/>
             <RowDefinition Height="2*"/>
@@ -159,9 +166,9 @@
         <TextBlock Grid.Column="1" Text="Sector" FontSize="14" FontWeight="DemiBold"
                    x:Name="lblSector" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
                     Grid.Row="6" Opacity="0" Margin="26,0,179,38" Grid.RowSpan="2"  />
-        <cscontrol:CsTextbox Message="Sector" Grid.Column="1" Grid.Row="7"  Width="83"
+        <cscontrol:CsTextbox Message="Sector" Grid.Column="1" Grid.Row="7"  Width="111"
                              HorizontalAlignment="Center" Height="36"
-                             x:Name="sectorBox" Margin="23,4,141,2" TextChanged="sectorBox_TextChanged" />
+                             x:Name="sectorBox" Margin="23,4,113,2" TextChanged="sectorBox_TextChanged" />
 
         <!--*************************************Region*************************************-->
         <TextBlock Grid.Column="1" Text="Región" FontSize="14" FontWeight="DemiBold"
@@ -169,7 +176,7 @@
                     Grid.Row="6" Opacity="0" Margin="154,0,49,38" Grid.RowSpan="2"  />
         <cscontrol:CsTextbox Message="Region" Grid.Column="1" Grid.Row="7"  Width="84"
                              HorizontalAlignment="Center" Height="36"
-                             x:Name="RegionBox" Margin="153,3,10,3" TextChanged="RegionBox_TextChanged" />
+                             x:Name="RegionBox" Margin="153,4,10,2" TextChanged="RegionBox_TextChanged" />
 
         <!--*************************************Tipo de Vivienda*************************************-->
         <TextBlock Grid.Column="1" Text="Tipo de Vivienda" FontSize="14" FontWeight="DemiBold"
@@ -183,5 +190,8 @@
                             Grid.Column="1"  Grid.Row="10" Grid.RowSpan="2" 
                             HorizontalAlignment="Center" VerticalAlignment="Center"
                             x:Name="Progress"/>
+        <TextBlock x:Name="txtCargando" Grid.Column="1"  Grid.Row="10" Grid.RowSpan="2" 
+                            HorizontalAlignment="Center" VerticalAlignment="Center" Text="Cargando.." FontSize="9"
+                   Foreground="#848484" FontWeight="DemiBold"/>
     </Grid>
 </metro:MetroWindow>

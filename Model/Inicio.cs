@@ -9,12 +9,12 @@ namespace RegimenCondominio.M
     public class Inicio
     {
         //Resultado de Fraccionamientos de consulta SQL
-        private static List<DatosFracc> resultFraccs = new List<DatosFracc>();
+        private static List<DatosFracc> resultFraccs;
 
         //Resultado de Tipo de Viviendas de consulta SQL
-        private static List<DatosTipoViv> resultTipoVivs = new List<DatosTipoViv>();
+        private static List<DatosTipoViv> resultTipoVivs;
 
-        //Palabras que no se envían a mayuscula en Método C.Inicio.FormateString
+        //Palabras que no se envían a mayuscula en Método C.Met_Inicio.FormateString
         private static string[] palabrasOmitiadas = new string[]{
                 "DE",
                 "DEL",
@@ -24,7 +24,10 @@ namespace RegimenCondominio.M
                 "EL"
             };
 
-        #region
+        //Usuario a Mostrar obtenido de sesión de Windows
+        private static string usuario = Environment.UserName.ToUpper();
+
+        #region DatosIniciales
 
         //Fraccionamiento seleccionado en Módulo Inicio
         private static string fraccionamiento;
@@ -152,6 +155,11 @@ namespace RegimenCondominio.M
             {
                 tipoViv = value;
             }
+        }
+
+        public static string Usuario
+        {
+            get { return usuario; }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Windows;
 
@@ -74,6 +75,28 @@ namespace RegimenCondominio.C
             return false;
         }
 
+
+        /// <summary>
+        /// Selects the specified query.
+        /// </summary>
+        /// <param name="query">The query.</param>
+        /// <param name="needle">El caracter que separa las columnas de las filas</param>
+        /// <param name="result">Como parámetro de salida el resultado del query</param>
+        public DataSet SelectTables(string query)
+        {
+            //Inicializo
+            DataSet dtSet = new DataSet();
+            try
+            {
+                SqlDataAdapter sqlAdapter = new SqlDataAdapter(query, this.Connection);                
+                sqlAdapter.Fill(dtSet);               
+            }
+            catch (Exception exc)
+            {
+                Error = exc.Message;
+            }
+            return dtSet;
+        }
 
         public Boolean SelectOne(String query, out string result)
         {

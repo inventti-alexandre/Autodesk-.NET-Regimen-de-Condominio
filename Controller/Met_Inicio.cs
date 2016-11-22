@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace RegimenCondominio.C
 {
-    public class Inicio
+    public class Met_Inicio
     {
         public static string FormateaString(string OracionMayuscula)
         {            
@@ -46,6 +47,19 @@ namespace RegimenCondominio.C
             }
 
             return UnirPalabra.ToString();
+        }
+
+        public static string ReturnRow(DataRow dtRow, char needle)
+        {
+            string row = "";
+            for (int j = 0; j < dtRow.ItemArray.Length; j++)
+            {
+                row += dtRow.ItemArray[j].ToString();
+                if (j != dtRow.ItemArray.Length - 1)
+                    row += needle;
+            }
+
+            return row;
         }
     }
 }

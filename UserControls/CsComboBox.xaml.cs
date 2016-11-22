@@ -103,11 +103,5 @@ namespace RegimenCondominio.Controls
             if (SelectChanged != null)
                 SelectChanged(sender, e);
         }
-
-        private void GenTextbox_Loaded(object sender, RoutedEventArgs e)
-        {
-            
-
-        }
     }
 }

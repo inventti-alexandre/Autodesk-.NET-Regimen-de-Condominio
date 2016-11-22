@@ -143,8 +143,7 @@ namespace RegimenCondominio.Controls
         {
             InitializeComponent();
         }
-
-        public static bool SiControl = false;
+        
         private void textValue_Changed(object sender, TextChangedEventArgs e)
         {
             //Oculto Textblock cuando ya introdujo un caracter
@@ -153,12 +152,15 @@ namespace RegimenCondominio.Controls
             //Si oculte el Textblock, muestro el botón
             if (this.msgTmp.Visibility == Visibility.Hidden)
             {
-                if (textValue.Text.Length > 1)
+                if (textValue.Text.Length == 1)
+                {
                     //Comienzo animación para reducir textbox
                     (this.Resources["kRedBox"] as
                     System.Windows.Media.Animation.Storyboard).Begin();
+                    this.btnClear.Visibility = Visibility.Visible;
 
-                this.btnClear.Visibility = Visibility.Visible;
+                   
+                }
             }
             ///En dado caso que no, debe de permanecer oculto
             else

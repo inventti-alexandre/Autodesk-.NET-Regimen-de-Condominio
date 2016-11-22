@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:RegimenCondominio.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="36" d:DesignWidth="300"
-             x:Name="GenTextbox" Loaded="GenTextbox_Loaded">
+             x:Name="GenTextbox">
     <UserControl.Resources>
         <Storyboard x:Name="ReduceBox" x:Key="kRedBox">
             <DoubleAnimation Storyboard.TargetName="GenTextbox" 
