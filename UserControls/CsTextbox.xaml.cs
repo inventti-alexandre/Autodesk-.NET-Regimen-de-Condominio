@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace RegimenCondominio.Controls
+namespace RegimenCondominio.UserControls
 {
     /// <summary>
     /// Interaction logic for CsTextbox.xaml

@@ -65,8 +65,7 @@ namespace RegimenCondominio.C
         }
 
         private void Bg_DoWork(object sender, DoWorkEventArgs e)
-        {
-            Thread.Sleep(5000);
+        {            
             using (SQL_Connector conn = new SQL_Connector(CONN_STR))
             {
                 try

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RegimenCondominio.Controls
+namespace RegimenCondominio.UserControls
 {
     public enum TextboxInputScope
     {

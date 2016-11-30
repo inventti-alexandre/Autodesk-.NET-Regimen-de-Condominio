@@ -16,7 +16,7 @@ namespace RegimenCondominio
         [CommandMethod("IniciaReg")]
         public void IniciaReg()
         {
-            View.ModuloInicial win = new View.ModuloInicial();
+            V.ModuloInicial win = new V.ModuloInicial();
             Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModelessWindow(win);
         }
 

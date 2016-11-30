@@ -14,8 +14,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.ComponentModel;
 using System.Data;
+using MahApps.Metro.Controls.Dialogs;
 
-namespace RegimenCondominio.View
+namespace RegimenCondominio.V
 {
     /// <summary>
     /// Interaction logic for ModuloInicial.xaml
@@ -74,13 +75,13 @@ namespace RegimenCondominio.View
                     System.Windows.Media.Animation.Storyboard).Begin();
                 
                 //Asigno Municipio
-                EstadoBox.Text = C.Met_Inicio.FormateaString(
+                EstadoBox.Text = C.Met_Inicio.FormatString(
                     M.Inicio.ResultFraccs.
                     Where(i => i.Fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
                     Select(j => j.Estado).FirstOrDefault().ToString());
 
 
-                municipioBox.Text = C.Met_Inicio.FormateaString(
+                municipioBox.Text = C.Met_Inicio.FormatString(
                     M.Inicio.ResultFraccs.
                     Where(i => i.Fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
                     Select(j => j.Municipio).FirstOrDefault().ToString());
@@ -150,11 +151,42 @@ namespace RegimenCondominio.View
 
         #endregion
 
+        private void btnSiguiente_Click(object sender, RoutedEventArgs e)
+        {
+            //Reviso que no haya valores nulos, espacios en blanco o 
+            if(
+                !string.IsNullOrWhiteSpace((FraccionamientoCombo.SelectedItem ?? "").ToString()) //Fraccionamiento
+                && !string.IsNullOrWhiteSpace((EstadoBox.Text ?? "").ToString())//Estado
+                && !string.IsNullOrWhiteSpace((municipioBox.Text ?? "").ToString())//Municipio
+                && !string.IsNullOrWhiteSpace((RegionBox.Text ?? "").ToString()) //Region
+                && !string.IsNullOrWhiteSpace((sectorBox.Text ?? "").ToString())//Sector
+                && !string.IsNullOrWhiteSpace((tipoVivCombo.SelectedItem ?? "").ToString()) //FraccionamientoCombo
+              )
+            {
+                //Asigno Valores seleccionados
+                M.Inicio.Fraccionamiento = FraccionamientoCombo.SelectedItem.ToString();                
+                M.Inicio.Estado = EstadoBox.Text;
+                M.Inicio.Municipio = municipioBox.Text;
+                M.Inicio.Region = RegionBox.Text;
+                M.Inicio.Sector = sectorBox.Text;
+                M.Inicio.TipoViv = tipoVivCombo.SelectedItem.ToString();
+
+                ModuloManzana M_Manzana = new ModuloManzana();
+                M_Manzana.Show();
+                this.Close();
+
+            }
+            else
+            {
+                this.ShowMessageAsync("Valores en Blanco", "Favor de llenar todos los campos");
+            }
+        }
+
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
 
             //Usuario de sesión de Windows.
-            Usuariotxt.Text = M.Inicio.Usuario;
+            Usuariotxt.Text = M.ConstantValues.Usuario;
 
             //Si ya se había ejecutado anteriormente, sólo carga la información
             if (M.Inicio.ResultFraccs != null && M.Inicio.ResultTipoVivs != null)
@@ -162,22 +194,44 @@ namespace RegimenCondominio.View
                 //Si la lista contiene fraccionamientos
                 if (M.Inicio.ResultFraccs.Count > 0)
                     FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs.
-                                            Select(x => C.Met_Inicio.FormateaString(x.Fraccionamiento)).ToList();
+                                            Select(x => C.Met_Inicio.FormatString(x.Fraccionamiento)).ToList();
 
                 //Si la lista contiene Tipo de Viviendas
                 if (M.Inicio.ResultTipoVivs.Count > 0)
                     tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
-                                            Select(x => C.Met_Inicio.FormateaString(x.NombreTipoViv)).ToList();
+                                            Select(x => C.Met_Inicio.FormatString(x.NombreTipoViv)).ToList();
+
+                //Despliego datos
+                ShowLoaded();
             }
             else
             {
-                //Cargo Fraccionamientos ejecutando consulta a BD
+                //Obtengo Fraccionamientos ejecutando consulta a BD
                 new C.SqlTransaction(null, LoadDataTask, DataLoaded).Run();
             }
 
         }
 
-        #region CargaDatos
+
+        private void ShowLoaded()
+        {
+            //Envío a visible Nombre de Usuario, Logo
+            Usuariotxt.Visibility = Visibility.Visible;
+            Logo.Visibility = Visibility.Visible;
+            btnSiguiente.Visibility = Visibility.Visible;
+
+            //Oculto el progress Ring
+            Progress.Visibility = Visibility.Collapsed;
+            txtCargando.Visibility = Visibility.Collapsed;
+
+            //Habilito Grid
+            GridPrincipal.IsEnabled = true;
+        }
+        #region CargaDatos        
+        /// <summary>
+        /// Datos obtenidos de la consulta realizada
+        /// </summary>
+        /// <param name="result">Resultado de consulta, en este caso es un DataSet</param>
         private void DataLoaded(object result)
         {
             //Convierto a DtSet lo obtenido desde la BD
@@ -201,7 +255,7 @@ namespace RegimenCondominio.View
                     //Por cada renglon ingreso 
                     foreach(DataRow dtrow in Table.Rows)
                     {
-                        string row = C.Met_Inicio.ReturnRow(dtrow, separator);
+                        string row = C.Met_Inicio.ReturnFormatRow(dtrow, separator);
 
                         string[] cell = row.Split(separator);
 
@@ -219,7 +273,7 @@ namespace RegimenCondominio.View
                 {
                     foreach (DataRow dtrow in Table.Rows)
                     {
-                        string row = C.Met_Inicio.ReturnRow(dtrow, separator);
+                        string row = C.Met_Inicio.ReturnFormatRow(dtrow, separator);
 
                         //Divido los renglones con celda
                         string[] cell = row.Split(separator);
@@ -238,26 +292,23 @@ namespace RegimenCondominio.View
             //Si la lista contiene fraccionamientos
             if (M.Inicio.ResultFraccs.Count > 0)
                 FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs.
-                                        Select(x => C.Met_Inicio.FormateaString(x.Fraccionamiento)).ToList();
+                                        Select(x => C.Met_Inicio.FormatString(x.Fraccionamiento)).ToList();
 
             //Si la lista contiene Tipo de Viviendas
             if (M.Inicio.ResultTipoVivs.Count > 0)
                 tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
-                                        Select(x => C.Met_Inicio.FormateaString(x.NombreTipoViv)).ToList();
+                                        Select(x => C.Met_Inicio.FormatString(x.NombreTipoViv)).ToList();
 
-            //Envío a visible Nombre de Usuario, Logo
-            Usuariotxt.Visibility = Visibility.Visible;
-            Logo.Visibility = Visibility.Visible;
-            btnSiguiente.Visibility = Visibility.Visible;
-
-            //Oculto el progress Ring
-            Progress.Visibility = Visibility.Collapsed;
-            txtCargando.Visibility = Visibility.Collapsed;
-
-            //Habilito Grid
-            GridPrincipal.IsEnabled = true;                
+            ShowLoaded();              
         }
 
+        /// <summary>
+        /// Realiza la consulta a la BD mediante BGWorker
+        /// </summary>
+        /// <param name="conn">conexión</param>
+        /// <param name="input">input.</param>
+        /// <param name="bg">bg.</param>
+        /// <returns></returns>
         private object LoadDataTask(C.SQL_Connector conn, object input, BackgroundWorker bg)
         {            
             return conn.SelectTables(string.Format(Config.DB.QueryInicio, Environment.UserName.ToUpper()));                             

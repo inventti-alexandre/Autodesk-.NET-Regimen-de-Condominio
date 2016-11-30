@@ -14,18 +14,6 @@ namespace RegimenCondominio.M
         //Resultado de Tipo de Viviendas de consulta SQL
         private static List<DatosTipoViv> resultTipoVivs;
 
-        //Palabras que no se envían a mayuscula en Método C.Met_Inicio.FormateString
-        private static string[] palabrasOmitiadas = new string[]{
-                "DE",
-                "DEL",
-                "LA",
-                "LAS",
-                "LOS",
-                "EL"
-            };
-
-        //Usuario a Mostrar obtenido de sesión de Windows
-        private static string usuario = Environment.UserName.ToUpper();
 
         #region DatosIniciales
 
@@ -71,13 +59,6 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static string[] PalabrasOmitiadas
-        {
-            get
-            {
-                return palabrasOmitiadas;
-            }
-        }
 
         public static string Fraccionamiento
         {
@@ -157,9 +138,6 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static string Usuario
-        {
-            get { return usuario; }
-        }
+        
     }
 }

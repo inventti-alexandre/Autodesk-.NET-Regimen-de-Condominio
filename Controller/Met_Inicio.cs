@@ -9,7 +9,7 @@ namespace RegimenCondominio.C
 {
     public class Met_Inicio
     {
-        public static string FormateaString(string OracionMayuscula)
+        public static string FormatString(string OracionMayuscula)
         {            
             StringBuilder UnirPalabra = new StringBuilder();
 
@@ -26,7 +26,7 @@ namespace RegimenCondominio.C
                     Palabra = Palabra.ToLower();
 
                     //Obtengo la inicial 
-                    if (Array.IndexOf(M.Inicio.PalabrasOmitiadas, Palabra.ToUpper()) == -1//Que no se encuentre dentro del array
+                    if (Array.IndexOf(M.ConstantValues.PalabrasOmitiadas, Palabra.ToUpper()) == -1//Que no se encuentre dentro del array
                         || i == 0)//O que sea la primera palabra
                     {
                         string Inicial = Palabra[0].ToString();
@@ -49,7 +49,7 @@ namespace RegimenCondominio.C
             return UnirPalabra.ToString();
         }
 
-        public static string ReturnRow(DataRow dtRow, char needle)
+        public static string ReturnFormatRow(DataRow dtRow, char needle)
         {
             string row = "";
             for (int j = 0; j < dtRow.ItemArray.Length; j++)
