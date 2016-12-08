@@ -21,7 +21,6 @@
                          />
             <Image x:Key="NextBtn" Source="pack://application:,,,/RegimenCondominio;component/Images/GoNext.png" Width="60" Height="60" 
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
             <!--ACCENT COLORS-->
             <SolidColorBrush x:Key="HighlightBrush" Color="#00897B"/>
             <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#90caf9" />
@@ -134,11 +133,10 @@
         <TextBlock Text="USER" Grid.Row="1" HorizontalAlignment="Center" FontFamily="Calibri"  TextAlignment="Center"
                    FontWeight="Bold" Foreground="#00897B" x:Name="Usuariotxt" Visibility="Collapsed"
                     Grid.RowSpan="4" Width="98" Margin="0,18,0,3" />
-        <Image Source="/Images/JaverLogo2016.png" Visibility="Collapsed"
+        <Image Source="pack://application:,,,/RegimenCondominio;component/Images/JaverLogo2016.png" Visibility="Collapsed"
                Grid.ColumnSpan="2"  Grid.Row="10" Width="170" Height="42" 
                x:Name="Logo" Stretch="Fill" Margin="20,27,156,26"
                 />
-
 
         <!--*************************************Fraccionamiento*************************************-->
         <TextBlock Grid.Column="1" Text="Fraccionamiento" FontSize="14" FontWeight="DemiBold"
@@ -147,7 +145,7 @@
                    Opacity="0" Grid.RowSpan="2"/>
         <cscontrol:CsComboBox  Grid.Column="1" Grid.Row="1" MessageCombo="Fraccionamiento"
                              x:Name="FraccionamientoCombo" Margin="23,4,10,2" Height="36" 
-                               SelectChanged="FraccionamientoCombo_SelectChanged"/>
+                               SelectChanged="FraccionamientoCombo_SelectChanged" />
         <!--<ComboBox Grid.Column="1" Grid.Row="1" x:Name="FraccionamientoCombo" Margin="23,1,23,0" Height="36"/>-->
         <!--*************************************Estado*************************************-->
         <TextBlock Grid.Column="1" Text="Estado" FontSize="14" FontWeight="DemiBold"

@@ -20,7 +20,7 @@
         <Grid>
             <TextBlock x:Name="msgTmp" Text="" Foreground="Gray"
                        TextAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
-            <TextBox x:Name="textValue" Margin="8,0,30,0" BorderThickness="0" VerticalAlignment="Center" Background="Transparent"
+            <TextBox x:Name="textValue" Margin="8,8,18,8" BorderThickness="0" VerticalAlignment="Center" Background="Transparent"
                      TextChanged="textValue_Changed" PreviewTextInput="input_validate"/>
             <Button x:Name="btnClear" Content="x" HorizontalAlignment="Right" VerticalAlignment="Center" BorderBrush="Transparent"
                     Background="Transparent" Visibility="Collapsed"

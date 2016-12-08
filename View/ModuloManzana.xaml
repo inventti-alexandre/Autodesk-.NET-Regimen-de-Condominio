@@ -26,17 +26,19 @@
             <Image x:Key="Avanzar" Source="pack://application:,,,/RegimenCondominio;component/Images/NewGoNext.png" 
                    Width="40" Height="45"
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <Image x:Key="AddC" Source="pack://application:,,,/RegimenCondominio;component/Images/RedLightCAdd.png" 
-                   
+            <Image x:Key="AddC" Source="pack://application:,,,/RegimenCondominio;component/Images/RedLightCAdd.png"                    
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Image x:Key="Edit" Source="pack://application:,,,/RegimenCondominio;component/Images/Edit.png"                    
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
             <!--ACCENT COLORS-->
             <SolidColorBrush x:Key="HighlightBrush" Color="#00897B"/>
             <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#00897B" />
-            <!--
-                <SolidColorBrush x:Key="AccentColorBrush" Color="#00897B" />
-                <SolidColorBrush x:Key="AccentColorBrush2" Color="#00897B" />
-                <SolidColorBrush x:Key="AccentColorBrush3" Color="#00897B" />
-                <SolidColorBrush x:Key="AccentColorBrush4" Color="#00897B"/> -->
+
+            <SolidColorBrush x:Key="AccentColorBrush" Color="#6cb1e6" />
+            <SolidColorBrush x:Key="AccentColorBrush2" Color="#6cb1e6" />
+            <SolidColorBrush x:Key="AccentColorBrush3" Color="#6cb1e6" />
+            <SolidColorBrush x:Key="AccentColorBrush4" Color="#6cb1e6"/>
 
             <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#00897B" />
 
@@ -86,17 +88,21 @@
                         HorizontalAlignment="Center" x:Name="btnSelManzana" Click="btnSelManzana_Click"
                         VerticalAlignment="Center"  Grid.Row="1" Width="80" Margin="6,3,5,4" Grid.Column="1"/>
                 <TextBlock Text="No. de Manzana:" Grid.Row="1" Grid.Column="2" Height="20" FontWeight="DemiBold" 
-                           Margin="0,14,0,46" FontSize="12" />
+                           Margin="0,10,0,50" FontSize="12" />
                 <TextBlock Text="No Asignado" Grid.Row="1" Grid.Column="3" Height="20" FontWeight="DemiBold" 
-                           Margin="0,14,0,46" FontSize="12" Foreground="Red"/>
+                           Margin="0,10,0,50" FontSize="12" Foreground="Red" x:Name="ResManzana"/>
                 <TextBlock Text="Rumbo de Frente: " Grid.Row="1" Grid.Column="2" Height="20" FontWeight="DemiBold" 
                            Margin="0,45,0,15" FontSize="12"/>
-                <cscontrol:CsComboBox Grid.Row="1" Grid.Column="3"
-                	    Focusable="False" x:Name="CmbRumboFrente" IsEnabled="False"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" 
-                        Height="25"  Width="124" Margin="0,40,48,15" />
-                <CheckBox Grid.Row="1" Grid.Column="3" HorizontalAlignment="Right" 
-                          Height="25" Width="21" Margin="0,39,22,16"/>
+
+                <Border Grid.Row="1" Grid.Column="3" HorizontalAlignment="Left"
+                            Height="25"  Width="124" Margin="0,40,0,15" CornerRadius="4" BorderBrush="LightGray"
+                        BorderThickness="1">
+                    <ComboBox Grid.Row="1" Grid.Column="3"
+                	        Focusable="False" x:Name="CmbRumboFrente" IsEnabled="True"
+                            SelectionChanged="CmbRumboFrente_SelectChanged"
+                            Width="123" BorderBrush="Transparent" BorderThickness="0"/>
+                    <!--SelectChanged="CmbRumboFrente_SelectChanged"-->
+                </Border>
             </Grid>
         </Border>
         <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="17,5" 
@@ -111,34 +117,48 @@
                         HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
                         Width="90">
                     <TextBlock Text="2. Colindancias" 
-                           FontWeight="Bold" Foreground="LightGray" />
+                           FontWeight="Bold" Foreground="LightGray" x:Name="TituloColindancia"/>
                 </Border>
-                <cscontrol:CsComboBox  MessageCombo="Este" HorizontalAlignment="Left" VerticalAlignment="Center"
-                              Width="104"
-                             FontWeight="DemiBold" Margin="234,37,0,162" Height="29" Grid.RowSpan="2"/>
-                <Button Content="{StaticResource AddC}" Focusable="False" BorderBrush="Transparent" BorderThickness="0"
+                <cscontrol:CsTextbox  HorizontalAlignment="Left" VerticalAlignment="Center"
+                              Width="96" x:Name="txtColindancia" Message="Rumbo" IsEnabled="False" Foreground="Black"
+                             FontWeight="Bold" Margin="141,40,0,161" Height="27" Grid.RowSpan="2"/>
+                <cscontrol:CsNormalCombo MessageCombo2="Tipo"  Width="96" x:Name="cmbTipo"
+                                              BorderThickness="1" Margin="242,38,60,161" Grid.RowSpan="2"/>
+                <!--SelectChanged="CmbRumboFrente_SelectChanged"-->
+                <!--Botón Agregar a Tabla-->
+                <Button Content="{StaticResource AddC}" Focusable="False" 
+                        BorderBrush="Transparent" BorderThickness="0"
                         Background="Transparent"  Width="40" Height="40" 
+                        Click="btnAdd_Click" x:Name="btnAdd"
                         Margin="338,32,24,156" Grid.RowSpan="2"/>
                 <Border Grid.Row="1" Height="150" Width="350"
                            HorizontalAlignment="Center" CornerRadius="3" BorderBrush="LightGray" BorderThickness="1">
                     <ListView Grid.Row="1" Background="WhiteSmoke" Height="150" Width="350"
-                          x:Name="ListPrincipal" HorizontalAlignment="Center" BorderBrush="Transparent" BorderThickness="0">
+                          x:Name="ListPrincipal" HorizontalAlignment="Center" 
+                              BorderBrush="Transparent" BorderThickness="0">
                         <ListView.View>
                             <GridView x:Name="GridPrinc">
-                                <GridViewColumn Width="60">
-                                    <GridViewColumnHeader IsHitTestVisible="False">
+                                <!--RUMBO DGV-->
+                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding RumboActual}">
+                                    <GridViewColumnHeader IsHitTestVisible="False" BorderBrush="LightGray"
+                                                          BorderThickness="1">
                                         <TextBlock Text="Rumbo"></TextBlock>
                                     </GridViewColumnHeader>
                                 </GridViewColumn>
-                                <GridViewColumn Width="90">
-                                    <GridViewColumnHeader IsHitTestVisible="False">
-                                        <TextBlock Text="Tipo"></TextBlock>
+
+                                <!--COLINDANCIA DGV-->
+                                <GridViewColumn Width="277">
+                                    <GridViewColumnHeader IsHitTestVisible="False" BorderBrush="LightGray"
+                                                          BorderThickness="1">
+                                        <TextBlock Text="Colindancia"/>
                                     </GridViewColumnHeader>
-                                </GridViewColumn>
-                                <GridViewColumn Width="200">
-                                    <GridViewColumnHeader IsHitTestVisible="False">
-                                        <TextBlock Text="Colindancia"></TextBlock>
-                                    </GridViewColumnHeader>
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock TextDecorations="Underline" Cursor="Hand"
+                                               MouseLeftButtonUp="TextBlock_MouseLeftButtonUp" Text="{Binding TextPlano}"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+
                                 </GridViewColumn>
                             </GridView>
                         </ListView.View>

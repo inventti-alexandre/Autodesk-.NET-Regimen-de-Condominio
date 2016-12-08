@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RegimenCondominio.C
 {
-    public class Met_Inicio
+    public class Met_General
     {
         public static string FormatString(string OracionMayuscula)
         {            
@@ -26,15 +26,19 @@ namespace RegimenCondominio.C
                     Palabra = Palabra.ToLower();
 
                     //Obtengo la inicial 
-                    if (Array.IndexOf(M.ConstantValues.PalabrasOmitiadas, Palabra.ToUpper()) == -1//Que no se encuentre dentro del array
+                    if (Array.IndexOf(M.ConstantValues.PalabrasOmitidas, Palabra.ToUpper()) == -1//Que no se encuentre dentro del array
                         || i == 0)//O que sea la primera palabra
                     {
+                        //Obtengo primer caracter
                         string Inicial = Palabra[0].ToString();
 
+                        //Envio a mayuscula
                         Inicial = Inicial.ToUpper();
 
+                        //Remuevo primer caracter
                         Palabra = Palabra.Remove(0, 1);
 
+                        //Uno nuevamente el caracter con mayuscula
                         Palabra = Inicial + Palabra;
 
                     }
@@ -61,5 +65,6 @@ namespace RegimenCondominio.C
 
             return row;
         }
+
     }
 }

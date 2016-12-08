@@ -75,13 +75,13 @@ namespace RegimenCondominio.V
                     System.Windows.Media.Animation.Storyboard).Begin();
                 
                 //Asigno Municipio
-                EstadoBox.Text = C.Met_Inicio.FormatString(
+                EstadoBox.Text = C.Met_General.FormatString(
                     M.Inicio.ResultFraccs.
                     Where(i => i.Fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
                     Select(j => j.Estado).FirstOrDefault().ToString());
 
 
-                municipioBox.Text = C.Met_Inicio.FormatString(
+                municipioBox.Text = C.Met_General.FormatString(
                     M.Inicio.ResultFraccs.
                     Where(i => i.Fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
                     Select(j => j.Municipio).FirstOrDefault().ToString());
@@ -194,12 +194,12 @@ namespace RegimenCondominio.V
                 //Si la lista contiene fraccionamientos
                 if (M.Inicio.ResultFraccs.Count > 0)
                     FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs.
-                                            Select(x => C.Met_Inicio.FormatString(x.Fraccionamiento)).ToList();
+                                            Select(x => C.Met_General.FormatString(x.Fraccionamiento)).ToList();
 
                 //Si la lista contiene Tipo de Viviendas
                 if (M.Inicio.ResultTipoVivs.Count > 0)
                     tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
-                                            Select(x => C.Met_Inicio.FormatString(x.NombreTipoViv)).ToList();
+                                            Select(x => C.Met_General.FormatString(x.NombreTipoViv)).ToList();
 
                 //Despliego datos
                 ShowLoaded();
@@ -255,7 +255,7 @@ namespace RegimenCondominio.V
                     //Por cada renglon ingreso 
                     foreach(DataRow dtrow in Table.Rows)
                     {
-                        string row = C.Met_Inicio.ReturnFormatRow(dtrow, separator);
+                        string row = C.Met_General.ReturnFormatRow(dtrow, separator);
 
                         string[] cell = row.Split(separator);
 
@@ -273,7 +273,7 @@ namespace RegimenCondominio.V
                 {
                     foreach (DataRow dtrow in Table.Rows)
                     {
-                        string row = C.Met_Inicio.ReturnFormatRow(dtrow, separator);
+                        string row = C.Met_General.ReturnFormatRow(dtrow, separator);
 
                         //Divido los renglones con celda
                         string[] cell = row.Split(separator);
@@ -292,12 +292,12 @@ namespace RegimenCondominio.V
             //Si la lista contiene fraccionamientos
             if (M.Inicio.ResultFraccs.Count > 0)
                 FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs.
-                                        Select(x => C.Met_Inicio.FormatString(x.Fraccionamiento)).ToList();
+                                        Select(x => C.Met_General.FormatString(x.Fraccionamiento)).ToList();
 
             //Si la lista contiene Tipo de Viviendas
             if (M.Inicio.ResultTipoVivs.Count > 0)
                 tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
-                                        Select(x => C.Met_Inicio.FormatString(x.NombreTipoViv)).ToList();
+                                        Select(x => C.Met_General.FormatString(x.NombreTipoViv)).ToList();
 
             ShowLoaded();              
         }

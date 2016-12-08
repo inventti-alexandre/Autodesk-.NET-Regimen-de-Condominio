@@ -22,16 +22,29 @@ namespace RegimenCondominio.M
         private static string usuario = Environment.UserName.ToUpper();
 
         //Orientaciones disponibles en Módulo Manzana
-        private static List<string> orientaciones = new List<string>()
+        private static string[,] orientaciones = new string[,]
         {
-           "Norte",
-           "Este",
-           "Sur",
-           "Oeste"
+           { "Norte",   "N"},//0,0 - 0,1 -
+           { "Este",   "E"},//1,0 - 1,1
+           { "Sur",  "S"},//2,0 - 2,1
+           { "Oeste",  "O"},//3,0 - 3,1
+           { "Noreste", "NE" },//4,0 - 4,1
+           { "Sureste", "SE" },//5,0 - 5,1
+           { "Suroeste", "SO"},//6,0 - 6,1
+           { "Noroeste", "NO" },//7,0 - 7,1
         };
 
 
-        public static string[] PalabrasOmitiadas
+        private static List<string> tipoColindancias = new List<string>()
+        {
+            "Calle",
+            "Otro..."
+        };
+        //Layer Manzana
+        private static string layerManzana = "MANZANA";
+
+
+        public static string[] PalabrasOmitidas
         {
             get
             {
@@ -44,11 +57,32 @@ namespace RegimenCondominio.M
             get { return usuario; }
         }
 
-        public static List<string> Orientaciones
+        public static string[,] Orientaciones
         {
             get
             {
                 return orientaciones;
+            }
+        }
+
+        public static string LayerManzana
+        {
+            get
+            {
+                return layerManzana;
+            }
+        }
+
+        public static List<string> TipoColindancias
+        {
+            get
+            {
+                return tipoColindancias;
+            }
+
+            set
+            {
+                tipoColindancias = value;
             }
         }
     }
