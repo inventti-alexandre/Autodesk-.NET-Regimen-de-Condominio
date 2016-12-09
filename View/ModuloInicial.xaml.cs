@@ -201,8 +201,23 @@ namespace RegimenCondominio.V
                     tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
                                             Select(x => C.Met_General.FormatString(x.NombreTipoViv)).ToList();
 
-                //Despliego datos
-                ShowLoaded();
+                //Habilito los controles
+                ShowControls();
+
+                FraccionamientoCombo.SelectedItem = !string.IsNullOrWhiteSpace(M.Inicio.Fraccionamiento)
+                                                            ? M.Inicio.Fraccionamiento : null;
+
+                //Si ya cuenta con datos los selecciono en la Pantalla--------------------------------
+                RegionBox.Text = !string.IsNullOrWhiteSpace(M.Inicio.Region)
+                                    ? M.Inicio.Region : "";
+
+                sectorBox.Text = !string.IsNullOrWhiteSpace(M.Inicio.Sector)
+                                    ? M.Inicio.Sector : "";
+
+                tipoVivCombo.SelectedItem = !string.IsNullOrWhiteSpace(M.Inicio.TipoViv)
+                                                            ? M.Inicio.TipoViv : null;
+                //------------------------------------------------------------------------------------
+
             }
             else
             {
@@ -213,7 +228,7 @@ namespace RegimenCondominio.V
         }
 
 
-        private void ShowLoaded()
+        private void ShowControls()
         {
             //Envío a visible Nombre de Usuario, Logo
             Usuariotxt.Visibility = Visibility.Visible;
@@ -299,7 +314,8 @@ namespace RegimenCondominio.V
                 tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
                                         Select(x => C.Met_General.FormatString(x.NombreTipoViv)).ToList();
 
-            ShowLoaded();              
+            //Desbloqueo controles
+            ShowControls();              
         }
 
         /// <summary>

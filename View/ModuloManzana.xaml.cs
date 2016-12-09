@@ -15,6 +15,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Resources;
 using System.Windows.Shapes;
 
 namespace RegimenCondominio.V
@@ -40,7 +41,7 @@ namespace RegimenCondominio.V
         {
             CmbRumboFrente.ItemsSource = C.Met_Manzana.DespliegoOrientaciones();
 
-            cmbTipo.ItemsSource = M.ConstantValues.TipoColindancias;
+            cmbTipo.ItemsSource = M.ConstantValues.TipoColindancias;            
         }
 
         private void btnSelManzana_Click(object sender, RoutedEventArgs e)
@@ -105,7 +106,14 @@ namespace RegimenCondominio.V
                         ListPrincipal.Items.Clear();
 
                         //Asigno nuevamente
-                        AsignaOrientaciones(CmbRumboFrente.SelectedItem.ToString());                        
+                        AsignaOrientaciones(CmbRumboFrente.SelectedItem.ToString());
+
+                        //Bloqueo el combo de Colindancias nuevamente
+                        cmbColindancia.IsEnabled = false;
+
+                        //Cambio el Fondo
+                        btnAdd.Content = FindResource("AddC");
+
                     }
                     else
                     {
@@ -140,41 +148,93 @@ namespace RegimenCondominio.V
                 C.Met_Manzana.OrientacionFrente(RumboFrente);
 
             //Asigno la primera orientación
-            txtColindancia.Text = M.Manzana.CalcOrientaciones[0];
+            cmbColindancia.ItemsSource = M.Manzana.CalcOrientaciones;
+
+            cmbColindancia.SelectedIndex = 0;
         }
 
         private void btnAdd_Click(object sender, RoutedEventArgs e)
-        {
-            //ListPrincipal.Items.Add(txtColindancia.Text);
+        {            
 
             ObjectId idCol = new ObjectId();
 
+            string ColindanciaActual = (cmbColindancia.SelectedItem ?? "").ToString();
+
             this.WindowState = WindowState.Minimized;
-            if (C.Met_Autodesk.Entity("Selecciona la colindancia al " + txtColindancia.Text + "\n",
-                out idCol, typeof(DBText)))
+
+            //Si ya se selecciono algo en el combobox de tipo
+            if (cmbTipo.SelectedIndex != -1)
             {
-                M.DatosColindancia dc = new M.DatosColindancia()
+                //Solicito que me hagan saber el texto que colinda
+                if (C.Met_Autodesk.Entity("Selecciona la colindancia al " + ColindanciaActual + "\n",
+                    out idCol, typeof(DBText)))
                 {
-                    RumboActual = (M.ConstantValues.Orientaciones
-                                        [C.Met_Manzana.ObtengoPosicion(txtColindancia.Text, 0), 1]),
-                    TextPlano = C.Met_General.FormatString((C.Met_Autodesk.AbrirEntidad(idCol) as DBText).TextString)
-                };
+                    //Obtengo el Texto seleccionado en el plano
+                    string Colindancia = C.Met_General.FormatString((C.Met_Autodesk.AbrirEntidad(idCol) as DBText).TextString);
 
-                ListPrincipal.Items.Add(dc);
+                    //Modelo los datos
+                    M.DatosColindancia dc = new M.DatosColindancia()
+                    {
+                        RumboActual = (M.ConstantValues.Orientaciones
+                                            [C.Met_Manzana.ObtengoPosicion(ColindanciaActual, 0), 1]),
+                        TextPlano = cmbTipo.SelectedIndex > 0 ? Colindancia : "calle " + Colindancia
+                    };                    
 
-                int sigPosicion = C.Met_Manzana.ObtengoPosicion(txtColindancia.Text, M.Manzana.CalcOrientaciones) + 1;
+                    if (ListPrincipal.Items.Count < M.Manzana.CalcOrientaciones.Count)
+                    {
+                        //Agrego el dato a la lista
+                        ListPrincipal.Items.Add(dc);
+                        
+                        //Obtengo la siguiente orientación
+                        int sigPosicion = C.Met_Manzana.ObtengoPosicion(ColindanciaActual,
+                            M.Manzana.CalcOrientaciones) + 1;
 
-                if (ListPrincipal.Items.Count < M.Manzana.CalcOrientaciones.Count)
-                {
-                    string sigRumbo = M.Manzana.CalcOrientaciones[sigPosicion];
+                        if (sigPosicion < M.Manzana.CalcOrientaciones.Count)
+                        {
+                            //Obtengo el siguiente rumbo
+                            string sigRumbo = M.Manzana.CalcOrientaciones[sigPosicion];
 
-                    txtColindancia.Text = sigRumbo;
+                            //Cambio el rumbo en el combobox
+                            cmbColindancia.SelectedItem = sigRumbo;
+                        }
+                        else
+                        {
+                            //Cambio el Fondo
+                            btnAdd.Content = FindResource("Edit");
+
+                            //Activo el combo de Colindancia
+                            cmbColindancia.IsEnabled = true;
+                        }
+                    }
+                    else
+                    {
+                        
+                        string LetrasRumbo = (M.ConstantValues.Orientaciones
+                                            [C.Met_Manzana.ObtengoPosicion(ColindanciaActual, 0), 1]);
+
+                        
+                        for (int i=0; i < ListPrincipal.Items.Count; i++)
+                        {
+                            //Modifico el item con la nueva colindancia
+                            if ((ListPrincipal.Items[i] as M.DatosColindancia).RumboActual == LetrasRumbo)
+                            {
+                                ListPrincipal.Items[i] = new M.DatosColindancia()
+                                {
+                                    RumboActual = LetrasRumbo,
+                                    TextPlano = cmbTipo.SelectedIndex > 0 ? Colindancia : "calle " + Colindancia
+                                };
+                                break;
+                            }
+                        }
+                    }
+
                 }
-                else
-                    btnAdd.IsEnabled = false;
-               
             }
-
+            else
+            {
+                this.ShowMessageAsync("Datos no seleccionados",
+                        "Favor de seleccionar Tipo de Colindancia");
+            }            
             this.WindowState = WindowState.Normal;
 
         }

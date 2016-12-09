@@ -119,8 +119,8 @@
                     <TextBlock Text="2. Colindancias" 
                            FontWeight="Bold" Foreground="LightGray" x:Name="TituloColindancia"/>
                 </Border>
-                <cscontrol:CsTextbox  HorizontalAlignment="Left" VerticalAlignment="Center"
-                              Width="96" x:Name="txtColindancia" Message="Rumbo" IsEnabled="False" Foreground="Black"
+                <cscontrol:CsNormalCombo HorizontalAlignment="Left" VerticalAlignment="Center"
+                              Width="96" x:Name="cmbColindancia" MessageCombo2="Rumbo" IsEnabled="False" Foreground="Black"
                              FontWeight="Bold" Margin="141,40,0,161" Height="27" Grid.RowSpan="2"/>
                 <cscontrol:CsNormalCombo MessageCombo2="Tipo"  Width="96" x:Name="cmbTipo"
                                               BorderThickness="1" Margin="242,38,60,161" Grid.RowSpan="2"/>
@@ -131,7 +131,7 @@
                         Background="Transparent"  Width="40" Height="40" 
                         Click="btnAdd_Click" x:Name="btnAdd"
                         Margin="338,32,24,156" Grid.RowSpan="2"/>
-                <Border Grid.Row="1" Height="150" Width="350"
+                <Border Grid.Row="1" Height="140" Width="350"
                            HorizontalAlignment="Center" CornerRadius="3" BorderBrush="LightGray" BorderThickness="1">
                     <ListView Grid.Row="1" Background="WhiteSmoke" Height="150" Width="350"
                           x:Name="ListPrincipal" HorizontalAlignment="Center" 
@@ -154,8 +154,7 @@
                                     </GridViewColumnHeader>
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock TextDecorations="Underline" Cursor="Hand"
-                                               MouseLeftButtonUp="TextBlock_MouseLeftButtonUp" Text="{Binding TextPlano}"/>
+                                            <TextBlock Text="{Binding TextPlano}"/>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
 
