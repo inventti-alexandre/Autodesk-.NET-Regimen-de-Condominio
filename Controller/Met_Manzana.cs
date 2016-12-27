@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Autodesk.AutoCAD.DatabaseServices;
 
 namespace RegimenCondominio.C
 {
-    public class Met_Manzana
+    public static class Met_Manzana
     {
         /// <summary>
         /// Obtengo la lista de acuerdo a Rumbo de Frente
@@ -16,13 +17,13 @@ namespace RegimenCondominio.C
         /// <param name="RumboFrente">Rumbo de Frente de Manzana</param>
         /// <returns>Lista de Rumbo</returns>
         public static List<string> OrientacionFrente(string RumboFrente)
-        {            
+        {
             List<string> OrientacionesFinales = new List<string>();
 
             int PrimerDimension = ObtengoPosicion(RumboFrente, 0);
 
             //Obtengo tipo de orientación (0 o 1)
-            int TipoOrientacion = (M.ConstantValues.Orientaciones[PrimerDimension, 1]).Count();
+            int TipoOrientacion = (M.Constant.Orientaciones[PrimerDimension, 1]).Count();
 
             List<string> l = Obtengolista(TipoOrientacion);
 
@@ -42,9 +43,9 @@ namespace RegimenCondominio.C
 
             do
             {
-                ValorActual = M.ConstantValues.Orientaciones[PrimerDimension, DimensionEstatica];
+                ValorActual = M.Constant.Orientaciones[PrimerDimension, DimensionEstatica];
 
-                if (PrimerDimension + 1 <= M.ConstantValues.Orientaciones.GetLength(DimensionEstatica))
+                if (PrimerDimension + 1 <= M.Constant.Orientaciones.GetLength(DimensionEstatica))
                     PrimerDimension++;
             }
             while (ValorComparar != ValorActual);
@@ -52,17 +53,20 @@ namespace RegimenCondominio.C
             return PrimerDimension - 1;
         }
 
-        public static int ObtengoPosicion(string ValorComparar, List<string> listColindancia)
-        {            
-            int PrimerDimension = -1;
-
-            foreach(string item in listColindancia)
+        public static int EliminaXHandle(this List<M.DatosColindancia> listado, M.DatosColindancia itemBuscar)
+        {
+            int RowsDeleted = 0;
+            try
             {
-                if (string.Equals(item, ValorComparar))
-                    PrimerDimension = listColindancia.LastIndexOf(item);
+                RowsDeleted = 
+                    listado.RemoveAll(x=> x.HndPlColindancia == itemBuscar.HndPlColindancia);                
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ToMessageEditor();
             }
 
-            return PrimerDimension;
+            return RowsDeleted;
         }
 
         private static List<string> CalculaRutaOrientacion(List<string> l, string rumboFrente)
@@ -73,7 +77,7 @@ namespace RegimenCondominio.C
             List<string> listaOrdenada = new List<string>();
 
             //Realizo array hacia adelante
-            for(int i = index; i < l.Count; i++)
+            for (int i = index; i < l.Count; i++)
             {
                 listaOrdenada.Add(l[i]);
             }
@@ -90,12 +94,12 @@ namespace RegimenCondominio.C
         private static List<string> Obtengolista(int tipoOrientacion)
         {
             List<string> ListaOrienta = new List<string>();
-                        
-            for(int i=0; i < M.ConstantValues.Orientaciones.GetLength(0); i++)
+
+            for (int i = 0; i < M.Constant.Orientaciones.GetLength(0); i++)
             {
-                if (M.ConstantValues.Orientaciones[i, 1].Count() == tipoOrientacion)
+                if (M.Constant.Orientaciones[i, 1].Count() == tipoOrientacion)
                 {
-                    ListaOrienta.Add(M.ConstantValues.Orientaciones[i, 0]);
+                    ListaOrienta.Add(M.Constant.Orientaciones[i, 0]);
                 }
             }
 
@@ -106,13 +110,12 @@ namespace RegimenCondominio.C
         {
             List<string> todasOrientaciones = new List<string>();
 
-            for(int i=0; i< M.ConstantValues.Orientaciones.GetLength(0); i++)
+            for (int i = 0; i < M.Constant.Orientaciones.GetLength(0); i++)
             {
-                todasOrientaciones.Add(M.ConstantValues.Orientaciones[i, 0]);
+                todasOrientaciones.Add(M.Constant.Orientaciones[i, 0]);
             }
 
             return todasOrientaciones;
-        }
-        
+        }        
     }
 }

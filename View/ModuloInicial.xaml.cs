@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using System.ComponentModel;
 using System.Data;
 using MahApps.Metro.Controls.Dialogs;
+using RegimenCondominio.C;
 
 namespace RegimenCondominio.V
 {
@@ -73,18 +74,20 @@ namespace RegimenCondominio.V
             {
                 (this.Resources["expandFracc"] as
                     System.Windows.Media.Animation.Storyboard).Begin();
-                
+
+                string s = "";                
+                                
                 //Asigno Municipio
-                EstadoBox.Text = C.Met_General.FormatString(
+                EstadoBox.Text = 
                     M.Inicio.ResultFraccs.
                     Where(i => i.Fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
-                    Select(j => j.Estado).FirstOrDefault().ToString());
+                    Select(j => j.Estado).FirstOrDefault().ToString().FormatString();
 
 
-                municipioBox.Text = C.Met_General.FormatString(
+                municipioBox.Text = 
                     M.Inicio.ResultFraccs.
                     Where(i => i.Fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
-                    Select(j => j.Municipio).FirstOrDefault().ToString());
+                    Select(j => j.Municipio).FirstOrDefault().ToString().FormatString();
             }
             else
                 (this.Resources["hideFracc"] as
@@ -186,7 +189,7 @@ namespace RegimenCondominio.V
         {
 
             //Usuario de sesión de Windows.
-            Usuariotxt.Text = M.ConstantValues.Usuario;
+            Usuariotxt.Text = M.Constant.Usuario;
 
             //Si ya se había ejecutado anteriormente, sólo carga la información
             if (M.Inicio.ResultFraccs != null && M.Inicio.ResultTipoVivs != null)
@@ -194,12 +197,12 @@ namespace RegimenCondominio.V
                 //Si la lista contiene fraccionamientos
                 if (M.Inicio.ResultFraccs.Count > 0)
                     FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs.
-                                            Select(x => C.Met_General.FormatString(x.Fraccionamiento)).ToList();
+                                            Select(x => x.Fraccionamiento.FormatString()).ToList();
 
                 //Si la lista contiene Tipo de Viviendas
                 if (M.Inicio.ResultTipoVivs.Count > 0)
                     tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
-                                            Select(x => C.Met_General.FormatString(x.NombreTipoViv)).ToList();
+                                            Select(x => x.NombreTipoViv.FormatString()).ToList();
 
                 //Habilito los controles
                 ShowControls();
@@ -270,7 +273,7 @@ namespace RegimenCondominio.V
                     //Por cada renglon ingreso 
                     foreach(DataRow dtrow in Table.Rows)
                     {
-                        string row = C.Met_General.ReturnFormatRow(dtrow, separator);
+                        string row = dtrow.RowToString(separator);
 
                         string[] cell = row.Split(separator);
 
@@ -288,7 +291,7 @@ namespace RegimenCondominio.V
                 {
                     foreach (DataRow dtrow in Table.Rows)
                     {
-                        string row = C.Met_General.ReturnFormatRow(dtrow, separator);
+                        string row = dtrow.RowToString(separator);
 
                         //Divido los renglones con celda
                         string[] cell = row.Split(separator);
@@ -307,12 +310,12 @@ namespace RegimenCondominio.V
             //Si la lista contiene fraccionamientos
             if (M.Inicio.ResultFraccs.Count > 0)
                 FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs.
-                                        Select(x => C.Met_General.FormatString(x.Fraccionamiento)).ToList();
+                                        Select(x => x.Fraccionamiento.FormatString()).ToList();
 
             //Si la lista contiene Tipo de Viviendas
             if (M.Inicio.ResultTipoVivs.Count > 0)
                 tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
-                                        Select(x => C.Met_General.FormatString(x.NombreTipoViv)).ToList();
+                                        Select(x => x.NombreTipoViv.FormatString()).ToList();
 
             //Desbloqueo controles
             ShowControls();              

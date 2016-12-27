@@ -17,7 +17,7 @@ namespace RegimenCondominio
         public void IniciaReg()
         {
 
-            V.ModuloInicial win = new V.ModuloInicial();
+            V.ModuloColindante win = new V.ModuloColindante();
             Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModalWindow(win);
         }
 

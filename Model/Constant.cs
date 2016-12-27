@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Runtime;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,8 +9,19 @@ using System.Threading.Tasks;
 
 namespace RegimenCondominio.M
 {
-    public class ConstantValues
+    public class Constant
     {
+        //Tipos de lineas aceptadas en la selección de la línea de colindancia.
+        private static Type[] tiposLineas = new Type[]
+        {
+            typeof(Polyline),
+            typeof(Line),
+            typeof(Arc)        
+        };
+
+        //Nombre del Record del diccionario de Datos de Colindancia
+        private static string xRecordColindancia = "JaverColindancia";
+
         //Palabras que no se envían a mayuscula en Método C.Met_Inicio.FormateString
         private static string[] palabrasOmitidas = new string[]{
                 "DE",
@@ -42,6 +56,26 @@ namespace RegimenCondominio.M
         };
         //Layer Manzana
         private static string layerManzana = "MANZANA";
+
+        //Filtro de Manzana
+        public static SelectionFilter ManzanaFilter
+        {
+            get
+            {
+                //RXClass nos sirve para obtener el nombre del DXF en AutoCAD
+                //El Start nos sirve para definir el tipo de entidad a filtrar
+                return new SelectionFilter(
+                    new TypedValue[]
+                                    {
+                                        new TypedValue((int)DxfCode.Operator,"<and"),
+                                        new TypedValue((int)DxfCode.Operator,"<or"),
+                                        new TypedValue((int)DxfCode.Start, RXClass.GetClass(typeof(DBText)).DxfName),
+                                        new TypedValue((int)DxfCode.Operator,"or>"),
+                                        new TypedValue((int)DxfCode.LayerName, LayerManzana),
+                                        new TypedValue((int)DxfCode.Operator,"and>")
+                                    });
+            }
+        }
 
 
         public static string[] PalabrasOmitidas
@@ -79,10 +113,21 @@ namespace RegimenCondominio.M
             {
                 return tipoColindancias;
             }
+        }
 
-            set
+        public static Type[] TiposLineas
+        {
+            get
             {
-                tipoColindancias = value;
+                return tiposLineas;
+            }
+        }
+
+        public static string XRecordColindancia
+        {
+            get
+            {
+                return xRecordColindancia;
             }
         }
     }

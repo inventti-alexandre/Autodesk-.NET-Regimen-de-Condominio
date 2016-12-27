@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Resources;
 using System.Windows.Shapes;
+using RegimenCondominio.C;
 
 namespace RegimenCondominio.V
 {
@@ -32,16 +33,28 @@ namespace RegimenCondominio.V
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            ModuloInicial M_Manzana = new ModuloInicial();
-            M_Manzana.Show();
+            ModuloInicial M_Inicial = new ModuloInicial();
+            M_Inicial.Show();
             this.Close();
         }
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            CmbRumboFrente.ItemsSource = C.Met_Manzana.DespliegoOrientaciones();
+            CmbRumboFrente.ItemsSource = Met_Manzana.DespliegoOrientaciones();
 
-            cmbTipo.ItemsSource = M.ConstantValues.TipoColindancias;            
+            cmbTipo.ItemsSource = M.Constant.TipoColindancias;
+
+            ResManzana.ItemsSource = ObtengoManzanas();
+
+            //Si solamente leyó una manzana que la asigné de manera automática
+            if (ResManzana.Items.Count == 1)
+                ResManzana.SelectedIndex = 0;
+        }
+
+        private List<string> ObtengoManzanas()
+        {                      
+            return Met_Autodesk.ModelDBText(M.Constant.LayerManzana).
+                Select(x=> x.TextString).ToList();                       
         }
 
         private void btnSelManzana_Click(object sender, RoutedEventArgs e)
@@ -64,17 +77,17 @@ namespace RegimenCondominio.V
                 CmbRumboFrente.IsEnabled = true;
                 
                 //Obtengo Puntos 3d de Polilínea Manzana
-                pts = C.Met_Autodesk.ExtraerVertices(idManzana);
+                pts = idManzana.ExtractVertex();
 
                 string msj = "";
 
                 //Busco Id Manzana
-                idNoManzana = C.Met_Autodesk.TomarEntidadLayer(M.ConstantValues.LayerManzana, pts, out msj).
+                idNoManzana = pts.EntitiesByLayer(M.Constant.LayerManzana, out msj).
                     OfType<ObjectId>().FirstOrDefault();
 
-                strNoManzana = (C.Met_Autodesk.AbrirEntidad(idNoManzana) as DBText).TextString;
+                strNoManzana = (idNoManzana.OpenEntity() as DBText).TextString;
 
-                ResManzana.Text = strNoManzana;
+                //ResManzana.Text = strNoManzana;
             }
             WindowState = WindowState.Normal;
         }
@@ -109,7 +122,7 @@ namespace RegimenCondominio.V
                         AsignaOrientaciones(CmbRumboFrente.SelectedItem.ToString());
 
                         //Bloqueo el combo de Colindancias nuevamente
-                        cmbColindancia.IsEnabled = false;
+                        cmbRumboActual.IsEnabled = false;
 
                         //Cambio el Fondo
                         btnAdd.Content = FindResource("AddC");
@@ -141,24 +154,24 @@ namespace RegimenCondominio.V
         private void AsignaOrientaciones(string RumboFrente)
         {
             //Inicializo Lista
-            M.Manzana.CalcOrientaciones = new List<string>();
+            M.Manzana.OrientacionCalculada = new List<string>();
 
             //Calculo las Orientaciones de acuerdo a Lista
-            M.Manzana.CalcOrientaciones =
-                C.Met_Manzana.OrientacionFrente(RumboFrente);
+            M.Manzana.OrientacionCalculada = Met_Manzana.OrientacionFrente(RumboFrente);
 
             //Asigno la primera orientación
-            cmbColindancia.ItemsSource = M.Manzana.CalcOrientaciones;
+            cmbRumboActual.ItemsSource = M.Manzana.OrientacionCalculada;
 
-            cmbColindancia.SelectedIndex = 0;
+            cmbRumboActual.SelectedIndex = 0;
         }
 
         private void btnAdd_Click(object sender, RoutedEventArgs e)
-        {            
+        {                        
+            ObjectId    idtxtCol = new ObjectId(),//Id de Texto con el que Colinda
+                        idLineCol = new ObjectId();//Id de Linea/Polilinea con la que Colinda
 
-            ObjectId idCol = new ObjectId();
-
-            string ColindanciaActual = (cmbColindancia.SelectedItem ?? "").ToString();
+            //Selecciono el Item 
+            string rumboSeleccionado = (cmbRumboActual.SelectedItem ?? "").ToString();
 
             this.WindowState = WindowState.Minimized;
 
@@ -166,67 +179,45 @@ namespace RegimenCondominio.V
             if (cmbTipo.SelectedIndex != -1)
             {
                 //Solicito que me hagan saber el texto que colinda
-                if (C.Met_Autodesk.Entity("Selecciona la colindancia al " + ColindanciaActual + "\n",
-                    out idCol, typeof(DBText)))
+                if (Met_Autodesk.Entity("Selecciona la línea de colindancia al " + rumboSeleccionado + "\n",
+                    out idLineCol, M.Constant.TiposLineas) &&
+                    Met_Autodesk.Entity("Selecciona la colindancia al " + rumboSeleccionado + "\n",
+                    out idtxtCol, typeof(DBText)))
                 {
-                    //Obtengo el Texto seleccionado en el plano
-                    string Colindancia = C.Met_General.FormatString((C.Met_Autodesk.AbrirEntidad(idCol) as DBText).TextString);
+                    //Obtengo el DBText seleccionado
+                    DBText DBTextColindancia = idtxtCol.OpenEntity() as DBText;
+
+                    //Texto del DB Text                                            
+                    string txtColindancia = DBTextColindancia.TextString.FormatString();
 
                     //Modelo los datos
-                    M.DatosColindancia dc = new M.DatosColindancia()
+                    M.DatosColindancia insertedData = new M.DatosColindancia()
                     {
-                        RumboActual = (M.ConstantValues.Orientaciones
-                                            [C.Met_Manzana.ObtengoPosicion(ColindanciaActual, 0), 1]),
-                        TextPlano = cmbTipo.SelectedIndex > 0 ? Colindancia : "calle " + Colindancia
-                    };                    
+                        HndPlColindancia = idLineCol.Handle,
+                        HndTxtColindancia = idtxtCol.Handle,
+                        InicialRumbo = (M.Constant.Orientaciones
+                                            [Met_Manzana.ObtengoPosicion(rumboSeleccionado, 0), 1]),
+                        RumboActual = rumboSeleccionado,
+                        TextColindancia = cmbTipo.SelectedIndex > 0 ? txtColindancia :
+                                                                        "calle " + txtColindancia
+                    };
 
-                    if (ListPrincipal.Items.Count < M.Manzana.CalcOrientaciones.Count)
+                    if (ListPrincipal.Items.Count < M.Manzana.OrientacionCalculada.Count)
                     {
-                        //Agrego el dato a la lista
-                        ListPrincipal.Items.Add(dc);
-                        
-                        //Obtengo la siguiente orientación
-                        int sigPosicion = C.Met_Manzana.ObtengoPosicion(ColindanciaActual,
-                            M.Manzana.CalcOrientaciones) + 1;
-
-                        if (sigPosicion < M.Manzana.CalcOrientaciones.Count)
+                        if (M.Manzana.ColindanciaManzana. //Si ya se había seleccionado esa Pl a un Rumbo
+                            Where(x => x.HndPlColindancia.Value == insertedData.HndPlColindancia.Value).
+                            Count() == 0 &&
+                            M.Manzana.ColindanciaManzana. //Si ya se había seleccionado esa Pl a un Rumbo
+                            Where(x => x.RumboActual == insertedData.RumboActual).
+                            Count() == 0)
                         {
-                            //Obtengo el siguiente rumbo
-                            string sigRumbo = M.Manzana.CalcOrientaciones[sigPosicion];
-
-                            //Cambio el rumbo en el combobox
-                            cmbColindancia.SelectedItem = sigRumbo;
+                            InsertoColindancias(insertedData);
                         }
                         else
-                        {
-                            //Cambio el Fondo
-                            btnAdd.Content = FindResource("Edit");
-
-                            //Activo el combo de Colindancia
-                            cmbColindancia.IsEnabled = true;
-                        }
+                            ReasignoColindancia(insertedData);
                     }
                     else
-                    {
-                        
-                        string LetrasRumbo = (M.ConstantValues.Orientaciones
-                                            [C.Met_Manzana.ObtengoPosicion(ColindanciaActual, 0), 1]);
-
-                        
-                        for (int i=0; i < ListPrincipal.Items.Count; i++)
-                        {
-                            //Modifico el item con la nueva colindancia
-                            if ((ListPrincipal.Items[i] as M.DatosColindancia).RumboActual == LetrasRumbo)
-                            {
-                                ListPrincipal.Items[i] = new M.DatosColindancia()
-                                {
-                                    RumboActual = LetrasRumbo,
-                                    TextPlano = cmbTipo.SelectedIndex > 0 ? Colindancia : "calle " + Colindancia
-                                };
-                                break;
-                            }
-                        }
-                    }
+                        ReasignoColindancia(insertedData);
 
                 }
             }
@@ -237,11 +228,87 @@ namespace RegimenCondominio.V
             }            
             this.WindowState = WindowState.Normal;
 
+        }       
+
+        private void ReasignoColindancia(M.DatosColindancia insertedData)
+        {
+
+            //Polilinea repetida
+            M.DatosColindancia itemRepetido = new M.DatosColindancia();
+
+            //Busco el item que es igual
+            itemRepetido = M.Manzana.ColindanciaManzana.
+                Where(x => x.HndPlColindancia == insertedData.HndPlColindancia)
+                .FirstOrDefault() ??
+                M.Manzana.ColindanciaManzana.
+                Where(x => x.RumboActual == insertedData.RumboActual)
+                .FirstOrDefault();
+
+            if (itemRepetido != null)
+            {
+                //Elimino de Lista M.Colindancias 
+                M.Manzana.ColindanciaManzana.EliminaXHandle(itemRepetido);
+
+                //Elimino de listview
+                for (int i = ListPrincipal.Items.Count - 1; i == 0; i--)
+                {
+                    M.DatosColindancia itemActual = ListPrincipal.Items[i] as M.DatosColindancia;
+
+                    if (itemActual.InicialRumbo == itemRepetido.InicialRumbo)
+                        ListPrincipal.Items.RemoveAt(i);
+                }
+
+                InsertoColindancias(itemRepetido);
+            }
+                            
         }
 
-        private void TextBlock_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void InsertoColindancias(M.DatosColindancia insertedData)
         {
-            
+            //Encapsulo en lista de colindancia
+            M.Manzana.ColindanciaManzana.Add(insertedData);
+
+            //Envío items a la DGV Principal
+            ListPrincipal.Items.Add(insertedData);
+
+            Met_Autodesk.InsertDictionary(  insertedData.HndPlColindancia.toObjectId(),
+                                            M.Constant.XRecordColindancia,
+                                            insertedData.RumboActual,
+                                            insertedData.TextColindancia);
+
+            //Obtengo la siguiente posición de orientación
+            int sigPosicion = M.Manzana.OrientacionCalculada.LastIndexOf(insertedData.RumboActual) + 1;
+
+            //Solamente si no superan los 4 rumbos, busco el rumbo siguiente.
+            if (sigPosicion < M.Manzana.OrientacionCalculada.Count)
+            {
+                //Obtengo el siguiente rumbo
+                string sigRumbo = M.Manzana.OrientacionCalculada[sigPosicion];
+
+                //Cambio el rumbo en el combobox
+                cmbRumboActual.SelectedItem = sigRumbo;
+            }
+            else
+            {
+                //Cambio el Fondo
+                btnAdd.Content = FindResource("Edit");
+
+                //Activo el combo de Colindancia
+                cmbRumboActual.IsEnabled = true;
+            }
+        }
+
+        private void btnRefresh_Click(object sender, RoutedEventArgs e)
+        {            
+            //Reasigno elementos posterior a la búsqueda
+            ResManzana.ItemsSource = ObtengoManzanas();
+        }
+
+        private void btnAvanzar_Click(object sender, RoutedEventArgs e)
+        {
+            ModuloColindante M_Colindante = new ModuloColindante();
+            M_Colindante.Show();
+            this.Close();
         }
     }
 }

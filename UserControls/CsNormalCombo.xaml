@@ -10,7 +10,7 @@
              x:Name="GenTextbox">
     <Border x:Name="border" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4">
         <Grid>
-            <TextBlock x:Name="msgTmp" Text="Introduce Valor" Foreground="Gray"
+            <TextBlock x:Name="msgTmp" Text="" Foreground="Gray"
                        TextAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
             <ComboBox  Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                        SelectionChanged="ComboBox_SelectionChanged" x:Name="ComboPrinc">

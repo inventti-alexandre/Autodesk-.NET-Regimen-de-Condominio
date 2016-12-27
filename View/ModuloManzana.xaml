@@ -28,6 +28,10 @@
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Image x:Key="AddC" Source="pack://application:,,,/RegimenCondominio;component/Images/RedLightCAdd.png"                    
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Image x:Key="Refresh" Source="pack://application:,,,/RegimenCondominio;component/Images/refresh.png"                    
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Image x:Key="RefreshM" Source="pack://application:,,,/RegimenCondominio;component/Images/refreshM.png"                    
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Image x:Key="Edit" Source="pack://application:,,,/RegimenCondominio;component/Images/Edit.png"                    
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
@@ -66,15 +70,17 @@
             x:Name="MainGpBox" BorderThickness="1" Background="Transparent">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="31*"/>
-                    <ColumnDefinition Width="91*"/>
-                    <ColumnDefinition Width="110*"/>
-                    <ColumnDefinition Width="176*"/>
+
+                    <ColumnDefinition Width="57*"/>
+                    <ColumnDefinition Width="114*"/>
+                    <ColumnDefinition Width="163*"/>
+                    <ColumnDefinition Width="64*"/>
 
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="17*"/>
-                    <RowDefinition Height="77*"/>
+                    <RowDefinition Height="18*"/>
+                    <RowDefinition Height="39*"/>
+                    <RowDefinition Height="41*"/>
                 </Grid.RowDefinitions>
                 <Border BorderBrush="#D8D8D8" CornerRadius="2" BorderThickness="1" Height="20"
                         HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
@@ -82,27 +88,27 @@
                     <TextBlock Text="1. Manzana y Rumbo" 
                                FontWeight="DemiBold" Foreground="#00897B" />
                 </Border>
-                <Button Background="Transparent" 
-            		Content="{StaticResource Manzana}" BorderBrush="Transparent"
-            		BorderThickness="0" Focusable="False" Height="70" 
-                        HorizontalAlignment="Center" x:Name="btnSelManzana" Click="btnSelManzana_Click"
-                        VerticalAlignment="Center"  Grid.Row="1" Width="80" Margin="6,3,5,4" Grid.Column="1"/>
-                <TextBlock Text="No. de Manzana:" Grid.Row="1" Grid.Column="2" Height="20" FontWeight="DemiBold" 
-                           Margin="0,10,0,50" FontSize="12" />
-                <TextBlock Text="No Asignado" Grid.Row="1" Grid.Column="3" Height="20" FontWeight="DemiBold" 
-                           Margin="0,10,0,50" FontSize="12" Foreground="Red" x:Name="ResManzana"/>
-                <TextBlock Text="Rumbo de Frente: " Grid.Row="1" Grid.Column="2" Height="20" FontWeight="DemiBold" 
-                           Margin="0,45,0,15" FontSize="12"/>
 
-                <Border Grid.Row="1" Grid.Column="3" HorizontalAlignment="Left"
-                            Height="25"  Width="124" Margin="0,40,0,15" CornerRadius="4" BorderBrush="LightGray"
-                        BorderThickness="1">
-                    <ComboBox Grid.Row="1" Grid.Column="3"
+                <TextBlock Text="No. de Manzana:" Grid.Row="1" Grid.Column="1" FontWeight="DemiBold" 
+                           Margin="0,10,0,9" FontSize="12" />
+                <cscontrol:CsNormalCombo Grid.Row="1" Grid.Column="2" MessageCombo2="" 
+                                         x:Name="ResManzana" Margin="0,7,0,4"/>
+                <TextBlock Text="Rumbo de Frente: " Grid.Row="2" Grid.Column="1" FontWeight="DemiBold" 
+                           Margin="0,11,0,10" FontSize="12"/>
+
+
+                <cscontrol:CsNormalCombo Grid.Row="2" Grid.Column="2"
                 	        Focusable="False" x:Name="CmbRumboFrente" IsEnabled="True"
-                            SelectionChanged="CmbRumboFrente_SelectChanged"
-                            Width="123" BorderBrush="Transparent" BorderThickness="0"/>
-                    <!--SelectChanged="CmbRumboFrente_SelectChanged"-->
-                </Border>
+                            SelectChanged="CmbRumboFrente_SelectChanged"
+                            BorderBrush="Transparent" BorderThickness="0" Margin="0,7,0,6"/>
+
+                <Button Content="{StaticResource RefreshM}" Focusable="False" 
+                        BorderBrush="Transparent" BorderThickness="0"
+                        Background="Transparent" 
+                        x:Name="btnRefresh" Click="btnRefresh_Click"
+                        Margin="0,0,26,39" Grid.Column="3" Grid.Row="1" Grid.RowSpan="2"/>
+                <!--SelectChanged="CmbRumboFrente_SelectChanged"-->
+
             </Grid>
         </Border>
         <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="17,5" 
@@ -120,7 +126,7 @@
                            FontWeight="Bold" Foreground="LightGray" x:Name="TituloColindancia"/>
                 </Border>
                 <cscontrol:CsNormalCombo HorizontalAlignment="Left" VerticalAlignment="Center"
-                              Width="96" x:Name="cmbColindancia" MessageCombo2="Rumbo" IsEnabled="False" Foreground="Black"
+                              Width="96" x:Name="cmbRumboActual" MessageCombo2="Rumbo" IsEnabled="False" Foreground="Black"
                              FontWeight="Bold" Margin="141,40,0,161" Height="27" Grid.RowSpan="2"/>
                 <cscontrol:CsNormalCombo MessageCombo2="Tipo"  Width="96" x:Name="cmbTipo"
                                               BorderThickness="1" Margin="242,38,60,161" Grid.RowSpan="2"/>
@@ -133,16 +139,16 @@
                         Margin="338,32,24,156" Grid.RowSpan="2"/>
                 <Border Grid.Row="1" Height="140" Width="350"
                            HorizontalAlignment="Center" CornerRadius="3" BorderBrush="LightGray" BorderThickness="1">
-                    <ListView Grid.Row="1" Background="WhiteSmoke" Height="150" Width="350"
-                          x:Name="ListPrincipal" HorizontalAlignment="Center" 
+                    <ListView Grid.Row="1" Background="WhiteSmoke" Width="350"
+                          x:Name="ListPrincipal" HorizontalAlignment="Center" IsHitTestVisible="False"
                               BorderBrush="Transparent" BorderThickness="0">
                         <ListView.View>
-                            <GridView x:Name="GridPrinc">
+                            <GridView x:Name="GridPrinc" Selector.IsSelected="False">
                                 <!--RUMBO DGV-->
-                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding RumboActual}">
+                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding InicialRumbo}">
                                     <GridViewColumnHeader IsHitTestVisible="False" BorderBrush="LightGray"
                                                           BorderThickness="1">
-                                        <TextBlock Text="Rumbo"></TextBlock>
+                                        <TextBlock Text="Rumbo" FontWeight="DemiBold"></TextBlock>
                                     </GridViewColumnHeader>
                                 </GridViewColumn>
 
@@ -154,7 +160,7 @@
                                     </GridViewColumnHeader>
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding TextPlano}"/>
+                                            <TextBlock Text="{Binding TextColindancia}" FontWeight="DemiBold"/>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
 
@@ -170,7 +176,7 @@
                 Click="Button_Click" x:Name="btnHome" BorderBrush="Transparent" Focusable="False"
                 BorderThickness="0" Background="Transparent" Margin="17,0,0,15" Width="50"/>
         <Button Grid.Row="2" Content="{StaticResource Avanzar}" HorizontalAlignment="Right"
-                Click="Button_Click" x:Name="btnAvanzar" BorderBrush="Transparent" Focusable="False"
+                Click="btnAvanzar_Click" x:Name="btnAvanzar" BorderBrush="Transparent" Focusable="False"
                 BorderThickness="0" Background="Transparent" Margin="0,0,6,15" Width="50"/>
     </Grid>
 </metro:MetroWindow>
