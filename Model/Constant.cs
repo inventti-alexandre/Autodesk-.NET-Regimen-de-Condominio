@@ -32,6 +32,9 @@ namespace RegimenCondominio.M
                 "EL"
             };
 
+        //Cantidad de Rumbos maximos
+        private static int rumboMaximo = 4;
+
         //Usuario a Mostrar obtenido de sesión de Windows
         private static string usuario = Environment.UserName.ToUpper();
 
@@ -128,6 +131,14 @@ namespace RegimenCondominio.M
             get
             {
                 return xRecordColindancia;
+            }
+        }
+
+        public static int RumboMaximo
+        {
+            get
+            {
+                return rumboMaximo;
             }
         }
     }

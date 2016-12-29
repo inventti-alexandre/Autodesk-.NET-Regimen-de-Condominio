@@ -94,9 +94,9 @@
     <Compile Include="Controller\SqlTransaction.cs" />
     <Compile Include="Controller\SQL_Connector.cs" />
     <Compile Include="Model\Constant.cs" />
-    <Compile Include="Model\DatosColindancia.cs" />
+    <Compile Include="Model\DatosManzana.cs" />
     <Compile Include="Model\DatosFracc.cs" />
-    <Compile Include="Model\DatosManzanas.cs" />
+    <Compile Include="Model\DatosColindancia.cs" />
     <Compile Include="Model\DatosTipoViv.cs" />
     <Compile Include="Model\Inicio.cs" />
     <Compile Include="Model\Manzana.cs" />
@@ -292,6 +292,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\NewMultipleSelect.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\NewSelectHand.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

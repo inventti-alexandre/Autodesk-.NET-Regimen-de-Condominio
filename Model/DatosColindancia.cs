@@ -8,16 +8,23 @@ using System.Threading.Tasks;
 namespace RegimenCondominio.M
 {
     public class DatosColindancia
-    {                
+    {
+        public string Lote { get; set; }
 
-        public Handle HndPlColindancia { get; set; }
+        public string Edificio { get; set; }
 
-        public Handle HndTxtColindancia { get; set; }
+        public string Apartamento { get; set; }
 
-        public string TextColindancia { get; set; }
+        public string Seccion{ get; set; }
 
-        public string InicialRumbo { get; set; }
+        public int PuntoA { get; set; }
 
-        public string RumboActual { get; set; }
+        public int PuntoB { get; set; }
+
+        public double Distancia { get; set; }
+
+        public string Rumbo { get; set; }
+
+        public string Colindancia { get; set; }        
     }
 }

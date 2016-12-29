@@ -12,7 +12,13 @@ namespace RegimenCondominio.M
         private static List<string> orientacionCalculada = new List<string>();
 
         //Manzanas obtenidas del plano con cierto criterio
-        private static List<DatosColindancia> colindanciaManzana = new List<DatosColindancia>();
+        private static List<DatosManzana> colindanciaManzana = new List<DatosManzana>();
+
+        //Número de Manzana
+        private static int noManzana = new int();
+
+        //Rumbo de Frente
+        private static string rumboFrente = string.Empty;
 
         public static List<string> OrientacionCalculada
         {
@@ -27,7 +33,7 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static List<DatosColindancia> ColindanciaManzana
+        public static List<DatosManzana> ColindanciaManzana
         {
             get
             {
@@ -37,6 +43,32 @@ namespace RegimenCondominio.M
             set
             {
                 colindanciaManzana = value;
+            }
+        }
+
+        public static int NoManzana
+        {
+            get
+            {
+                return noManzana;
+            }
+
+            set
+            {
+                noManzana = value;
+            }
+        }
+
+        public static string RumboFrente
+        {
+            get
+            {
+                return rumboFrente;
+            }
+
+            set
+            {
+                rumboFrente = value;
             }
         }
     }

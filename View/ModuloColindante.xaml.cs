@@ -37,7 +37,40 @@ namespace RegimenCondominio.V
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            GridColindancia.Items.Add(1);
+            M.DatosColindancia dc = new M.DatosColindancia()
+            {
+                Lote = "1",
+                Seccion = "LAVANDERÍA",
+                PuntoA = 0,
+                PuntoB = 1,
+                Distancia = 2.25,
+                Rumbo = "Noreste",
+                Colindancia =  "Lote 1"
+            };
+
+            M.DatosColindancia dc2 = new M.DatosColindancia()
+            {
+                Lote = "2",
+                Seccion = "PATIO DESCUBIERTO",
+                PuntoA = 0,
+                PuntoB = 1,
+                Distancia = 2.25,
+                Rumbo = "Noreste",
+                Colindancia = "Lote 1"
+            };
+
+            List<M.DatosColindancia> l = new List<M.DatosColindancia>();
+
+            l.Add(dc);
+            l.Add(dc);
+            l.Add(dc2);
+            l.Add(dc2);
+
+            tb1GridColindancia.ItemsSource = l;
+
+            CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(this.tb1GridColindancia.ItemsSource);
+            PropertyGroupDescription groupDesc = new PropertyGroupDescription("Lote");            
+            view.GroupDescriptions.Add(groupDesc);                    
         }
     }
 }

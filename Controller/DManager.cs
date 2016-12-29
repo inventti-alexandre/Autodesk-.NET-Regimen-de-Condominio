@@ -288,25 +288,30 @@ namespace RegimenCondominio.C
         /// <param name="dicId">El id del diccionario</param>
         public static void RemoveXRecord(ObjectId dicId, String XrecordName)
         {
-            Database db = AcadApp.DocumentManager.MdiActiveDocument.Database;
+            Document doc = AcadApp.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+
             using (Transaction tr = db.TransactionManager.StartTransaction())
             {
-                try
+                using (doc.LockDocument())
                 {
-                    DBDictionary oldD = (DBDictionary)dicId.GetObject(OpenMode.ForWrite);
-                    Xrecord x = new Xrecord();
-                    oldD.Remove(XrecordName);
-                    tr.Commit();
-                }
-                catch (AcadExc exc)
-                {
-                    ed.WriteMessage(exc.Message);
-                    tr.Abort();
-                }
-                catch (System.Exception exc)
-                {
-                    ed.WriteMessage(exc.Message);
-                    tr.Abort();
+                    try
+                    {
+                        DBDictionary oldD = (DBDictionary)dicId.GetObject(OpenMode.ForWrite);
+                        Xrecord x = new Xrecord();
+                        oldD.Remove(XrecordName);
+                        tr.Commit();
+                    }
+                    catch (AcadExc exc)
+                    {
+                        ed.WriteMessage(exc.Message);
+                        tr.Abort();
+                    }
+                    catch (System.Exception exc)
+                    {
+                        ed.WriteMessage(exc.Message);
+                        tr.Abort();
+                    }
                 }
             }
         }
@@ -499,18 +504,22 @@ namespace RegimenCondominio.C
                     DBObject obj;
                     foreach (ObjectId id in model)
                     {
-                        obj = id.GetObject(OpenMode.ForRead);                       
-
-                        if(obj.ExtensionDictionary.IsValid)
+                        if (id.IsValid)
                         {
-                            DBDictionary dbDict = (obj.ExtensionDictionary).
-                                GetObject(OpenMode.ForRead) as DBDictionary;
+                            Entity ent = id.OpenEntity();
 
-                            ObjectId idRecord = new ObjectId();
-                            idRecord =  dbDict.GetAt(recordName);
+                            if (ent.ExtensionDictionary.IsValid)
+                            {
+                                DBDictionary dbDict = (ent.ExtensionDictionary).
+                                    GetObject(OpenMode.ForRead) as DBDictionary;                               
 
-                            if (idRecord.IsValid)
-                                objCol.Add(id);
+                                if(dbDict.Contains(recordName))
+                                {                                    
+                                        objCol.Add(id);
+                                }
+
+                                
+                            }
                         }
                     }                   
                 }

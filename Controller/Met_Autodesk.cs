@@ -458,7 +458,7 @@ namespace RegimenCondominio.C
             return (sum / 2) < 0;
         }
 
-        internal static void ToMessageEditor(this string msg)
+        internal static void ToAutodeskEditor(this string msg)
         {
             Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
 

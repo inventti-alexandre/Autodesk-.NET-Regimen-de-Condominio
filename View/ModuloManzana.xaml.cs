@@ -40,15 +40,21 @@ namespace RegimenCondominio.V
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            //Todas las orientaciones disponibles
             CmbRumboFrente.ItemsSource = Met_Manzana.DespliegoOrientaciones();
 
+            //Agrego los tipos de Colindancias
             cmbTipo.ItemsSource = M.Constant.TipoColindancias;
 
-            ResManzana.ItemsSource = ObtengoManzanas();
+            //Obtengo las Manzanas que cumplen con criterio en plano
+            cmbManzana.ItemsSource = ObtengoManzanas();            
 
             //Si solamente leyó una manzana que la asigné de manera automática
-            if (ResManzana.Items.Count == 1)
-                ResManzana.SelectedIndex = 0;
+            if (cmbManzana.Items.Count == 1)
+                cmbManzana.SelectedIndex = 0;
+
+            //La lista debe de estar de acuerdo a lo insertado en listado de Colindancias
+            ListPrincipal.ItemsSource = M.Manzana.ColindanciaManzana;
         }
 
         private List<string> ObtengoManzanas()
@@ -115,8 +121,11 @@ namespace RegimenCondominio.V
                     //Si presiona OK
                     if (result == MessageDialogResult.Affirmative)
                     {
-                        //Limpio la tabla
-                        ListPrincipal.Items.Clear();
+                        //Limpio la lista
+                        M.Manzana.ColindanciaManzana.Clear();
+
+                        //Refresco los items
+                        ListPrincipal.Items.Refresh();
 
                         //Asigno nuevamente
                         AsignaOrientaciones(CmbRumboFrente.SelectedItem.ToString());
@@ -159,16 +168,17 @@ namespace RegimenCondominio.V
             //Calculo las Orientaciones de acuerdo a Lista
             M.Manzana.OrientacionCalculada = Met_Manzana.OrientacionFrente(RumboFrente);
 
-            //Asigno la primera orientación
+            //Asigno resultado
             cmbRumboActual.ItemsSource = M.Manzana.OrientacionCalculada;
 
+            //Asigno la primera orientación
             cmbRumboActual.SelectedIndex = 0;
         }
 
         private void btnAdd_Click(object sender, RoutedEventArgs e)
         {                        
             ObjectId    idtxtCol = new ObjectId(),//Id de Texto con el que Colinda
-                        idLineCol = new ObjectId();//Id de Linea/Polilinea con la que Colinda
+                        idLineCol = new ObjectId();//Id de Linea/Polilinea con la que Colinda            
 
             //Selecciono el Item 
             string rumboSeleccionado = (cmbRumboActual.SelectedItem ?? "").ToString();
@@ -191,7 +201,7 @@ namespace RegimenCondominio.V
                     string txtColindancia = DBTextColindancia.TextString.FormatString();
 
                     //Modelo los datos
-                    M.DatosColindancia insertedData = new M.DatosColindancia()
+                    M.DatosManzana insertedData = new M.DatosManzana()
                     {
                         HndPlColindancia = idLineCol.Handle,
                         HndTxtColindancia = idtxtCol.Handle,
@@ -202,22 +212,38 @@ namespace RegimenCondominio.V
                                                                         "calle " + txtColindancia
                     };
 
-                    if (ListPrincipal.Items.Count < M.Manzana.OrientacionCalculada.Count)
+                    bool    PolilineaNueva = false,
+                            RumboNuevo = false;
+
+                    int sigPosicion = 0;
+
+                    //Si ya se había insertado esa polilinea
+                    PolilineaNueva = M.Manzana.ColindanciaManzana.Where
+                        (x => x.HndPlColindancia.Value == insertedData.HndPlColindancia.Value).
+                        Count() > 0 ? false : true;
+
+                    //Si ya se había insertado ese rumbo en la lista
+                    RumboNuevo = M.Manzana.ColindanciaManzana.
+                        Where(x => x.RumboActual == insertedData.RumboActual).Count() > 0 
+                        ? false : true;
+
+                    //Si es Nueva Polilinea y nuevo Rumbo
+                    if (PolilineaNueva && RumboNuevo)
                     {
-                        if (M.Manzana.ColindanciaManzana. //Si ya se había seleccionado esa Pl a un Rumbo
-                            Where(x => x.HndPlColindancia.Value == insertedData.HndPlColindancia.Value).
-                            Count() == 0 &&
-                            M.Manzana.ColindanciaManzana. //Si ya se había seleccionado esa Pl a un Rumbo
-                            Where(x => x.RumboActual == insertedData.RumboActual).
-                            Count() == 0)
-                        {
-                            InsertoColindancias(insertedData);
-                        }
-                        else
-                            ReasignoColindancia(insertedData);
+                         sigPosicion = insertedData.InsertoColindancia();                        
                     }
                     else
-                        ReasignoColindancia(insertedData);
+                    {
+                        sigPosicion = insertedData.ReasignoColindancia(PolilineaNueva, RumboNuevo);
+                    }
+
+                    //Reviso que rumbo mostrará
+                    SigColindancia(sigPosicion);
+
+                    if (ListPrincipal.ItemsSource != null)
+                        ListPrincipal.Items.Refresh();
+                    else
+                        ListPrincipal.ItemsSource = M.Manzana.ColindanciaManzana;
 
                 }
             }
@@ -230,57 +256,12 @@ namespace RegimenCondominio.V
 
         }       
 
-        private void ReasignoColindancia(M.DatosColindancia insertedData)
+        private void SigColindancia(int sigPosicion)
         {
+            int countOrientaciones = M.Manzana.ColindanciaManzana.Count;
 
-            //Polilinea repetida
-            M.DatosColindancia itemRepetido = new M.DatosColindancia();
-
-            //Busco el item que es igual
-            itemRepetido = M.Manzana.ColindanciaManzana.
-                Where(x => x.HndPlColindancia == insertedData.HndPlColindancia)
-                .FirstOrDefault() ??
-                M.Manzana.ColindanciaManzana.
-                Where(x => x.RumboActual == insertedData.RumboActual)
-                .FirstOrDefault();
-
-            if (itemRepetido != null)
-            {
-                //Elimino de Lista M.Colindancias 
-                M.Manzana.ColindanciaManzana.EliminaXHandle(itemRepetido);
-
-                //Elimino de listview
-                for (int i = ListPrincipal.Items.Count - 1; i == 0; i--)
-                {
-                    M.DatosColindancia itemActual = ListPrincipal.Items[i] as M.DatosColindancia;
-
-                    if (itemActual.InicialRumbo == itemRepetido.InicialRumbo)
-                        ListPrincipal.Items.RemoveAt(i);
-                }
-
-                InsertoColindancias(itemRepetido);
-            }
-                            
-        }
-
-        private void InsertoColindancias(M.DatosColindancia insertedData)
-        {
-            //Encapsulo en lista de colindancia
-            M.Manzana.ColindanciaManzana.Add(insertedData);
-
-            //Envío items a la DGV Principal
-            ListPrincipal.Items.Add(insertedData);
-
-            Met_Autodesk.InsertDictionary(  insertedData.HndPlColindancia.toObjectId(),
-                                            M.Constant.XRecordColindancia,
-                                            insertedData.RumboActual,
-                                            insertedData.TextColindancia);
-
-            //Obtengo la siguiente posición de orientación
-            int sigPosicion = M.Manzana.OrientacionCalculada.LastIndexOf(insertedData.RumboActual) + 1;
-
-            //Solamente si no superan los 4 rumbos, busco el rumbo siguiente.
-            if (sigPosicion < M.Manzana.OrientacionCalculada.Count)
+            if (sigPosicion < M.Constant.RumboMaximo &&//Si todavía el siguiente rumbo es menor a 4
+                         countOrientaciones < M.Constant.RumboMaximo)//Y no ha llegado a los 4 la lista
             {
                 //Obtengo el siguiente rumbo
                 string sigRumbo = M.Manzana.OrientacionCalculada[sigPosicion];
@@ -290,25 +271,61 @@ namespace RegimenCondominio.V
             }
             else
             {
-                //Cambio el Fondo
-                btnAdd.Content = FindResource("Edit");
-
                 //Activo el combo de Colindancia
                 cmbRumboActual.IsEnabled = true;
             }
-        }
 
+
+            if (countOrientaciones >= M.Constant.RumboMaximo)
+            {
+                //Cambio el Fondo
+                btnAdd.Content = FindResource("Edit");
+            }
+            else
+            {
+                //Cambio el Fondo
+                btnAdd.Content = FindResource("AddC");                
+            }
+
+        }
+       
         private void btnRefresh_Click(object sender, RoutedEventArgs e)
         {            
             //Reasigno elementos posterior a la búsqueda
-            ResManzana.ItemsSource = ObtengoManzanas();
+            cmbManzana.ItemsSource = ObtengoManzanas();
         }
 
         private void btnAvanzar_Click(object sender, RoutedEventArgs e)
         {
-            ModuloColindante M_Colindante = new ModuloColindante();
-            M_Colindante.Show();
-            this.Close();
+            int outNoManzana = 0;
+            //Reviso que no sea nulo los valores seleccionados
+            if (!string.IsNullOrWhiteSpace((cmbManzana.SelectedItem ?? "").ToString()) &&
+                !string.IsNullOrWhiteSpace((CmbRumboFrente.SelectedItem ?? "").ToString()))
+            {
+                //Si ya cuenta con los 4 rumbos
+                if (M.Manzana.ColindanciaManzana.Count == M.Constant.RumboMaximo)
+                {
+                    //Si la manzana es un número entero
+                    if (int.TryParse(cmbManzana.SelectedItem.ToString(), out outNoManzana))
+                    {
+                        //Una vez se validaron los datos los encapsulo
+                        M.Manzana.NoManzana = outNoManzana;
+                        M.Manzana.RumboFrente = CmbRumboFrente.SelectedItem.ToString();
+
+                        ModuloColindante M_Colindante = new ModuloColindante();
+                        M_Colindante.Show();
+                        this.Close();
+                    }
+                    else
+                        this.ShowMessageAsync("Error en No. de Manzana", "La manzana debe de ser un número entero");
+                }
+                else
+                    this.ShowMessageAsync("Datos Faltantes", 
+                        string.Format("Deben de ser {0} rumbos asignados", M.Constant.RumboMaximo));
+            }
+            else
+                this.ShowMessageAsync("Valores en Blanco", 
+                    "Favor de llenar todos los campos y/o los 4 Rumbos");
         }
     }
 }
