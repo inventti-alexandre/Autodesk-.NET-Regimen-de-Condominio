@@ -19,8 +19,23 @@ namespace RegimenCondominio.M
             typeof(Arc)        
         };
 
+        private static DateTime timeNow = DateTime.Now;
+
+        //Orden de búsqueda de los layers dentro de los Apartamentos
+        private static List<string> busquedaApartamento = new List<string>(new string[] {            
+            layerAPBaja,
+            layerAPAlta,
+            layerLavanderia,
+            layerEstacionamiento,
+            layerPasillo,
+            layerPatio        
+        });        
+
         //Nombre del Record del diccionario de Datos de Colindancia
         private static string xRecordColindancia = "JaverColindancia";
+
+        //Nombre del Record del diccionario de Número de Puntos (DBPoints)
+        private static string xRecordPoints = "JaverPoints";
 
         //Palabras que no se envían a mayuscula en Método C.Met_Inicio.FormateString
         private static string[] palabrasOmitidas = new string[]{
@@ -31,6 +46,9 @@ namespace RegimenCondominio.M
                 "LOS",
                 "EL"
             };
+
+        //Arreglo del Alfabeto
+        private static char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
 
         //Cantidad de Rumbos maximos
         private static int rumboMaximo = 4;
@@ -48,7 +66,7 @@ namespace RegimenCondominio.M
            { "Noreste", "NE" },//4,0 - 4,1
            { "Sureste", "SE" },//5,0 - 5,1
            { "Suroeste", "SO"},//6,0 - 6,1
-           { "Noroeste", "NO" },//7,0 - 7,1
+           { "Noroeste", "NO" }//7,0 - 7,1
         };
 
 
@@ -57,10 +75,53 @@ namespace RegimenCondominio.M
             "Calle",
             "Otro..."
         };
-        //Layer Manzana
+
+        #region Layers
+
+        private static string layerNoOficial = "NO_OFICIAL";
+
+        //Manzana
         private static string layerManzana = "MANZANA";
 
-        //Filtro de Manzana
+        //Número de Manzana
+        private static string layerNumManzana = "NUM_MANZANA";        
+
+        //Lote
+        private static string layerLote = "LOTE";
+
+        //Edificio
+        private static string layerEdificio = "EDIFICIO";
+
+        //Apartamento
+        private static string layerApartamento = "APARTAMENTO";
+       
+        private static string layerAPBaja = "AP_PB";
+
+        private static string layerAPAlta = "AP_PA";
+
+        //Lavandería cubierta
+        private static string layerLavanderia = "LAVANDERIA";
+
+        //Estacionamiento cubierto
+        private static string layerEstacionamiento = "ESTACIONAMIENTO";
+
+        //Pasillo
+        private static string layerPasillo = "PASILLO";
+
+        //Patio descubierto
+        private static string layerPatio = "PATIO";
+
+        private static string layerExcRegimen = "EXCLUSIVO_REGIMEN";
+
+        private static string layerExcDBPoints = "EXCL_POINTS_REGIMEN";
+
+        private static string layerExcDBText = "EXCL_NUMS_REGIMEN";
+
+        #endregion
+        
+        /// <summary>
+        /// Filtro de la Manzana
+        /// </summary>
         public static SelectionFilter ManzanaFilter
         {
             get
@@ -80,7 +141,9 @@ namespace RegimenCondominio.M
             }
         }
 
-
+        /// <summary>
+        /// Palabras no tomadas en Cuenta en FormatString()
+        /// </summary>
         public static string[] PalabrasOmitidas
         {
             get
@@ -89,27 +152,28 @@ namespace RegimenCondominio.M
             }
         }
 
+        /// <summary>
+        /// Usuario de Windows
+        /// </summary>
         public static string Usuario
         {
             get { return usuario; }
         }
 
+        /// <summary>
+        /// Orientaciones Disponibles
+        /// </summary>
         public static string[,] Orientaciones
         {
             get
             {
                 return orientaciones;
             }
-        }
+        }        
 
-        public static string LayerManzana
-        {
-            get
-            {
-                return layerManzana;
-            }
-        }
-
+        /// <summary>
+        /// Listado de Tipos de Colindancias
+        /// </summary>
         public static List<string> TipoColindancias
         {
             get
@@ -118,6 +182,9 @@ namespace RegimenCondominio.M
             }
         }
 
+        /// <summary>
+        /// Tipo de Clases Líneas aceptadas
+        /// </summary>
         public static Type[] TiposLineas
         {
             get
@@ -126,6 +193,9 @@ namespace RegimenCondominio.M
             }
         }
 
+        /// <summary>
+        /// Nombre de Record de Colindancia
+        /// </summary>
         public static string XRecordColindancia
         {
             get
@@ -134,12 +204,220 @@ namespace RegimenCondominio.M
             }
         }
 
+        /// <summary>
+        /// Cantidad de Rumbos Máximos a Asignar
+        /// </summary>
         public static int RumboMaximo
         {
             get
             {
                 return rumboMaximo;
             }
+        }
+
+        /// <summary>
+        /// Layer Manzana
+        /// </summary>
+        public static string LayerManzana
+        {
+            get
+            {
+                return layerManzana;
+            }
+        }
+
+        /// <summary>
+        /// Layer Lote
+        /// </summary>
+        public static string LayerLote
+        {
+            get
+            {
+                return layerLote;
+            }
+        }
+
+        /// <summary>
+        /// Layer Número de Manzana
+        /// </summary>
+        public static string LayerNumManzana
+        {
+            get
+            {
+                return layerNumManzana;
+            }
+        }
+
+        /// <summary>
+        /// Layer Edificio
+        /// </summary>
+        public static string LayerEdificio
+        {
+            get
+            {
+                return layerEdificio;
+            }
+        }
+
+        /// <summary>
+        /// Layer del Apartamento
+        /// </summary>
+        public static string LayerApartamento
+        {
+            get
+            {
+                return layerApartamento;
+            }
+        }
+
+        /// <summary>
+        /// Layer Lavandería
+        /// </summary>
+        public static string LayerLavanderia
+        {
+            get
+            {
+                return layerLavanderia;
+            }
+        }
+
+        public static string LayerEstacionamiento
+        {
+            get
+            {
+                return layerEstacionamiento;
+            }
+
+            set
+            {
+                layerEstacionamiento = value;
+            }
+        }
+
+        public static string LayerPasillo
+        {
+            get
+            {
+                return layerPasillo;
+            }
+
+            set
+            {
+                layerPasillo = value;
+            }
+        }
+
+        public static string LayerPatio
+        {
+            get
+            {
+                return layerPatio;
+            }
+
+            set
+            {
+                layerPatio = value;
+            }
+        }
+
+        /// <summary>
+        /// Layer Apartamento Planta Baja
+        /// </summary>
+        public static string LayerAPBaja
+        {
+            get
+            {
+                return layerAPBaja;
+            }
+
+        }
+
+        /// <summary>
+        /// Layer Apartamento Planta Alta
+        /// </summary>
+        public static string LayerAPAlta
+        {
+            get
+            {
+                return layerAPAlta;
+            }
+
+        }
+
+        /// <summary>
+        /// Layer de Número Oficial
+        /// </summary>
+        public static string LayerNoOficial
+        {
+            get
+            {
+                return layerNoOficial;
+            }
+        }
+
+        /// <summary>
+        /// Arreglo de letras de abecedario
+        /// </summary>
+        public static char[] Alphabet
+        {
+            get
+            {
+                return alphabet;
+            }
+        }
+
+        /// <summary>
+        /// Orden asignado para busqueda de secciones
+        /// </summary>
+        public static List<string> BusquedaApartamento
+        {
+            get
+            {
+                return busquedaApartamento;
+            }
+        }
+
+        /// <summary>
+        /// XRecord de Número de DBPoint asignado
+        /// </summary>
+        public static string XRecordPoints
+        {
+            get
+            {
+                return xRecordPoints;
+            }
+        }
+
+        public static DateTime TimeNow
+        {
+            get
+            {
+                return timeNow;
+            }
+        }
+
+        public static string LayerExcRegimen
+        {
+            get
+            {
+                return layerExcRegimen;
+            }
+        }
+
+        public static string LayerExcDBPoints
+        {
+            get
+            {
+                return layerExcDBPoints;
+            }            
+        }
+
+        public static string LayerExcDBText
+        {
+            get
+            {
+                return layerExcDBText;
+            }          
         }
     }
 }

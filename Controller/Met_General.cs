@@ -66,5 +66,39 @@ namespace RegimenCondominio.C
             return row;
         }
 
+        internal static double Trunc(this double num, int decimals)
+        {
+            double formatedDouble = new double();
+
+            switch(decimals)
+            {
+                case 1:
+                    formatedDouble = double.Parse(num.ToString("N1"));
+                    break;
+
+                case 2:
+                    formatedDouble = double.Parse(num.ToString("N2"));
+                    break;
+
+                case 3:
+                    formatedDouble = double.Parse(num.ToString("N3"));
+                    break;
+
+                case 4:
+                    formatedDouble = double.Parse(num.ToString("N4"));
+                    break;
+
+                case 5:
+                    formatedDouble = double.Parse(num.ToString("N5"));
+                    break;
+
+                default:                
+                    formatedDouble = num;
+                    break;
+            }
+
+            return formatedDouble;
+        }
+
     }
 }

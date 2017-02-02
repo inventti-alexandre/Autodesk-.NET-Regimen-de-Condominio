@@ -20,6 +20,8 @@ namespace RegimenCondominio.M
         //Rumbo de Frente
         private static string rumboFrente = string.Empty;
 
+        private static bool esMacrolote = false;
+
         public static List<string> OrientacionCalculada
         {
             get
@@ -69,6 +71,19 @@ namespace RegimenCondominio.M
             set
             {
                 rumboFrente = value;
+            }
+        }
+
+        public static bool EsMacrolote
+        {
+            get
+            {
+                return esMacrolote;
+            }
+
+            set
+            {
+                esMacrolote = value;
             }
         }
     }

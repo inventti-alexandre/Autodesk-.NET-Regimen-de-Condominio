@@ -7,18 +7,17 @@
         xmlns:cscontrol ="clr-namespace:RegimenCondominio.UserControls"
         xmlns:local="clr-namespace:RegimenCondominio.V"
         mc:Ignorable="d"
-        Title="ModuloColindante" Height="600" Width="900"
+        Title="ModuloColindante" Height="600" Width="1000" MinWidth="950"
                    TitleCaps="False"
                    WindowStartupLocation="CenterScreen"
-                   ResizeMode="CanResize"                  
+                   ResizeMode="CanResize"                                      
                    Icon="pack://application:,,,/RegimenCondominio;component/Images/JaverIcono.png"
                    Loaded="MetroWindow_Loaded">
     <Window.Resources>
         <ResourceDictionary>
 
             <BitmapImage x:Key="Fondo" UriSource="pack://application:,,,/RegimenCondominio;component/Images/fondo.png" />
-            <Image x:Key="HomeImage" Source="pack://application:,,,/RegimenCondominio;component/Images/HomeGreen.png" 
-                   Width="40" Height="40"
+            <Image x:Key="HomeImage" Source="pack://application:,,,/RegimenCondominio;component/Images/HomeGreen.png"                    
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Image x:Key="Manzana" Source="pack://application:,,,/RegimenCondominio;component/Images/btnManzana.png" 
                    Width="70" Height="70" 
@@ -28,7 +27,7 @@
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Image x:Key="AddC" Source="pack://application:,,,/RegimenCondominio;component/Images/RedLightCAdd.png"                    
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <Image x:Key="Refresh" Source="pack://application:,,,/RegimenCondominio;component/Images/refresh.png"                    
+            <Image x:Key="Recalculate" Source="pack://application:,,,/RegimenCondominio;component/Images/logoLook.png"                    
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Image x:Key="RefreshM" Source="pack://application:,,,/RegimenCondominio;component/Images/refreshM.png"                    
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -47,8 +46,8 @@
                    />
 
             <!--ACCENT COLORS-->
-            <SolidColorBrush x:Key="HighlightBrush" Color="#00897B"/>
-            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#00897B" />
+            <SolidColorBrush x:Key="HighlightBrush" Color="#6cb1e6"/>
+            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#6cb1e6" />
 
             <SolidColorBrush x:Key="AccentColorBrush" Color="#6cb1e6" />
             <SolidColorBrush x:Key="AccentColorBrush2" Color="#6cb1e6" />
@@ -57,14 +56,15 @@
 
             <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#00897B" />
 
+            <SolidColorBrush x:Key="MetroDataGrid.HighlightBrush" Color="#6cb1e6"/>
+
             <Style TargetType="GroupItem">
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate>
-                            <Expander IsExpanded="False" Background="LightGray">
+                            <Expander IsExpanded="False" Background="WhiteSmoke" BorderBrush="LightGray">
                                 <Expander.Header>
                                     <WrapPanel>
-                                        <TextBlock Text="Lote No. " FontWeight="Bold"/>
                                         <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
                                     </WrapPanel>
                                 </Expander.Header>
@@ -74,7 +74,7 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            
+
             <ResourceDictionary.MergedDictionaries>
                 <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
@@ -86,113 +86,189 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <TabControl TabStripPlacement="Top" x:Name="tabCsControl">
+    <TabControl TabStripPlacement="Top" x:Name="tabCsControl"
+                SelectionChanged="tabCsControl_SelectionChanged">
         <!--********________________________TAB 1 LOTE_____________________________************-->
-        <TabItem Header="Lote">
+        <TabItem Header="Lote" x:Name="tab1">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="190"/>
-                    <ColumnDefinition Width="190"/>
-                    <ColumnDefinition Width="190"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="180"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="102*"/>
-                    <RowDefinition Height="383*"/>
-                    <RowDefinition Height="77*"/>
+                    <RowDefinition Height="55*"/>
+                    <RowDefinition Height="40*"/>
+                    <RowDefinition Height="355*"/>
+                    <RowDefinition Height="71*"/>
                 </Grid.RowDefinitions>
                 <Grid.Background>
                     <ImageBrush ImageSource="{StaticResource Fondo}"/>
                 </Grid.Background>
+
                 <!--________________________ LOTE TIPO _____________________________-->
-                <Border BorderBrush="#D8D8D8" CornerRadius="5" 
-                        BorderThickness="1" Background="Transparent" Margin="10,5,10,5">
+                <Border BorderBrush="#D8D8D8" CornerRadius="5" Grid.Column="0" x:Name="tb1BorderPaso1"
+                        BorderThickness="1" Background="Transparent" Margin="10,5,10,5" Grid.RowSpan="2"
+                        IsEnabled="False">
                     <Grid >
                         <!--D8D8D8-->
-                        <Border BorderBrush="Transparent" CornerRadius="2" BorderThickness="1" 
+                        <Border BorderBrush="LightGray" CornerRadius="5" BorderThickness="0" 
                                 Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
-                                Background="Transparent" Width="127" Grid.RowSpan="1" Grid.Column="0">
-                            <TextBlock Text="1. Selecciona Lote Tipo" 
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
-                                       VerticalAlignment="Top" Margin="0,0,0,-1" />
+                                Background="Transparent" Width="155" Grid.RowSpan="1" Grid.Column="0">
+                            <TextBlock Text="Exclusivo Macrolote"
+                               FontWeight="DemiBold" Foreground="Gray" Height="19" 
+                                       VerticalAlignment="Top" x:Name="txtHeaderPaso1" />
                         </Border>
                         <Button  HorizontalAlignment="Right"  VerticalAlignment="Center"
-                                 BorderBrush="Transparent" BorderThickness="0" 
+                                 BorderBrush="Transparent" BorderThickness="0" Click="tb1SelMacrolote_Click"
+                                 Focusable="False" Background="Transparent" x:Name="tb1SelMacrolote"
+                                 Width="65" Height="65" Margin="0,20,46,3">
+                            <Image Source="pack://application:,,,/RegimenCondominio;component/Images/NewSelectHand.png"/>
+                        </Button>
+                        
+                        <TextBlock Text="12" Margin="5" FontSize="14" Visibility="Collapsed"
+                               FontWeight="DemiBold" Foreground="Black" HorizontalAlignment="Right"
+                                       VerticalAlignment="Bottom" x:Name="lblMacrolote" />
+                    </Grid>
+                </Border>
+
+                <!--________________________ LOTE TIPO _____________________________-->
+                <Border BorderBrush="#D8D8D8" CornerRadius="5" Grid.Column="1" 
+                        BorderThickness="1" Background="Transparent" Margin="10,5,10,5" Grid.RowSpan="2"
+                        >
+                    <Grid >
+                        <!--D8D8D8-->
+                        <Border BorderBrush="LightGray" CornerRadius="5" BorderThickness="0" 
+                                Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                                Background="Transparent" Width="155" Grid.RowSpan="1" Grid.Column="0">
+                            <TextBlock Text="1. Selecciona Lote Tipo"
+                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                                       VerticalAlignment="Top" x:Name="txtHeaderPaso2" />
+                        </Border>
+                        <Button  HorizontalAlignment="Right"  VerticalAlignment="Center"
+                                 BorderBrush="Transparent" BorderThickness="0" Click="tb1SelLoteTipo_Click"
                                  Focusable="False" Background="Transparent" x:Name="tb1SelLoteTipo" 
                                  Width="65" Height="65" Margin="0,20,46,3">
                             <Image Source="pack://application:,,,/RegimenCondominio;component/Images/NewSelectHand.png"/>
                         </Button>
-                        <CheckBox x:Name="tb1CheckLoteTipo" HorizontalAlignment="Right"
-                                  VerticalAlignment="Bottom" Margin="0,0,0,3"
-                                  IsEnabled="False"/>
+                        
+
+                        <TextBlock Text="12" Margin="5" FontSize="14"
+                               FontWeight="DemiBold" Foreground="Red" HorizontalAlignment="Right"
+                                       VerticalAlignment="Bottom" x:Name="lblLoteTipo" />
                     </Grid>
 
 
                 </Border>
                 <!--________________________LOTES IRREGULARES _____________________________-->
-                <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="10,5,10,5" 
-                        BorderThickness="1" Background="Transparent" Grid.Column="1">
+                <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="10,5,10,5" x:Name="tb1SecLoteIrregular"
+                        BorderThickness="1" Background="Transparent" Grid.Column="2" Grid.RowSpan="2">
                     <Grid>
 
-                        <Border BorderBrush="Transparent" CornerRadius="2" BorderThickness="1" Height="20"
+                        <Border BorderBrush="LightGray" CornerRadius="2" BorderThickness="0"  Height="20"
                         HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
-                        Width="167" Grid.RowSpan="1" Grid.Column="0">
-                            <TextBlock Text="2. Selecciona Lotes Irregulares" 
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" VerticalAlignment="Top" Margin="0,0,0,-1" />
+                        Width="157" Grid.RowSpan="1" Grid.Column="0">
+                            <TextBlock Text="2. Selecciona Lotes Irregulares" FontSize="11.5"
+                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                                       VerticalAlignment="Top" Margin="0,0,0,-1" x:Name="txtHeaderPaso3"/>
                         </Border>
 
                         <Button  HorizontalAlignment="Right"  VerticalAlignment="Center" 
-                                 Content="{StaticResource MultipleSelect}"
-                                 BorderBrush="Transparent" BorderThickness="0" 
-                                 Focusable="False" Background="Transparent" 
+                                 Content="{StaticResource MultipleSelect}" x:Name="tb1SelMultiple"
+                                 BorderBrush="Transparent" BorderThickness="0" Click="tb1SelMultiple_Click"
+                                 Focusable="False" Background="Transparent" IsEnabled="False"
                                  Width="65" Height="65" Margin="0,20,50,3">
                         </Button>
-                        <CheckBox x:Name="CheckLoteTipo2" HorizontalAlignment="Right"
+                        <CheckBox x:Name="tb1CheckLoteIrregular" HorizontalAlignment="Right"
                                   VerticalAlignment="Bottom" Margin="0,0,0,3"
                                   IsEnabled="False"/>
                     </Grid>
                 </Border>
                 <!--________________________CALCULO DE PUNTOS _____________________________-->
-                <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="10,5,10,5" 
-                        BorderThickness="1" Background="Transparent" Grid.Column="2">
+                <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="10,5,10,5" IsEnabled="True" x:Name="tb1SecCalcPunto"
+                        BorderThickness="1" Background="Transparent" Grid.Column="3" Grid.RowSpan="2">
                     <Grid>
 
-                        <Border BorderBrush="Transparent" CornerRadius="2" BorderThickness="1" Height="20"
+                        <Border BorderBrush="LightGray" CornerRadius="5" BorderThickness="0"  Height="20"
                         HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
-                        Width="110" Grid.RowSpan="1" Grid.Column="0">
+                        Width="100" Grid.RowSpan="1" Grid.Column="0">
                             <TextBlock Text="3. Calcular Puntos" 
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" VerticalAlignment="Top" Margin="0,0,0,-1" />
+                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                                       VerticalAlignment="Top" Margin="0,0,0,-1" x:Name="txtHeaderPaso4"/>
                         </Border>
 
                         <Button  HorizontalAlignment="Right"  VerticalAlignment="Center"                                  
-                                 BorderBrush="Transparent" BorderThickness="0" 
+                                 BorderBrush="Transparent" BorderThickness="0" Click="tb1CalPuntos_Click"
                                  Focusable="False" Background="Transparent" x:Name="tb1CalPuntos"
-                                 Width="70" Height="70" Margin="0,20,50,3">
+                                 Width="70" Height="70" Margin="0,20,50,3" IsEnabled="False">
                             <Image Source="pack://application:,,,/RegimenCondominio;component/Images/DistancePoints.png"/>
                         </Button>
-                        <metro:ProgressRing Width="30" Height="30" Foreground="Red" HorizontalAlignment="Right" 
-                                            VerticalAlignment="Bottom"/>
+
+                        <metro:ProgressRing Foreground="Red" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                            Height="35" Width="35" x:Name="tb1ProgressPoints" Visibility="Collapsed"/>
                     </Grid>
                 </Border>
 
                 <!--________________________DATOS GENERALES_____________________________-->
                 <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="10,5,10,5" 
-                        BorderThickness="1" Background="Transparent" Grid.Column="3">
+                        BorderThickness="1" Background="Transparent" Grid.Column="4" Grid.Row="1">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="100"/>
-                            <ColumnDefinition Width="13*"/>
-                            <ColumnDefinition Width="6*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Decimales: " FontWeight="DemiBold" Margin="5,5,173,8"
+                           FontSize="12" Height="15" HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"/>
+                        <cscontrol:CsNormalCombo FontWeight="DemiBold" Grid.Column="0" x:Name="tb1cmbDecimales"
+                           Width="60"  Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="72,2,108,4"
+                                                 SelectedIndex="2"/>
+                        <Button  VerticalAlignment="Center" HorizontalAlignment="Center"                        
+                                 BorderBrush="Transparent" BorderThickness="0" Click="tb1Clear_Click"
+                                 Focusable="False" Background="#ef5350" x:Name="tb1Clear" Content="Limpiar"
+                                 Width="70" Foreground="White" Margin="160,2,10,2"/>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="10,5,10,5" x:Name="tb1BorderDGV"
+                        BorderThickness="1" Background="Transparent" Grid.Column="4" Grid.Row="0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="1.2*"/>
                         </Grid.RowDefinitions>
-<!--
-                        <TextBlock Text="VALLE DEL ROBLE SECTOR 23" Grid.Row="0" FontWeight="DemiBold" Grid.ColumnSpan="2"
-                           FontSize="12" Height="15" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="65,0,5,0" Width="160"/>
+                        <Button
+                        BorderBrush="Transparent" Focusable="False"
+                        BorderThickness="0" Background="Transparent" Width="60" Height="50" VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                            <Image Source="pack://application:,,,/RegimenCondominio;component/Images/dwgSearch.png"/>
+                        </Button>
+                        <TextBlock Text="Sin Asignar" FontWeight="DemiBold" x:Name="lblGnEdificios" FontSize="13" Grid.Column="1"
+                        	Height="20" VerticalAlignment="Top" Margin="3" Visibility="Collapsed" HorizontalAlignment="Center"/>
+                        <TextBlock Text="0 Lotes" FontWeight="DemiBold" x:Name="lblGnLotes" Grid.Column="1"
+                                   Height="20" VerticalAlignment="Center" FontSize="15"  HorizontalAlignment="Center"/>
+
+                        <Button Content="{StaticResource HomeImage}" 
+                                HorizontalAlignment="Center" Click="tb1IrHome_Click"
+                        x:Name="tb1IrHome" BorderBrush="Transparent" Focusable="False"
+                        BorderThickness="0" Background="Transparent" Width="50" Grid.Column="2" />
+                        <!--
+                        <TextBlock Text="VALLE DEL ROBLE" Grid.Row="0" 
+                                   FontWeight="DemiBold" Grid.Column="1" Foreground="Red"
+                           FontSize="12" Height="15" HorizontalAlignment="Left" 
+                                   VerticalAlignment="Top"/>
+                        <TextBlock Text="Manzana 12" Grid.Row="1" FontWeight="DemiBold" 
+                           FontSize="12" HorizontalAlignment="Center" Margin="0,2" VerticalAlignment="Center"/>
+                        <TextBlock Text="Viv. AGUILA - CUADRUPLEX" Grid.Row="1" FontWeight="DemiBold" 
+                           FontSize="12" HorizontalAlignment="Left" VerticalAlignment="Center" 
+                                   Grid.Column="1" Margin="0,0,0,3"/>
+                        -->
+                        <!--                        
                         <TextBlock Text="Tipo de Vivienda:" Grid.Row="1" FontWeight="DemiBold" 
                            FontSize="12" Width="100" HorizontalAlignment="Left" Margin="0,2"/>
                         <TextBlock Text="12" Grid.Row="1" FontWeight="DemiBold" 
@@ -214,9 +290,10 @@
                 <!--________________________DGV GENERAL_____________________________-->
                 <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="10,5" 
                         x:Name="MainGpBox" BorderThickness="1" Background="Transparent" 
-                        Grid.Row="1" Grid.ColumnSpan="4">
+                        Grid.Row="2" Grid.ColumnSpan="5">
                     <DataGrid Background="Transparent" x:Name="tb1GridColindancia" 
-                              IsManipulationEnabled="False" AutoGenerateColumns="False">
+                              IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                              >
                         <DataGrid.Columns>
                             <DataGridTextColumn Width="25*" Binding="{Binding Seccion}">
                                 <DataGridTextColumn.Header>
@@ -242,7 +319,7 @@
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
 
-                            <DataGridTextColumn Width="25*" Binding="{Binding Rumbo}">
+                            <DataGridTextColumn Width="20*" Binding="{Binding Rumbo}">
                                 <DataGridTextColumn.Header>
                                     <TextBlock Text="Rumbo"></TextBlock>
                                 </DataGridTextColumn.Header>
@@ -254,162 +331,188 @@
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
 
+                            <DataGridTextColumn Width="10*" Binding="{Binding NoOficial}">
+                                <DataGridTextColumn.Header>
+                                    <TextBlock Text="No. Oficial"></TextBlock>
+                                </DataGridTextColumn.Header>
+                            </DataGridTextColumn>
+
                         </DataGrid.Columns>
+
                         <DataGrid.GroupStyle>
-                            <GroupStyle/>
+                            <GroupStyle>
+                                <GroupStyle.Panel>
+                                    <ItemsPanelTemplate>
+                                        <DataGridRowsPresenter/>
+                                    </ItemsPanelTemplate>
+                                </GroupStyle.Panel>
+                            </GroupStyle>
                         </DataGrid.GroupStyle>
                     </DataGrid>
+
                 </Border>
 
                 <!--________________________BOTÓN ATRÁS_____________________________-->
-                <Button Grid.Row="2" Content="{StaticResource GoBack}" HorizontalAlignment="Left"
+                <Button Grid.Row="3" Content="{StaticResource GoBack}" HorizontalAlignment="Left"
                 Click="btnAtras_Click" x:Name="tb1btnAtras" BorderBrush="Transparent" Focusable="False"
                 BorderThickness="0" Background="Transparent" Margin="0,5,0,10" Width="50"/>
                 <!--________________________BOTÓN AVANZAR_____________________________-->
-                <Button Grid.Row="2" Content="{StaticResource Avanzar}" HorizontalAlignment="Right"
+                <Button Grid.Row="3" Content="{StaticResource Avanzar}" HorizontalAlignment="Right"
                 Click="btnAvanzar_Click" x:Name="tb1btnAvanzar" BorderBrush="Transparent" Focusable="False"
-                BorderThickness="0" Background="Transparent" Margin="0,5,0,10" Width="50" Grid.Column="3"/>
+                BorderThickness="0" Background="Transparent" Margin="0,5,0,10" Width="50" Grid.Column="4"/>
             </Grid>
         </TabItem>
         <!--********________________________TAB 2 MACROLOTE_____________________________************-->
-        <TabItem Header="Macrolote">
+        <TabItem Header="Detalle" >
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="190"/>
-                    <ColumnDefinition Width="190"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                    <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="102*"/>
 
-                    <RowDefinition Height="383*"/>
-                    <RowDefinition Height="77*"/>
+                    <RowDefinition Height="147*"/>
+                    <RowDefinition Height="349*"/>
                 </Grid.RowDefinitions>
                 <Grid.Background>
                     <ImageBrush ImageSource="{StaticResource Fondo}"/>
                 </Grid.Background>
-
-                <!--________________________ MACROLOTE_____________________________-->
-                <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="10,5"
-                        BorderThickness="1" Background="Transparent">
+                <Border BorderBrush="#D8D8D8" CornerRadius="5" Grid.Column="0" x:Name="tb2BordDtInicial"
+                        BorderThickness="1" Background="Transparent" Margin="10,5,10,5"
+                        IsEnabled="False">
                     <Grid >
-
-                       
-                            <TextBlock Text="1. Selecciona Macrolote" 
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
-                                       VerticalAlignment="Top" HorizontalAlignment="Left" />
-                        
-                        <Button  HorizontalAlignment="Right"  VerticalAlignment="Center"
-                                 BorderBrush="Transparent" BorderThickness="0" 
-                                 Focusable="False" Background="Transparent" 
-                                 Width="70" Height="70" Margin="0,20,46,3" x:Name="tb2SelMacroloteTipo">
-                            <Image Source="pack://application:,,,/RegimenCondominio;component/Images/select.png"/>
-                        </Button>
-                        <CheckBox x:Name="tb2CheckMacrolote" HorizontalAlignment="Right"
-                                  VerticalAlignment="Bottom" Margin="0,0,0,3" IsChecked="True"
-                                  IsEnabled="False"/>
-                    </Grid>
-
-
-                </Border>
-
-                <!--________________________ CALCULO DE PUNTOS_____________________________-->
-                <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="10,5,10,5"
-                        BorderThickness="1" Background="Transparent" Grid.Column="1">
-                    <Grid>
-                        <TextBlock Text="2. Calcular Puntos" 
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
-                                       VerticalAlignment="Top" HorizontalAlignment="Left"/>
-                        
-                        <Button  HorizontalAlignment="Right"  VerticalAlignment="Center"                                 
-                                 BorderBrush="Transparent" BorderThickness="0" 
-                                 Focusable="False" Background="Transparent" x:Name="tb2CalPuntos"
-                                 Width="70" Height="70" Margin="0,20,50,3">
-                            <Image Source="pack://application:,,,/RegimenCondominio;component/Images/DistancePoints.png"/>
-                        </Button>
-                        <CheckBox x:Name="CheckLoteTipo4" HorizontalAlignment="Right"
-                                  VerticalAlignment="Bottom" Margin="0,0,0,3" IsChecked="True"
-                                  IsEnabled="False"/>
-                    </Grid>
-                </Border>
-                
-                <!--________________________DATOS GENERALES_____________________________-->
-                <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="10,5,10,5"
-                        BorderThickness="1" Background="Transparent" Grid.Column="3">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="100"/>
-                            <ColumnDefinition Width="13*"/>
-                            <ColumnDefinition Width="6*"/>
-                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="21*"/>
+                            <RowDefinition Height="26*"/>
+                            <RowDefinition Height="24*"/>
+                            <RowDefinition Height="24*"/>
+                            <RowDefinition Height="24*"/>
+                            <RowDefinition Height="24*"/>
                         </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="104*"/>
+                            <ColumnDefinition Width="125*"/>
+                            <ColumnDefinition Width="53*"/>
+                            <ColumnDefinition Width="65*"/>
+                        </Grid.ColumnDefinitions>
+                        <!--D8D8D8-->
+                        <Border BorderBrush="LightGray" CornerRadius="5" BorderThickness="0" 
+                                Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                                Background="Transparent" Width="78">
+                            <TextBlock Text="Datos Iniciales"
+                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                                       VerticalAlignment="Top" x:Name="txtDetalleInicial" />
+                        </Border>
+                        <!--FRACCIONAMIENTO-->
+                        <TextBlock Text="Fraccionamiento: " Grid.Row="1" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" FontWeight="DemiBold" Margin="3,0,0,3"/>
+                        <TextBlock Text="Rinconada de los Lados" Grid.Row="1"  Grid.Column="1" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" Grid.ColumnSpan="2" x:Name="tb2txtFracc"/>
+                        <!--FIN FRACCIONAMIENTO-->
+                        
+                        <!--ESTADO-->
+                        <TextBlock Text="Estado: " Grid.Row="2" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" FontWeight="DemiBold" Margin="3,0,0,3"/>
+                        <TextBlock Text="Nuevo León" Grid.Row="2"  Grid.Column="1" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" x:Name="tb2txtEstado"/>
+                        <!--FIN ESTADO-->
+                        <!--MUNICIPIO-->
+                        <TextBlock Text="Municipio: " Grid.Row="3" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" FontWeight="DemiBold" Margin="3,0,0,3"/>
+                        <TextBlock Text="Guadalupe" Grid.Row="3"  Grid.Column="1" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" x:Name="tb2txtMunicipio"/>
+                        <!--FIN MUNICIPIO-->
+                        <!--SECTOR-->
+                        <TextBlock Text="Sector: " Grid.Row="4" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" FontWeight="DemiBold" Margin="3,0,0,3"/>
+                        <TextBlock Text="Huizache " Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" x:Name="tb2txtSector"/>
+                        <!--FIN SECTOR-->
+                        
+                        <!--REGION-->
+                        <TextBlock Text="Region: " Grid.Row="4" Grid.Column="2" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" FontWeight="DemiBold" Margin="3,0,0,3" 
+                                   Height="16" Width="41"/>
+                        <TextBlock Text="123" Grid.Row="4" Grid.Column="3" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" x:Name="tb2txtRegion"/>
+                        <!--FIN REGION-->
+                        <!--TIPO DE VIVIENDA-->
+                        <TextBlock Text="Tipo de Vivienda: " Grid.Row="5" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" FontWeight="DemiBold" Margin="3,0,0,3"/>
+                        <TextBlock Text="DUPLEX 2 VIVIENDAS 1233" Grid.Row="5" Grid.Column="1" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" x:Name="tb2txtTipoVivienda"/>
+                        <!--FIN TIPO DE VIVIENDA-->
                     </Grid>
                 </Border>
+                <Border Grid.Row="0" Grid.Column="1" Margin="10,5,10,5"
+                           HorizontalAlignment="Center" CornerRadius="3" BorderBrush="LightGray" BorderThickness="1">
+                    <ListView Grid.Row="1" Background="Transparent"
+                          x:Name="ListPrincipal" HorizontalAlignment="Center" IsHitTestVisible="False"
+                              BorderBrush="Transparent">
+                        <ListView.View>
+                            <GridView x:Name="GridPrinc" Selector.IsSelected="False">
+                                <!--RUMBO DGV-->
+                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding InicialRumbo}">
+                                    <GridViewColumnHeader IsHitTestVisible="False" BorderBrush="LightGray"
+                                                          BorderThickness="1,1,1,1">
+                                        <TextBlock Text="Rumbo" FontWeight="DemiBold"></TextBlock>
+                                    </GridViewColumnHeader>
+                                </GridViewColumn>
 
+                                <!--COLINDANCIA DGV-->
+                                <GridViewColumn Width="277">
+                                    <GridViewColumnHeader IsHitTestVisible="False" BorderBrush="LightGray"
+                                                          BorderThickness="1">
+                                        <TextBlock Text="Colindancia"/>
+                                    </GridViewColumnHeader>
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding TextColindancia}" FontWeight="DemiBold"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Border>
+
+                <TextBox Grid.Column="2" Width="130" Height="25" HorizontalAlignment="Right"
+                                           VerticalAlignment="Bottom" Margin="10,5" BorderBrush="LightGray"
+                                           BorderThickness="1" x:Name="tb2cmbText"/>
+                <ComboBox Grid.Column="2" Width="80" Height="25" VerticalAlignment="Bottom"
+                                         HorizontalAlignment="Left" Margin="10,5" x:Name="tb2cmbSearch">
+                </ComboBox>
                 <!--________________________DGV DE PUNTOS_____________________________-->
-                <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="10,5"
+                <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="5,5,5,20"
                         BorderThickness="1" Background="Transparent" 
-                        Grid.Row="1" Grid.ColumnSpan="3">
-                    <DataGrid Background="Transparent" x:Name="tb2GridColindancia"  
-                              IsManipulationEnabled="False">
+                        Grid.Row="2" Grid.ColumnSpan="3">
+                    <DataGrid Background="White" x:Name="tb2GridErrores" AutoGenerateColumns="False"
+                              IsManipulationEnabled="False" 
+                              CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Width="25*">
+                            <DataGridTextColumn Width="1*">
                                 <DataGridTextColumn.Header>
-                                    <TextBlock Text="Sección"></TextBlock>
+                                    <TextBlock Text="Error"></TextBlock>
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
-
-                            <DataGridTextColumn Width="10*">
+                            <DataGridTextColumn Width="3*">
                                 <DataGridTextColumn.Header>
-                                    <TextBlock Text="Punto A"></TextBlock>
+                                    <TextBlock Text="Descripción"></TextBlock>
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
-
-                            <DataGridTextColumn Width="10*">
+                            <DataGridTextColumn Width="1*">
                                 <DataGridTextColumn.Header>
-                                    <TextBlock Text="Punto B"></TextBlock>
+                                    <TextBlock Text="Hora"></TextBlock>
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
-
-                            <DataGridTextColumn Width="10*">
-                                <DataGridTextColumn.Header>
-                                    <TextBlock Text="Distancia"></TextBlock>
-                                </DataGridTextColumn.Header>
-                            </DataGridTextColumn>
-
-                            <DataGridTextColumn Width="25*">
-                                <DataGridTextColumn.Header>
-                                    <TextBlock Text="Rumbo"></TextBlock>
-                                </DataGridTextColumn.Header>
-                            </DataGridTextColumn>
-
-                            <DataGridTextColumn Width="25*">
-                                <DataGridTextColumn.Header>
-                                    <TextBlock Text="Colindancia"></TextBlock>
-                                </DataGridTextColumn.Header>
-                            </DataGridTextColumn>
-
-                        </DataGrid.Columns>
-
+                        </DataGrid.Columns>                                              
 
                     </DataGrid>
 
                 </Border>
 
-                <!--________________________BOTÓN ATRÁS_____________________________-->
-                <Button Grid.Row="2" HorizontalAlignment="Left"
-                Click="btnAtras_Click" x:Name="tb2btnAtras" BorderBrush="Transparent" Focusable="False"
-                BorderThickness="0" Background="Transparent" Margin="0,5,0,10" Width="50">
-                    <Image Source="pack://application:,,,/RegimenCondominio;component/Images/NewGoBack.png"/>
-                </Button>
-
-                <!--________________________BOTÓN AVANZAR_____________________________-->
-                <Button Grid.Row="2" HorizontalAlignment="Right"
-                Click="btnAvanzar_Click" x:Name="tb2btnAvanzar" BorderBrush="Transparent" Focusable="False"
-                BorderThickness="0" Background="Transparent" Margin="0,5,0,10" Width="50" Grid.Column="2">
-                    <Image Source="pack://application:,,,/RegimenCondominio;component/Images/NewGoNext.png"/>
-                </Button>
             </Grid>
         </TabItem>
     </TabControl>

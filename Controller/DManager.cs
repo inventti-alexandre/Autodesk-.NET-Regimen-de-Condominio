@@ -405,7 +405,7 @@ namespace RegimenCondominio.C
                     ed.WriteMessage(exc.Message);
                     tr.Abort();
                 }
-                catch (System.Exception exc)
+                catch (Exception exc)
                 {
                     ed.WriteMessage(exc.Message);
                     tr.Abort();
@@ -472,6 +472,7 @@ namespace RegimenCondominio.C
                         TypedValue[] tps = oldX.Data.AsArray();
                         foreach (TypedValue tp in tps)
                             values.Add((string)tp.Value);
+                        tr.Commit();
                     }
                     catch (AcadExc exc)
                     {
@@ -500,8 +501,7 @@ namespace RegimenCondominio.C
                 {
 
                     BlockTable blkTab = db.BlockTableId.GetObject(OpenMode.ForRead) as BlockTable;
-                    BlockTableRecord model = blkTab[BlockTableRecord.ModelSpace].GetObject(OpenMode.ForRead) as BlockTableRecord;
-                    DBObject obj;
+                    BlockTableRecord model = blkTab[BlockTableRecord.ModelSpace].GetObject(OpenMode.ForRead) as BlockTableRecord;                   
                     foreach (ObjectId id in model)
                     {
                         if (id.IsValid)
@@ -516,9 +516,7 @@ namespace RegimenCondominio.C
                                 if(dbDict.Contains(recordName))
                                 {                                    
                                         objCol.Add(id);
-                                }
-
-                                
+                                }                                
                             }
                         }
                     }                   

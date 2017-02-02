@@ -7,7 +7,7 @@
         xmlns:cscontrol ="clr-namespace:RegimenCondominio.UserControls"
         xmlns:local="clr-namespace:RegimenCondominio.V"
         mc:Ignorable="d"
-        Title="Modulo Manzana" Height="450" Width="440"
+        Title="Modulo Manzana" Height="480" Width="440"
                    TitleCaps="False"
                    WindowStartupLocation="CenterScreen"
                    ResizeMode="CanMinimize"                  
@@ -30,7 +30,7 @@
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Image x:Key="Refresh" Source="pack://application:,,,/RegimenCondominio;component/Images/refresh.png"                    
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <Image x:Key="RefreshM" Source="pack://application:,,,/RegimenCondominio;component/Images/refreshM.png"                    
+            <Image x:Key="RefreshM" Source="pack://application:,,,/RegimenCondominio;component/Images/NewRefresh.png"                    
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Image x:Key="Edit" Source="pack://application:,,,/RegimenCondominio;component/Images/Edit.png"                    
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -59,14 +59,14 @@
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="55*"/>
-            <RowDefinition Height="120*"/>
-            <RowDefinition Height="36*"/>
+            <RowDefinition Height="130*"/>
+            <RowDefinition Height="255*"/>
+            <RowDefinition Height="67*"/>
         </Grid.RowDefinitions>
         <Grid.Background>
             <ImageBrush ImageSource="{StaticResource Fondo}"/>
         </Grid.Background>
-        <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="17,5"
+        <Border BorderBrush="#D8D8D8" CornerRadius="5" Margin="17,6"
             x:Name="MainGpBox" BorderThickness="1" Background="Transparent">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -81,32 +81,39 @@
                     <RowDefinition Height="18*"/>
                     <RowDefinition Height="39*"/>
                     <RowDefinition Height="41*"/>
+                    <RowDefinition Height="41*"/>
                 </Grid.RowDefinitions>
                 <Border BorderBrush="#D8D8D8" CornerRadius="2" BorderThickness="1" Height="20"
                         HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
                         Width="120" Grid.ColumnSpan="2" Grid.RowSpan="2">
-                    <TextBlock Text="1. Manzana y Rumbo" 
+                    <TextBlock Text="1. Datos de Manzana" 
                                FontWeight="DemiBold" Foreground="#00897B" />
                 </Border>
 
                 <TextBlock Text="No. de Manzana:" Grid.Row="1" Grid.Column="1" FontWeight="DemiBold" 
-                           Margin="0,10,0,9" FontSize="12" />
+                           FontSize="12" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                 <cscontrol:CsNormalCombo Grid.Row="1" Grid.Column="2" MessageCombo2="" 
-                                         x:Name="cmbManzana" Margin="0,7,0,4"/>
-                <TextBlock Text="Rumbo de Frente: " Grid.Row="2" Grid.Column="1" FontWeight="DemiBold" 
-                           Margin="0,11,0,10" FontSize="12"/>
-
-
-                <cscontrol:CsNormalCombo Grid.Row="2" Grid.Column="2"
+                                         x:Name="cmbManzana" Height="28"/>
+                <TextBlock  Text="Rumbo de Frente: " Grid.Row="2" Grid.Column="1" FontWeight="DemiBold" 
+                            FontSize="12" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <cscontrol:CsNormalCombo Grid.Row="2" Grid.Column="2" Height="28"
                 	        Focusable="False" x:Name="CmbRumboFrente" IsEnabled="True"
                             SelectChanged="CmbRumboFrente_SelectChanged"
-                            BorderBrush="Transparent" BorderThickness="0" Margin="0,7,0,6"/>
+                            BorderBrush="Transparent" BorderThickness="0"/>
+                <TextBlock  Text="Tipo de Lote: " Grid.Row="3" Grid.Column="1" FontWeight="DemiBold" 
+                            FontSize="12" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <RadioButton x:Name="rbLote" Content="Lote" VerticalAlignment="Center" GroupName="TipoLote"
+                                     HorizontalAlignment="Right" Grid.Column="2"
+                                     FontWeight="DemiBold" Checked="rbLote_Checked" Grid.Row="3" Margin="0,8,10,7"/>
+                <RadioButton x:Name="rbMacroLote" Content="MacroLote" Grid.Row="3" FontWeight="DemiBold"
+                                     VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Column="2"
+                                     GroupName="TipoLote" Checked="rbLote_Checked"/>
 
                 <Button Content="{StaticResource RefreshM}" Focusable="False" 
-                        BorderBrush="Transparent" BorderThickness="0"
-                        Background="Transparent" 
+                        BorderBrush="Transparent" BorderThickness="0" HorizontalAlignment="Left"
+                        Background="Transparent"  Width="30" Height="30"
                         x:Name="btnRefresh" Click="btnRefresh_Click"
-                        Margin="0,0,26,39" Grid.Column="3" Grid.Row="1" Grid.RowSpan="2"/>
+                        Grid.Column="3" Grid.Row="1" />
                 <!--SelectChanged="CmbRumboFrente_SelectChanged"-->
 
             </Grid>
@@ -128,7 +135,7 @@
                 <cscontrol:CsNormalCombo HorizontalAlignment="Left" VerticalAlignment="Center"
                               Width="96" x:Name="cmbRumboActual" MessageCombo2="Rumbo" IsEnabled="False" Foreground="Black"
                              FontWeight="Bold" Margin="141,40,0,161" Height="27" Grid.RowSpan="2"/>
-                <cscontrol:CsNormalCombo MessageCombo2="Tipo"  Width="96" x:Name="cmbTipo"
+                <cscontrol:CsNormalCombo MessageCombo2="Tipo"  Width="96" x:Name="cmbTipo" Height="30"
                                               BorderThickness="1" Margin="242,38,60,161" Grid.RowSpan="2"/>
                 <!--SelectChanged="CmbRumboFrente_SelectChanged"-->
                 <!--Botón Agregar a Tabla-->

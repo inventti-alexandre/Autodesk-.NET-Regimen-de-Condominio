@@ -77,7 +77,7 @@ namespace RegimenCondominio.C
             }
             catch (Exception ex)
             {
-                ex.Message.ToAutodeskEditor();
+                ex.Message.ToEditor();
             }
 
             return RowsDeleted;

@@ -66,7 +66,6 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.1.3.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
       <Private>True</Private>
@@ -89,15 +88,16 @@
     <Compile Include="Config\DB.cs" />
     <Compile Include="Controller\DManager.cs" />
     <Compile Include="Controller\Met_Autodesk.cs" />
+    <Compile Include="Controller\Met_Colindante.cs" />
     <Compile Include="Controller\Met_General.cs" />
     <Compile Include="Controller\Met_Manzana.cs" />
+    <Compile Include="Controller\PolylineSegment.cs" />
+    <Compile Include="Controller\PolylineSegmentCollection.cs" />
     <Compile Include="Controller\SqlTransaction.cs" />
     <Compile Include="Controller\SQL_Connector.cs" />
+    <Compile Include="Model\Colindante.cs" />
     <Compile Include="Model\Constant.cs" />
-    <Compile Include="Model\DatosManzana.cs" />
-    <Compile Include="Model\DatosFracc.cs" />
-    <Compile Include="Model\DatosColindancia.cs" />
-    <Compile Include="Model\DatosTipoViv.cs" />
+    <Compile Include="Model\DataClass.cs" />
     <Compile Include="Model\Inicio.cs" />
     <Compile Include="Model\Manzana.cs" />
     <Compile Include="UserControls\CsNormalCombo.xaml.cs">
@@ -295,6 +295,30 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\NewSelectHand.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\DeleteGreen.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\DeleteRed.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\NewRefresh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\logoLook.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\DisabledSelect.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\zoomSearch.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\zoom2.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\dwgSearch.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

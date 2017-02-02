@@ -22,8 +22,8 @@ namespace RegimenCondominio.C
         /// <param name="conn">The connection.</param>
         /// <param name="input">The input.</param>
         /// <param name="bg">The bg.</param>
-        public delegate Object SQL_TransactionHandler(SQL_Connector conn, Object input, BackgroundWorker bg);
-        public delegate void SQL_TransactionFinishHandler(Object input);
+        public delegate object SQL_TransactionHandler(SQL_Connector conn, object input, BackgroundWorker bg);
+        public delegate void SQL_TransactionFinishHandler(object input);
         Object Input;
         SQL_TransactionHandler Action;
         BackgroundWorker Bg;

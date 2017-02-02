@@ -69,13 +69,10 @@ namespace RegimenCondominio.V
 
         private void FraccionamientoCombo_SelectChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (FraccionamientoCombo.SelectedItem != null
-                && FraccionamientoCombo.SelectedItem.ToString() != string.Empty)
+            if ((FraccionamientoCombo.SelectedItem ?? string.Empty).ToString() != string.Empty)
             {
                 (this.Resources["expandFracc"] as
-                    System.Windows.Media.Animation.Storyboard).Begin();
-
-                string s = "";                
+                    System.Windows.Media.Animation.Storyboard).Begin();                            
                                 
                 //Asigno Municipio
                 EstadoBox.Text = 
@@ -207,6 +204,7 @@ namespace RegimenCondominio.V
                 //Habilito los controles
                 ShowControls();
 
+                //Si ya cuenta con datos los selecciono en la Pantalla--------------------------------
                 FraccionamientoCombo.SelectedItem = !string.IsNullOrWhiteSpace(M.Inicio.Fraccionamiento)
                                                             ? M.Inicio.Fraccionamiento : null;
 

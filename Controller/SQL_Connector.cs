@@ -32,7 +32,7 @@ namespace RegimenCondominio.C
             {
                 this.Connection = new SqlConnection(connectionString);
                 this.Connection.Open();
-                                this.ConnectionStatus = this.Connection.State;
+                this.ConnectionStatus = this.Connection.State;
             }
             catch (Exception exc)
             {

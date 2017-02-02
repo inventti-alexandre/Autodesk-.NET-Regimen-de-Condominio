@@ -55,6 +55,12 @@ namespace RegimenCondominio.V
 
             //La lista debe de estar de acuerdo a lo insertado en listado de Colindancias
             ListPrincipal.ItemsSource = M.Manzana.ColindanciaManzana;
+
+            //Asigno Lote o Macrolote
+            if (M.Manzana.EsMacrolote)
+                rbMacroLote.IsChecked = true;
+            else
+                rbLote.IsChecked = true;
         }
 
         private List<string> ObtengoManzanas()
@@ -88,7 +94,7 @@ namespace RegimenCondominio.V
                 string msj = "";
 
                 //Busco Id Manzana
-                idNoManzana = pts.EntitiesByLayer(M.Constant.LayerManzana, out msj).
+                idNoManzana = pts.DBTextByLayer(M.Constant.LayerManzana, out msj).
                     OfType<ObjectId>().FirstOrDefault();
 
                 strNoManzana = (idNoManzana.OpenEntity() as DBText).TextString;
@@ -183,11 +189,12 @@ namespace RegimenCondominio.V
             //Selecciono el Item 
             string rumboSeleccionado = (cmbRumboActual.SelectedItem ?? "").ToString();
 
-            this.WindowState = WindowState.Minimized;
+            
 
             //Si ya se selecciono algo en el combobox de tipo
             if (cmbTipo.SelectedIndex != -1)
             {
+                this.WindowState = WindowState.Minimized;
                 //Solicito que me hagan saber el texto que colinda
                 if (Met_Autodesk.Entity("Selecciona la línea de colindancia al " + rumboSeleccionado + "\n",
                     out idLineCol, M.Constant.TiposLineas) &&
@@ -228,14 +235,10 @@ namespace RegimenCondominio.V
                         ? false : true;
 
                     //Si es Nueva Polilinea y nuevo Rumbo
-                    if (PolilineaNueva && RumboNuevo)
-                    {
-                         sigPosicion = insertedData.InsertoColindancia();                        
-                    }
-                    else
-                    {
-                        sigPosicion = insertedData.ReasignoColindancia(PolilineaNueva, RumboNuevo);
-                    }
+                    if (PolilineaNueva && RumboNuevo)                    
+                         sigPosicion = insertedData.InsertoColindancia();                                           
+                    else                    
+                        sigPosicion = insertedData.ReasignoColindancia(PolilineaNueva, RumboNuevo);                    
 
                     //Reviso que rumbo mostrará
                     SigColindancia(sigPosicion);
@@ -246,13 +249,11 @@ namespace RegimenCondominio.V
                         ListPrincipal.ItemsSource = M.Manzana.ColindanciaManzana;
 
                 }
+                this.WindowState = WindowState.Normal;
             }
-            else
-            {
-                this.ShowMessageAsync("Datos no seleccionados",
-                        "Favor de seleccionar Tipo de Colindancia");
-            }            
-            this.WindowState = WindowState.Normal;
+            else            
+                this.ShowMessageAsync("Datos no seleccionados", "Favor de seleccionar Tipo de Colindancia");                       
+            
 
         }       
 
@@ -312,9 +313,10 @@ namespace RegimenCondominio.V
                         M.Manzana.NoManzana = outNoManzana;
                         M.Manzana.RumboFrente = CmbRumboFrente.SelectedItem.ToString();
 
+                        this.Close();
                         ModuloColindante M_Colindante = new ModuloColindante();
                         M_Colindante.Show();
-                        this.Close();
+                        
                     }
                     else
                         this.ShowMessageAsync("Error en No. de Manzana", "La manzana debe de ser un número entero");
@@ -324,8 +326,31 @@ namespace RegimenCondominio.V
                         string.Format("Deben de ser {0} rumbos asignados", M.Constant.RumboMaximo));
             }
             else
-                this.ShowMessageAsync("Valores en Blanco", 
-                    "Favor de llenar todos los campos y/o los 4 Rumbos");
+                this.ShowMessageAsync("Valores en Blanco",
+                    string.Format("Favor de llenar todos los campos y/o los {0} Rumbos", M.Constant.RumboMaximo));
+        }
+
+        private void rbLote_Checked(object sender, RoutedEventArgs e)
+        {
+            RadioButton rbsent = sender as RadioButton;
+
+            if (rbsent.Content.ToString() == "Lote")
+                M.Manzana.EsMacrolote = false;
+            else
+                M.Manzana.EsMacrolote = true;
+                                    
+            //tab1.Header = rbsent.Content.ToString();
+
+                //if (rbsent.Content.ToString() == "Lote")
+                //{
+                //    txtHeaderPaso2.Text = "2. Seleccionar Lote Tipo";
+                //    txtHeaderPaso3.Text = "3. Selecciona Lotes Irregulares";
+                //}
+                //else
+                //{
+                //    txtHeaderPaso2.Text = "2. Sel. Último Edificio Tipo";
+                //    txtHeaderPaso3.Text = "3. Sel. Edificios Irregulares";
+                //}
         }
     }
 }
