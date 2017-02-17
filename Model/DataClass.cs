@@ -1,4 +1,5 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,11 +39,13 @@ namespace RegimenCondominio.M
 
     public class DatosColindancia
     {
-        public string Lote { get; set; }
+        public string Vivienda { get; set; }
 
         public string Apartamento { get; set; }
 
         public string Seccion{ get; set; }
+
+        public string LayerSeccion { get; set; }
 
         public int PuntoA { get; set; }
 
@@ -52,9 +55,17 @@ namespace RegimenCondominio.M
 
         public string Rumbo { get; set; }
 
-        public string Colindancia { get; set; }    
+        public string Colindancia { get; set; }  
+        
+        public List<string> LayersColindancia { get; set; }  
         
         public string NoOficial { get; set; }
+
+        public Point3d CoordenadaA { get; set; }
+
+        public Point3d CoordenadaB { get; set; }
+
+        public bool IsArc { get; set; }
     }
 
     public class DGVColindancia
@@ -65,10 +76,40 @@ namespace RegimenCondominio.M
         public int NoOficial { get; set; }
     }
 
-    public class EntityValue
+    public class InLotes
     {
-        public ObjectId idEntity { get; set; }
-        public string value { get; set; }
+        /// <summary>
+        /// ObjectId de Entidad
+        /// </summary>
+        public long handleEntity { get; set; }
+
+        /// <summary>
+        /// Valor de la Entidad
+        /// </summary>
+        public string numLote { get; set; }
+
+        /// <summary>
+        /// Llave que identifica que valor se introdujo
+        /// </summary>
+        public string numOficial { get; set; }
+    }
+
+    public class InEdificios
+    {
+        public long longEntity { get; set; }
+
+        public string numEdificio { get; set; }
+        
+        public List<long> Apartments { get; set; }
+    }
+
+    public class Apartments
+    {
+        public long longPl { get; set; }
+
+        public long longText { get; set; }
+
+        public string TextAp { get; set; }
     }
 
     public class DescribeError
@@ -77,8 +118,45 @@ namespace RegimenCondominio.M
 
         public string Description { get; set; }
 
-        public ObjectId idObject { get; set; }
+        public long longObject { get; set; }
 
         public DateTime timeError { get; set; }
+
+        public TipoError tipoError { get; set; }
+
+        public string Metodo { get; set; }
+    }
+
+    public class DescribeLayer
+    {
+        public string Layername { get; set; }
+
+        public string Description { get; set; }
+    }
+
+    public enum TipoError
+    {
+        Warning,
+        Error,
+        Info
+    }
+
+    public class SegmentInfo
+    {
+        public double Distance { get; set; }
+
+        public Point3d MiddlePoint { get; set; }
+
+        public Point3d StartPoint { get; set; }
+
+        public Point3d EndPoint { get; set; }
+
+        public bool isArc { get; set; }
+    }
+
+    public enum TipoLinea
+    {
+        Line,
+        Arc
     }
 }

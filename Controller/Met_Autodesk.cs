@@ -369,6 +369,7 @@ namespace RegimenCondominio.C
 
                         outPl = segs.ToPolyline();
                         outPl.Layer = M.Constant.LayerExcRegimen;
+                        outPl.Closed = true;
                         btr.AppendEntity(outPl);
                         tr.AddNewlyCreatedDBObject(outPl, true);
                         tr.Commit();                        
@@ -417,11 +418,17 @@ namespace RegimenCondominio.C
                         }
                         tr.Commit();
                     }
+                    catch (Autodesk.AutoCAD.Runtime.Exception exc)
+                    {
+                        tr.Abort();
+                        doc.Editor.WriteMessage(exc.Message);
+                    }
                     catch (System.Exception exc)
                     {
                         tr.Abort();
                         doc.Editor.WriteMessage(exc.Message);
                     }
+                    
                 }
             }
         }
@@ -1081,7 +1088,7 @@ namespace RegimenCondominio.C
                     if (filter != null)
                         res = ed.SelectFence(pts, filter);
                     else
-                        res = ed.SelectFence(pts);
+                       res = ed.SelectFence(pts);
                     if (res.Status == PromptStatus.OK)
                     {
                         List<ObjectId> qR = res.Value.GetObjectIds().Where(x => !idsToIgnore.Contains(x)).ToList();
@@ -1100,7 +1107,7 @@ namespace RegimenCondominio.C
             }
 
             return result;
-        }
+        }       
 
         internal static bool ChangeLength(this Line line, Point3d newEndPoint)
         {
@@ -1192,7 +1199,7 @@ namespace RegimenCondominio.C
             return text;
         }
 
-        internal static Point3d MiddlePoint(this Arc _arc, Point3d ptA, Point3d ptB)
+        internal static Point3d MiddlePoint(this Arc _arc)
         {
             double middleAngle = (_arc.StartAngle + _arc.EndAngle) / 2;
 
@@ -1280,31 +1287,19 @@ namespace RegimenCondominio.C
         {            
             for (int i = 0; i < plSeccion.NumberOfVertices; i++)
             {
-                if (plSeccion.GetPoint3dAt(i) == ptActual)
+                if (plSeccion.GetPoint3dAt(i).isEqualPosition(ptActual))
                     return i;
             }
 
-            return new int();
+            return -1;
         }
 
-        internal static bool OrderByLetters(this ObjectIdCollection ids, out ObjectIdCollection orderIds)
+                public static Point3d GetMidpointCurve(this Curve curve)
         {
-            orderIds = new ObjectIdCollection();
 
-            for(int i=0; i < ids.Count; i ++)
-            {
-                //Letra del Apartamento Inicial
-                char Letter = M.Constant.Alphabet[i];
-
-                ObjectId id = new ObjectId();
-
-                id = ids.FindApartment(Letter);
-
-                if (id.IsValid)
-                    orderIds.Add(id);
-            }                                           
-
-            return orderIds.Count == ids.Count;
+            double d1 = curve.GetDistanceAtParameter(curve.StartParam);
+            double d2 = curve.GetDistanceAtParameter(curve.EndParam);
+            return curve.GetPointAtDist(d1 + ((d2 - d1) / 2.0));
         }
 
         internal static SelectionFilter Filter(this Type typeClass, string layerName)
@@ -1368,28 +1363,6 @@ namespace RegimenCondominio.C
             return new SelectionFilter(tvs);
         }
 
-        private static ObjectId FindApartment(this ObjectIdCollection ids, char letter)
-        {
-            SelectionFilter sf = typeof(DBText).Filter(M.Constant.LayerApartamento);
-            
-            ObjectIdCollection AppLetters = new ObjectIdCollection();
-
-            foreach(ObjectId idApp in ids)
-            {
-                Polyline pl = idApp.OpenEntity() as Polyline;
-
-                ObjectId idText = ObjectsInside(pl.GeometricExtents.MinPoint, pl.GeometricExtents.MaxPoint, sf)
-                                    .OfType<ObjectId>()
-                                    .Where(x => (x.OpenEntity() as DBText).TextString == letter.ToString())
-                                    .FirstOrDefault();                
-
-                if(idText.IsValid)
-                    return idApp;
-            }
-
-            return new ObjectId();
-        }
-
         public static List<Point3d> ClockwisePoints(this Polyline pline)
         {
             Document doc = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
@@ -1432,29 +1405,9 @@ namespace RegimenCondominio.C
             return isFirstPoint;
         }
 
-        internal static bool ExistsPoint(this Point3d point3d, out ObjectId idPointFound)
+        internal static bool isEqualPosition(this Point3d ptA, Point3d ptB)
         {
-            Document doc = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
-            Editor ed = doc.Editor;
-
-            ObjectIdCollection idsAllPoints= new ObjectIdCollection();
-
-            idPointFound = new ObjectId();
-
-            PromptSelectionResult psr = ed.SelectAll(typeof(DBPoint).Filter());
-
-
-            if(psr.Status == PromptStatus.OK)
-            {
-                idsAllPoints = new ObjectIdCollection(psr.Value.GetObjectIds());
-
-                idPointFound = idsAllPoints.OfType<ObjectId>()
-                    .Where(x => (x.OpenEntity() as DBPoint).Position.DistanceTo(point3d) <= 0.005).FirstOrDefault();                
-            }
-
-            return idPointFound.IsValid;
-
+            return ptA.DistanceTo(ptB) <= M.Constant.ToleranceError;
         }
 
         public static void SpecialOrder(List<Point3d> points)

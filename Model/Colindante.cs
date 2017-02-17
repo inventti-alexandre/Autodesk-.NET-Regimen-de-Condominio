@@ -1,6 +1,10 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,12 +18,12 @@ namespace RegimenCondominio.M
         /// <summary>
         /// (Tab Lote) Id de selección de Lote Tipo
         /// </summary>
-        private static ObjectId idLoteTipo = new ObjectId();
+        private static ObjectId idTipo = new ObjectId();
 
         /// <summary>
         /// (Tab Lote) Colección de Selección de Lotes irregulares
         /// </summary>
-        private static ObjectIdCollection idsLotesIrregulares = new ObjectIdCollection();        
+        private static ObjectIdCollection idsIrregulares = new ObjectIdCollection();        
 
         /// <summary>
         /// Id de selección de Macrolote
@@ -29,62 +33,62 @@ namespace RegimenCondominio.M
         /// <summary>
         /// Colección de Lotes dentro de Manzana.
         /// </summary>
-        private static List<EntityValue> valorEdificio = new List<EntityValue>();
+        private static List<InEdificios> valorEdificio = new List<InEdificios>();
 
-        private static List<EntityValue> valorLotes = new List<EntityValue>();
+        private static List<InLotes> valorLotes = new List<InLotes>();                      
 
-        private static string layerTipo = Manzana.EsMacrolote ? Constant.LayerEdificio : Constant.LayerLote;
+        private static ObservableCollection<DescribeError> listadoErrores = new ObservableCollection<DescribeError>();
 
-        private static List<string> secciones = new List<string>(new string[]
-        {
-            Constant.LayerAPBaja,
-            Constant.LayerAPAlta,
-            Constant.LayerLavanderia,
-            Constant.LayerEstacionamiento,
-            Constant.LayerPasillo,
-            Constant.LayerPatio
-        });
+        private static object _lock = new object();
 
-        private static List<DescribeError> listadoErrores = new List<DescribeError>();
+        private static List<DatosColindancia> mainData = new List<DatosColindancia>();        
 
-        private static List<DatosColindancia> mainData = new List<DatosColindancia>();
+        private static List<Apartments> orderedApartments = new List<Apartments>();
+
+        private static Point3dCollection ptsVertex = new Point3dCollection();
+
+        private static int decimals = new int();
+
+        private static int lastPoint = new int();
+
+        private static List<long> listCommonArea = new List<long>();
 
         /// <summary>
-        /// (Tab Lote) Id de selección de Lote Tipo
+        /// Id de selección de Lote Tipo
         /// </summary>
-        public static ObjectId IdLoteTipo
+        public static ObjectId IdTipo
         {
             get
             {
-                return idLoteTipo;
+                return idTipo;
             }
 
             set
             {
-                idLoteTipo = value;
+                idTipo = value;
             }
         }
 
         /// <summary>
         /// (Tab Lote) Colección de Selección de Lotes irregulares
         /// </summary>
-        public static ObjectIdCollection IdsLotesIrregulares
+        public static ObjectIdCollection IdsIrregulares
         {
             get
             {
-                return idsLotesIrregulares;
+                return idsIrregulares;
             }
 
             set
             {
-                idsLotesIrregulares = value;
+                idsIrregulares = value;
             }
         }
 
         /// <summary>
         /// Colección de Lotes/Edificios dentro de Manzana.
         /// </summary>        
-        public static List<EntityValue> ValorEdificio
+        public static List<InEdificios> ValorEdificio
         {
             get
             {
@@ -117,12 +121,16 @@ namespace RegimenCondominio.M
         {
             get
             {
-                return secciones;
-            }
-
-            set
-            {
-                secciones = value;
+                return new List<string>(new string[]
+                    {
+                        Constant.LayerAPBaja,
+                        Constant.LayerAPAlta,
+                        Constant.LayerLavanderia,
+                        Constant.LayerEstacionamiento,
+                        Constant.LayerPasillo,
+                        Constant.LayerPatio,
+                        Constant.LayerAreaComun                        
+                    });
             }
         }
 
@@ -142,7 +150,7 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static List<EntityValue> ValorLotes
+        public static List<InLotes> ValorLotes
         {
             get
             {
@@ -155,7 +163,7 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static List<DescribeError> ListadoErrores
+        public static ObservableCollection<DescribeError> ListadoErrores
         {
             get
             {
@@ -185,12 +193,112 @@ namespace RegimenCondominio.M
         {
             get
             {
-                return layerTipo;
+                return Manzana.EsMacrolote ? Constant.LayerEdificio : Constant.LayerLote;
+            }
+        }
+
+        public static List<DescribeLayer> TodosLayers
+        {
+            get
+            {
+                return C.Met_General.GetAllLayers();
+            }
+        }
+
+        public static SelectionFilter LineFilter
+        {
+            get
+            {
+                //RXClass nos sirve para obtener el nombre del DXF en AutoCAD
+                //El Start nos sirve para definir el tipo de entidad a filtrar
+                return new SelectionFilter(
+                    new TypedValue[]
+                                    {
+                                        new TypedValue((int)DxfCode.Operator,"<and"),
+                                        new TypedValue((int)DxfCode.Operator,"<or"),
+                                        new TypedValue((int)DxfCode.Start, RXClass.GetClass(typeof(Polyline)).DxfName),
+                                        new TypedValue((int)DxfCode.Operator,"or>"),
+                                        new TypedValue((int)DxfCode.Start, RXClass.GetClass(typeof(Line)).DxfName),
+                                        new TypedValue((int)DxfCode.Operator,"and>")
+                                    });
+            }
+        }
+
+        public static object Lock
+        {
+            get
+            {
+                return _lock;
             }
 
             set
             {
-                layerTipo = value;
+                _lock = value;
+            }
+        }       
+
+        public static int Decimals
+        {
+            get
+            {
+                return decimals;
+            }
+
+            set
+            {
+                decimals = value;
+            }
+        }
+
+        public static Point3dCollection PtsVertex
+        {
+            get
+            {
+                return ptsVertex;
+            }
+
+            set
+            {
+                ptsVertex = value;
+            }
+        }
+
+        public static List<Apartments> OrderedApartments
+        {
+            get
+            {
+                return orderedApartments;
+            }
+
+            set
+            {
+                orderedApartments = value;
+            }
+        }
+
+        public static int LastPoint
+        {
+            get
+            {
+                return lastPoint;
+            }
+
+            set
+            {
+                lastPoint = value;
+            }
+        }
+
+        public static List<long> ListCommonArea
+        {
+            get
+            {
+                return listCommonArea;
+            }
+
+            set
+            {
+                listCommonArea = value;
             }
         }
     }

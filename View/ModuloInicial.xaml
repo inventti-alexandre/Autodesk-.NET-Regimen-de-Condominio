@@ -189,6 +189,8 @@
                              HorizontalAlignment="Center" Height="36"
                              x:Name="tipoVivCombo" Margin="26,3,10,3" SelectChanged="tipoVivCombo_SelectChanged"                                  
                              />
+        <TextBox Grid.Column="2" Grid.Row="9"
+                                   Background="White" Width="70" Height="36" x:Name="txtcantViviedas"/>
         <metro:ProgressRing Foreground="#6cb1e6" 
                             Grid.Column="1"  Grid.Row="10" Grid.RowSpan="2" 
                             HorizontalAlignment="Center" VerticalAlignment="Center"

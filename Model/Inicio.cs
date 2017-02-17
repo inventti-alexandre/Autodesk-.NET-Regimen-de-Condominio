@@ -12,8 +12,7 @@ namespace RegimenCondominio.M
         private static List<DatosFracc> resultFraccs;
 
         //Resultado de Tipo de Viviendas de consulta SQL
-        private static List<DatosTipoViv> resultTipoVivs;
-
+        private static List<DatosTipoViv> resultTipoVivs;        
 
         #region DatosIniciales
 
@@ -30,6 +29,8 @@ namespace RegimenCondominio.M
         private static string sector;
 
         private static string tipoViv;
+
+        private static int apartamentosXVivienda = new int();
 
         #endregion
 
@@ -138,6 +139,17 @@ namespace RegimenCondominio.M
             }
         }
 
-        
+        public static int ApartamentosXVivienda
+        {
+            get
+            {
+                return apartamentosXVivienda;
+            }
+
+            set
+            {
+                apartamentosXVivienda = value;
+            }
+        }
     }
 }

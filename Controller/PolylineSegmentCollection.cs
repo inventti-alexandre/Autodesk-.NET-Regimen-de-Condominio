@@ -78,7 +78,7 @@ namespace RegimenCondominio.C
                     pline.GetBulgeAt(n),
                     pline.GetStartWidthAt(n),
                     pline.GetEndWidthAt(n)));
-            }
+            }            
         }
 
         /// <summary>

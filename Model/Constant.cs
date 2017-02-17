@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace RegimenCondominio.M
 {
-    public class Constant
+    public static class Constant
     {
         //Tipos de lineas aceptadas en la selección de la línea de colindancia.
         private static Type[] tiposLineas = new Type[]
@@ -17,9 +17,7 @@ namespace RegimenCondominio.M
             typeof(Polyline),
             typeof(Line),
             typeof(Arc)        
-        };
-
-        private static DateTime timeNow = DateTime.Now;
+        };       
 
         //Orden de búsqueda de los layers dentro de los Apartamentos
         private static List<string> busquedaApartamento = new List<string>(new string[] {            
@@ -29,7 +27,9 @@ namespace RegimenCondominio.M
             layerEstacionamiento,
             layerPasillo,
             layerPatio        
-        });        
+        });
+
+       // private static List<DescribeLayer> todosLayers = 
 
         //Nombre del Record del diccionario de Datos de Colindancia
         private static string xRecordColindancia = "JaverColindancia";
@@ -48,7 +48,7 @@ namespace RegimenCondominio.M
             };
 
         //Arreglo del Alfabeto
-        private static char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+        private static string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
         //Cantidad de Rumbos maximos
         private static int rumboMaximo = 4;
@@ -69,6 +69,7 @@ namespace RegimenCondominio.M
            { "Noroeste", "NO" }//7,0 - 7,1
         };
 
+        private static double toleranceError = 0.005;
 
         private static List<string> tipoColindancias = new List<string>()
         {
@@ -78,7 +79,7 @@ namespace RegimenCondominio.M
 
         #region Layers
 
-        private static string layerNoOficial = "NO_OFICIAL";
+        private static string layerNoOficial = "NUM_OFICIAL";
 
         //Manzana
         private static string layerManzana = "MANZANA";
@@ -116,6 +117,8 @@ namespace RegimenCondominio.M
         private static string layerExcDBPoints = "EXCL_POINTS_REGIMEN";
 
         private static string layerExcDBText = "EXCL_NUMS_REGIMEN";
+
+        private static string layerAreaComun = "AREA_COMUN";
 
         #endregion
         
@@ -358,7 +361,7 @@ namespace RegimenCondominio.M
         /// <summary>
         /// Arreglo de letras de abecedario
         /// </summary>
-        public static char[] Alphabet
+        public static string Alphabet
         {
             get
             {
@@ -388,14 +391,6 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static DateTime TimeNow
-        {
-            get
-            {
-                return timeNow;
-            }
-        }
-
         public static string LayerExcRegimen
         {
             get
@@ -418,6 +413,22 @@ namespace RegimenCondominio.M
             {
                 return layerExcDBText;
             }          
+        }
+
+        public static string LayerAreaComun
+        {
+            get
+            {
+                return layerAreaComun;
+            }
+        }
+
+        public static double ToleranceError
+        {
+            get
+            {
+                return toleranceError;
+            }
         }
     }
 }

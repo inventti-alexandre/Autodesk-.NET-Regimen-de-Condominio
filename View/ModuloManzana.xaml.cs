@@ -187,9 +187,7 @@ namespace RegimenCondominio.V
                         idLineCol = new ObjectId();//Id de Linea/Polilinea con la que Colinda            
 
             //Selecciono el Item 
-            string rumboSeleccionado = (cmbRumboActual.SelectedItem ?? "").ToString();
-
-            
+            string rumboSeleccionado = (cmbRumboActual.SelectedItem ?? "").ToString();            
 
             //Si ya se selecciono algo en el combobox de tipo
             if (cmbTipo.SelectedIndex != -1)
@@ -201,53 +199,57 @@ namespace RegimenCondominio.V
                     Met_Autodesk.Entity("Selecciona la colindancia al " + rumboSeleccionado + "\n",
                     out idtxtCol, typeof(DBText)))
                 {
-                    //Obtengo el DBText seleccionado
-                    DBText DBTextColindancia = idtxtCol.OpenEntity() as DBText;
-
-                    //Texto del DB Text                                            
-                    string txtColindancia = DBTextColindancia.TextString.FormatString();
-
-                    //Modelo los datos
-                    M.DatosManzana insertedData = new M.DatosManzana()
+                    if (idLineCol.OpenEntity().Layer == M.Constant.LayerManzana)
                     {
-                        HndPlColindancia = idLineCol.Handle,
-                        HndTxtColindancia = idtxtCol.Handle,
-                        InicialRumbo = (M.Constant.Orientaciones
-                                            [Met_Manzana.ObtengoPosicion(rumboSeleccionado, 0), 1]),
-                        RumboActual = rumboSeleccionado,
-                        TextColindancia = cmbTipo.SelectedIndex > 0 ? txtColindancia :
-                                                                        "calle " + txtColindancia
-                    };
+                        //Obtengo el DBText seleccionado
+                        DBText DBTextColindancia = idtxtCol.OpenEntity() as DBText;
 
-                    bool    PolilineaNueva = false,
-                            RumboNuevo = false;
+                        //Texto del DB Text                                            
+                        string txtColindancia = DBTextColindancia.TextString.FormatString();
 
-                    int sigPosicion = 0;
+                        //Modelo los datos
+                        M.DatosManzana insertedData = new M.DatosManzana()
+                        {
+                            HndPlColindancia = idLineCol.Handle,
+                            HndTxtColindancia = idtxtCol.Handle,
+                            InicialRumbo = (M.Constant.Orientaciones
+                                                [Met_Manzana.ObtengoPosicion(rumboSeleccionado, 0), 1]),
+                            RumboActual = rumboSeleccionado,
+                            TextColindancia = cmbTipo.SelectedIndex > 0 ? txtColindancia :
+                                                                            "calle " + txtColindancia
+                        };
 
-                    //Si ya se había insertado esa polilinea
-                    PolilineaNueva = M.Manzana.ColindanciaManzana.Where
-                        (x => x.HndPlColindancia.Value == insertedData.HndPlColindancia.Value).
-                        Count() > 0 ? false : true;
+                        bool PolilineaNueva = false,
+                                RumboNuevo = false;
 
-                    //Si ya se había insertado ese rumbo en la lista
-                    RumboNuevo = M.Manzana.ColindanciaManzana.
-                        Where(x => x.RumboActual == insertedData.RumboActual).Count() > 0 
-                        ? false : true;
+                        int sigPosicion = 0;
 
-                    //Si es Nueva Polilinea y nuevo Rumbo
-                    if (PolilineaNueva && RumboNuevo)                    
-                         sigPosicion = insertedData.InsertoColindancia();                                           
-                    else                    
-                        sigPosicion = insertedData.ReasignoColindancia(PolilineaNueva, RumboNuevo);                    
+                        //Si ya se había insertado esa polilinea
+                        PolilineaNueva = M.Manzana.ColindanciaManzana.Where
+                            (x => x.HndPlColindancia.Value == insertedData.HndPlColindancia.Value).
+                            Count() > 0 ? false : true;
 
-                    //Reviso que rumbo mostrará
-                    SigColindancia(sigPosicion);
+                        //Si ya se había insertado ese rumbo en la lista
+                        RumboNuevo = M.Manzana.ColindanciaManzana.
+                            Where(x => x.RumboActual == insertedData.RumboActual).Count() > 0
+                            ? false : true;
 
-                    if (ListPrincipal.ItemsSource != null)
-                        ListPrincipal.Items.Refresh();
+                        //Si es Nueva Polilinea y nuevo Rumbo
+                        if (PolilineaNueva && RumboNuevo)
+                            sigPosicion = insertedData.InsertoColindancia();
+                        else
+                            sigPosicion = insertedData.ReasignoColindancia(PolilineaNueva, RumboNuevo);
+
+                        //Reviso que rumbo mostrará
+                        SigColindancia(sigPosicion);
+
+                        if (ListPrincipal.ItemsSource != null)
+                            ListPrincipal.Items.Refresh();
+                        else
+                            ListPrincipal.ItemsSource = M.Manzana.ColindanciaManzana;
+                    }
                     else
-                        ListPrincipal.ItemsSource = M.Manzana.ColindanciaManzana;
-
+                        this.ShowMessageAsync("Layer Incorrecto", "La línea debe de estar en Layer " + M.Constant.LayerManzana);
                 }
                 this.WindowState = WindowState.Normal;
             }

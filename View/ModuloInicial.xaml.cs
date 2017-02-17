@@ -170,6 +170,7 @@ namespace RegimenCondominio.V
                 M.Inicio.Region = RegionBox.Text;
                 M.Inicio.Sector = sectorBox.Text;
                 M.Inicio.TipoViv = tipoVivCombo.SelectedItem.ToString();
+                M.Inicio.ApartamentosXVivienda =  int.Parse(txtcantViviedas.Text.ToString());
 
                 ModuloManzana M_Manzana = new ModuloManzana();
                 M_Manzana.Show();
