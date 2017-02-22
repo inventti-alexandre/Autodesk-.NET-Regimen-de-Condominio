@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,12 +17,12 @@ namespace RegimenCondominio.M
         private static ObjectId idPolManzana = new ObjectId();
 
         /// <summary>
-        /// (Tab Lote) Id de selección de Lote Tipo
+        /// Id de selección de Lote Tipo
         /// </summary>
         private static ObjectId idTipo = new ObjectId();
 
         /// <summary>
-        /// (Tab Lote) Colección de Selección de Lotes irregulares
+        /// Colección de Selección de Lotes irregulares
         /// </summary>
         private static ObjectIdCollection idsIrregulares = new ObjectIdCollection();        
 
@@ -33,9 +34,9 @@ namespace RegimenCondominio.M
         /// <summary>
         /// Colección de Lotes dentro de Manzana.
         /// </summary>
-        private static List<InEdificios> valorEdificio = new List<InEdificios>();
+        private static List<InEdificios> edificios = new List<InEdificios>();
 
-        private static List<InLotes> valorLotes = new List<InLotes>();                      
+        private static List<InLotes> lotes = new List<InLotes>();                      
 
         private static ObservableCollection<DescribeError> listadoErrores = new ObservableCollection<DescribeError>();
 
@@ -51,7 +52,22 @@ namespace RegimenCondominio.M
 
         private static int lastPoint = new int();
 
-        private static List<long> listCommonArea = new List<long>();
+        private static List<M.AreaComun> listCommonArea = new List<M.AreaComun>();
+
+
+        public static List<string> sourceComboError
+        {
+            get
+            {
+                DescribeError db = new DescribeError();
+                List<string> properties = new List<string>();
+
+                foreach (PropertyInfo prop in db.GetType().GetProperties())
+                    properties.Add(prop.Name);
+
+                return properties;
+            }
+        }
 
         /// <summary>
         /// Id de selección de Lote Tipo
@@ -88,16 +104,16 @@ namespace RegimenCondominio.M
         /// <summary>
         /// Colección de Lotes/Edificios dentro de Manzana.
         /// </summary>        
-        public static List<InEdificios> ValorEdificio
+        public static List<InEdificios> Edificios
         {
             get
             {
-                return valorEdificio;
+                return edificios;
             }
 
             set
             {
-                valorEdificio = value;
+                edificios = value;
             }
         }
 
@@ -128,8 +144,7 @@ namespace RegimenCondominio.M
                         Constant.LayerLavanderia,
                         Constant.LayerEstacionamiento,
                         Constant.LayerPasillo,
-                        Constant.LayerPatio,
-                        Constant.LayerAreaComun                        
+                        Constant.LayerPatio                       
                     });
             }
         }
@@ -150,16 +165,16 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static List<InLotes> ValorLotes
+        public static List<InLotes> Lotes
         {
             get
             {
-                return valorLotes;
+                return lotes;
             }
 
             set
             {
-                valorLotes = value;
+                lotes = value;
             }
         }
 
@@ -289,7 +304,7 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static List<long> ListCommonArea
+        public static List<M.AreaComun> ListCommonArea
         {
             get
             {

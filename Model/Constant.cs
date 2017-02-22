@@ -69,6 +69,16 @@ namespace RegimenCondominio.M
            { "Noroeste", "NO" }//7,0 - 7,1
         };
 
+        private static List<string> listError = new List<string>()
+        {
+            "Id",
+            "Hora",
+            "Error",
+            "Descripción",
+            "Tipo de Error",
+            "Método"
+        };
+
         private static double toleranceError = 0.005;
 
         private static List<string> tipoColindancias = new List<string>()
@@ -117,6 +127,8 @@ namespace RegimenCondominio.M
         private static string layerExcDBPoints = "EXCL_POINTS_REGIMEN";
 
         private static string layerExcDBText = "EXCL_NUMS_REGIMEN";
+
+        private static string layerExcRumbos = "EXCL_RUMBOS_REGIMEN";
 
         private static string layerAreaComun = "AREA_COMUN";
 
@@ -428,6 +440,27 @@ namespace RegimenCondominio.M
             get
             {
                 return toleranceError;
+            }
+        }
+
+        public static string LayerExcRumbos
+        {
+            get
+            {
+                return layerExcRumbos;
+            }
+
+            set
+            {
+                layerExcRumbos = value;
+            }
+        }
+
+        public static List<string> ListError
+        {
+            get
+            {
+                return listError;
             }
         }
     }

@@ -353,7 +353,7 @@
                 Click="btnAtras_Click" x:Name="tb1btnAtras" BorderBrush="Transparent" Focusable="False"
                 BorderThickness="0" Background="Transparent" Margin="0,5,0,10" Width="50"/>
                 <!--________________________BOTÓN AVANZAR_____________________________-->
-                <Button Grid.Row="3" Content="{StaticResource Avanzar}" HorizontalAlignment="Right"
+                <Button Grid.Row="3" Content="{StaticResource Avanzar}" HorizontalAlignment="Right" Visibility="Collapsed"
                 Click="btnAvanzar_Click" x:Name="tb1btnAvanzar" BorderBrush="Transparent" Focusable="False"
                 BorderThickness="0" Background="Transparent" Margin="0,5,0,10" Width="50" Grid.Column="4"/>
             </Grid>
@@ -467,7 +467,7 @@
                                         </GridViewColumn.Header>
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding handleEntity}" TextDecorations="Underline" Foreground="Blue" Cursor="Hand"
+                                                <TextBlock Text="{Binding _long}" TextDecorations="Underline" Foreground="Blue" Cursor="Hand"
                                                MouseLeftButtonUp="DataGridTextColumn_MouseUp"/>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
@@ -520,7 +520,7 @@
                     </ListView>
                 </Border>
 
-                <Button HorizontalAlignment="Right" Click="tb1IrHome_Click" 
+                <Button HorizontalAlignment="Right" Click="tb2CleanDGVError_Click" 
                         x:Name="tb2CleanDGVError" BorderBrush="Transparent" Focusable="False" Grid.Row="1"
                         BorderThickness="0" Background="Transparent" Grid.Column="2" >
                     <Image Source="pack://application:,,,/RegimenCondominio;component/Images/DeleteGreen.png"/>
@@ -528,7 +528,7 @@
 
                 <TextBox Grid.Column="4" Width="130" Height="25" HorizontalAlignment="Right"
                                            VerticalAlignment="Bottom" Margin="0,0,10,5" BorderBrush="LightGray"
-                                           BorderThickness="1" x:Name="tb2cmbText" Grid.Row="1"/>
+                                           BorderThickness="1" x:Name="tb2cmbText" Grid.Row="1" TextChanged="tb2cmbText_TextChanged"/>
                 <ComboBox Grid.Column="3" Width="80" Height="25" VerticalAlignment="Bottom"
                                          HorizontalAlignment="Right" Margin="0,0,0,5" x:Name="tb2cmbSearch" Grid.Row="1">
                 </ComboBox>
@@ -537,7 +537,7 @@
                         BorderThickness="1" Background="Transparent" 
                         Grid.Row="2" Grid.ColumnSpan="5">
                     <ListView Background="White" x:Name="tb2GridErrores"
-                              IsManipulationEnabled="True">
+                              IsManipulationEnabled="True" SelectionMode="Extended">
                         <ListView.View>
                             <GridView >
                                 <GridViewColumn Width="100">
@@ -551,7 +551,7 @@
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Width="100" DisplayMemberBinding="{Binding timeError}">
+                                <GridViewColumn Width="150" DisplayMemberBinding="{Binding timeError}">
                                     <GridViewColumnHeader>
                                         <TextBlock Text="Hora"></TextBlock>
                                     </GridViewColumnHeader>
@@ -564,6 +564,11 @@
                                 <GridViewColumn Width="600" DisplayMemberBinding="{Binding Description}">
                                     <GridViewColumnHeader>
                                         <TextBlock Text="Descripción"></TextBlock>
+                                    </GridViewColumnHeader>
+                                </GridViewColumn>
+                                <GridViewColumn Width="200" DisplayMemberBinding="{Binding tipoError}">
+                                    <GridViewColumnHeader>
+                                        <TextBlock Text="Error"></TextBlock>
                                     </GridViewColumnHeader>
                                 </GridViewColumn>
                                 <GridViewColumn Width="100" DisplayMemberBinding="{Binding Metodo}">

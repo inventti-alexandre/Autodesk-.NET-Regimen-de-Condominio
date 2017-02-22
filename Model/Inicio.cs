@@ -12,7 +12,7 @@ namespace RegimenCondominio.M
         private static List<DatosFracc> resultFraccs;
 
         //Resultado de Tipo de Viviendas de consulta SQL
-        private static List<DatosTipoViv> resultTipoVivs;        
+        private static List<EncMachote> resultTipoVivs;        
 
         #region DatosIniciales
 
@@ -47,7 +47,7 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static List<DatosTipoViv> ResultTipoVivs
+        public static List<EncMachote> ResultTipoVivs
         {
             get
             {

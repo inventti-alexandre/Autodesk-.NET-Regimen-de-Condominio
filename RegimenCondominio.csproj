@@ -82,6 +82,9 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="xlsConn">
+      <HintPath>..\..\..\..\Visual Studio 2015\Projects\PluginInsViviendas_UNO\PluginInsViviendas_UNO\bin\Debug\xlsConn.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />

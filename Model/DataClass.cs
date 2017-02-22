@@ -16,6 +16,15 @@ namespace RegimenCondominio.M
         public string Municipio { get; set; }
     }
 
+
+    public class AreaComun
+    {
+        public long _longLote { get; set; }
+
+        public long _longAreaComun { get; set; }
+
+        public string nombreAreaComun { get; set; }
+    }
     public class DatosManzana
     {
 
@@ -30,16 +39,22 @@ namespace RegimenCondominio.M
         public string RumboActual { get; set; }
     }
 
-    public class DatosTipoViv
+    public class EncMachote
     {
-        public string NombreTipoViv { get; set; }
+        public int IdMachote { get; set; }
 
-        public int IdTipoViv { get; set; }
+        public string Encabezado { get; set; }
+
+        public int Cant_Viviendas { get; set; }
+
+
     }
+
+
 
     public class DatosColindancia
     {
-        public string Vivienda { get; set; }
+        public int numVivienda { get; set; }
 
         public string Apartamento { get; set; }
 
@@ -65,7 +80,13 @@ namespace RegimenCondominio.M
 
         public Point3d CoordenadaB { get; set; }
 
-        public bool IsArc { get; set; }
+        public bool esEsquinaA { get; set; }
+
+        public bool esEsquinaB { get; set; }
+
+        public bool esArco { get; set; }
+
+        public long idVivienda { get; set; }
     }
 
     public class DGVColindancia
@@ -81,12 +102,12 @@ namespace RegimenCondominio.M
         /// <summary>
         /// ObjectId de Entidad
         /// </summary>
-        public long handleEntity { get; set; }
+        public long _long { get; set; }
 
         /// <summary>
         /// Valor de la Entidad
         /// </summary>
-        public string numLote { get; set; }
+        public int numLote { get; set; }
 
         /// <summary>
         /// Llave que identifica que valor se introdujo
@@ -96,9 +117,9 @@ namespace RegimenCondominio.M
 
     public class InEdificios
     {
-        public long longEntity { get; set; }
+        public long _long { get; set; }
 
-        public string numEdificio { get; set; }
+        public int numEdificio { get; set; }
         
         public List<long> Apartments { get; set; }
     }
@@ -120,12 +141,14 @@ namespace RegimenCondominio.M
 
         public long longObject { get; set; }
 
-        public DateTime timeError { get; set; }
+        public string timeError { get; set; }
 
         public TipoError tipoError { get; set; }
 
         public string Metodo { get; set; }
     }
+
+
 
     public class DescribeLayer
     {
@@ -152,6 +175,14 @@ namespace RegimenCondominio.M
         public Point3d EndPoint { get; set; }
 
         public bool isArc { get; set; }
+    }
+
+    public enum Grades
+    {
+        G0,
+        G90,
+        G180,
+        G270
     }
 
     public enum TipoLinea

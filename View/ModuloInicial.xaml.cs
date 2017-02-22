@@ -170,7 +170,8 @@ namespace RegimenCondominio.V
                 M.Inicio.Region = RegionBox.Text;
                 M.Inicio.Sector = sectorBox.Text;
                 M.Inicio.TipoViv = tipoVivCombo.SelectedItem.ToString();
-                M.Inicio.ApartamentosXVivienda =  int.Parse(txtcantViviedas.Text.ToString());
+                M.Inicio.ApartamentosXVivienda = M.Inicio.ResultTipoVivs.Where(x => x.Encabezado == M.Inicio.TipoViv.ToUpper())
+                                                    .FirstOrDefault().Cant_Viviendas;
 
                 ModuloManzana M_Manzana = new ModuloManzana();
                 M_Manzana.Show();
@@ -200,7 +201,7 @@ namespace RegimenCondominio.V
                 //Si la lista contiene Tipo de Viviendas
                 if (M.Inicio.ResultTipoVivs.Count > 0)
                     tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
-                                            Select(x => x.NombreTipoViv.FormatString()).ToList();
+                                            Select(x => x.Encabezado.FormatString()).ToList();
 
                 //Habilito los controles
                 ShowControls();
@@ -256,7 +257,7 @@ namespace RegimenCondominio.V
 
             //Inicializo listas
             M.Inicio.ResultFraccs = new List<M.DatosFracc>();
-            M.Inicio.ResultTipoVivs = new List<M.DatosTipoViv>();
+            M.Inicio.ResultTipoVivs = new List<M.EncMachote>();
 
             char separator = '|';
 
@@ -296,10 +297,11 @@ namespace RegimenCondominio.V
                         string[] cell = row.Split(separator);
 
                         //Agrego 
-                        M.Inicio.ResultTipoVivs.Add(new M.DatosTipoViv
+                        M.Inicio.ResultTipoVivs.Add(new M.EncMachote
                         {
-                            IdTipoViv = int.Parse(cell[0]),
-                            NombreTipoViv = cell[1]
+                            IdMachote = int.Parse(cell[0]),
+                            Encabezado = cell[1],
+                            Cant_Viviendas = int.Parse(cell[2])
 
                         });
                     }
@@ -314,7 +316,7 @@ namespace RegimenCondominio.V
             //Si la lista contiene Tipo de Viviendas
             if (M.Inicio.ResultTipoVivs.Count > 0)
                 tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
-                                        Select(x => x.NombreTipoViv.FormatString()).ToList();
+                                        Select(x => x.Encabezado.FormatString()).ToList();
 
             //Desbloqueo controles
             ShowControls();              
