@@ -1,0 +1,92 @@
+﻿<metro:MetroWindow x:Class="RegimenCondominio.V.ModuloHerramientas"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:metro="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+                   xmlns:cs ="clr-namespace:RegimenCondominio.UserControls"
+        xmlns:local="clr-namespace:RegimenCondominio.V"
+        mc:Ignorable="d"
+        Title="Herramientas" Height="400" Width="400" TitleCaps="False"
+        WindowStartupLocation="CenterScreen" 
+                   ResizeMode="CanMinimize" Loaded="MetroWindow_Loaded">
+    <Window.Resources>
+        <ResourceDictionary>
+
+            <!--ACCENT COLORS-->
+            <SolidColorBrush x:Key="HighlightBrush" Color="#6cb1e6"/>
+            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#6cb1e6" />
+
+            <SolidColorBrush x:Key="AccentColorBrush" Color="LightGray" />
+            <SolidColorBrush x:Key="AccentColorBrush2" Color="#6cb1e6" />
+            <SolidColorBrush x:Key="AccentColorBrush3" Color="#6cb1e6" />
+            <SolidColorBrush x:Key="AccentColorBrush4" Color="#6cb1e6"/>
+
+            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#00897B" />
+
+            <SolidColorBrush x:Key="MetroDataGrid.HighlightBrush" Color="#6cb1e6"/>
+
+            <ResourceDictionary.MergedDictionaries>
+                <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
+                <!-- Accent and AppTheme setting -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Teal.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="127*"/>
+            <RowDefinition Height="245*"/>
+        </Grid.RowDefinitions>
+        <GroupBox>
+            <GroupBox.Header>
+                <TextBlock Text="Información Adicional" FontWeight="Bold" FontSize="10"/>
+            </GroupBox.Header>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="93*"/>
+                    <ColumnDefinition Width="93*"/>
+                    <ColumnDefinition Width="94*"/>
+                    <ColumnDefinition Width="92*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Margen de Error: "
+                           VerticalAlignment="Center" FontWeight="DemiBold" Height="16" Margin="0,11"/>
+                <TextBox VerticalAlignment="Center" Height="26" Name="txtMargen" Grid.Column="1" Margin="11,6,12,6"/>
+                <TextBlock Text="Tamaño de Texto: " VerticalAlignment="Center" FontWeight="DemiBold" Grid.Row="0"
+                           Grid.Column="2" Height="16" Margin="0,11"/>
+                <TextBox  VerticalAlignment="Center" Height="26" Name="txtTamanio" Grid.Row="0" Grid.Column="3" Margin="11,6"/>
+                <Button Grid.Row="1" Grid.ColumnSpan="2" Content="Guardar" Background="#6cb1e6" 
+                        Foreground="White" Click="Button_Click" Grid.Column="1" Margin="53,5,54,4"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Grid.Row="1">
+            <GroupBox.Header>
+                <TextBlock Text="Layers" FontWeight="Bold"/>
+            </GroupBox.Header>
+            <DataGrid Name="gridLayers" Background="Transparent" IsReadOnly="True"
+                      AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Width="1*" Binding="{Binding Layername}">
+                        <DataGridTextColumn.Header>
+                            <TextBlock Text="Layer"/>
+                        </DataGridTextColumn.Header>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Width="2*" Binding="{Binding Description}">
+                        <DataGridTextColumn.Header>
+                            <TextBlock Text="Descripción"/>
+                        </DataGridTextColumn.Header>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+    </Grid>
+</metro:MetroWindow>

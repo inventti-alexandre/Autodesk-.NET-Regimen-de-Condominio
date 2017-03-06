@@ -7,12 +7,12 @@
         xmlns:cscontrol ="clr-namespace:RegimenCondominio.UserControls"
         xmlns:local="clr-namespace:RegimenCondominio.V"
         mc:Ignorable="d"
-        Title="ModuloColindante" Height="600" Width="1000" MinWidth="950"
+        Title="Principal" Height="650" Width="1150" MinWidth="950"
                    TitleCaps="False"
                    WindowStartupLocation="CenterScreen"
                    ResizeMode="CanMinimize"                                      
                    Icon="pack://application:,,,/RegimenCondominio;component/Images/JaverIcono.png"
-                   Loaded="MetroWindow_Loaded">
+                   Loaded="MetroWindow_Loaded" Closing="MetroWindow_Closing" >
     <Window.Resources>
         <ResourceDictionary>
 
@@ -100,9 +100,9 @@
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="55*"/>
-                    <RowDefinition Height="40*"/>
-                    <RowDefinition Height="355*"/>
-                    <RowDefinition Height="71*"/>
+                    <RowDefinition Height="50*"/>
+                    <RowDefinition Height="390*"/>
+                    <RowDefinition Height="78*"/>
                 </Grid.RowDefinitions>
                 <Grid.Background>
                     <ImageBrush ImageSource="{StaticResource Fondo}"/>
@@ -213,18 +213,36 @@
                         BorderThickness="1" Background="Transparent" Grid.Column="4" Grid.Row="1">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="68*"/>
+                            <ColumnDefinition Width="69*"/>
+                            <ColumnDefinition Width="113*"/>
+                            <ColumnDefinition Width="84*"/>
+                            <ColumnDefinition Width="58*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Decimales: " FontWeight="DemiBold" Margin="5,5,173,8"
-                           FontSize="12" Height="15" HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                        <cscontrol:CsNormalCombo FontWeight="DemiBold" Grid.Column="0" x:Name="tb1cmbDecimales"
-                           Width="60"  Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="72,2,108,4"
-                                                 SelectedIndex="2" SelectChanged="tb1cmbDecimales_SelectChanged"/>
-                        <Button  VerticalAlignment="Center" HorizontalAlignment="Center"                        
+                        <TextBlock Text="Decimales: " FontWeight="DemiBold" FontSize="12" Height="16" 
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4,11,0,11" Width="62"/>
+                        <cscontrol:CsNormalCombo FontWeight="DemiBold" Grid.Column="1" x:Name="tb1cmbDecimales"
+                                                 Width="60"  Height="26" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                 SelectedIndex="2" SelectChanged="tb1cmbDecimales_SelectChanged"
+                                                 Margin="3,6,0,6"/>
+                        <Button  VerticalAlignment="Center" HorizontalAlignment="Center"                 
                                  BorderBrush="Transparent" BorderThickness="0" Click="tb1Clear_Click"
                                  Focusable="False" Background="#ef5350" x:Name="tb1Clear" Content="Limpiar"
-                                 Width="70" Foreground="White" Margin="160,2,10,2"/>
+                                 Width="70" Foreground="White" Grid.Column="3" Height="26" Margin="10,6,4,6"
+                                 />
+
+                        <Button  VerticalAlignment="Center" HorizontalAlignment="Center"                     
+                                 BorderBrush="Transparent" BorderThickness="0" Click="tb1Export_Click"
+                                 Focusable="False" Background="#00897B" x:Name="tb1Export" Content="exportar"
+                                 Width="80" Foreground="White" Grid.Column="2" Height="26" />
+                        <metro:ProgressRing  Width="30" Height="30" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                             x:Name="tb1ProgressExport" Visibility="Collapsed" Foreground="#00897B"/>
+                        <Button HorizontalAlignment="Center" Click="tb1Tools_Click" VerticalAlignment="Center"
+                        x:Name="tb1Tools" BorderBrush="Transparent" Focusable="False"
+                        BorderThickness="0" Background="Transparent" Grid.Column="4" Height="40" Margin="8,-1,12,-1" Width="38" >
+                            <Image Source="pack://application:,,,/RegimenCondominio;component/Images/adminSettings.png"
+                                   HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                        </Button>
                     </Grid>
                 </Border>
 
@@ -353,7 +371,7 @@
                 Click="btnAtras_Click" x:Name="tb1btnAtras" BorderBrush="Transparent" Focusable="False"
                 BorderThickness="0" Background="Transparent" Margin="0,5,0,10" Width="50"/>
                 <!--________________________BOTÓN AVANZAR_____________________________-->
-                <Button Grid.Row="3" Content="{StaticResource Avanzar}" HorizontalAlignment="Right" Visibility="Collapsed"
+                <Button Grid.Row="3" Content="{StaticResource Avanzar}" HorizontalAlignment="Right" Visibility="Visible"
                 Click="btnAvanzar_Click" x:Name="tb1btnAvanzar" BorderBrush="Transparent" Focusable="False"
                 BorderThickness="0" Background="Transparent" Margin="0,5,0,10" Width="50" Grid.Column="4"/>
             </Grid>
@@ -363,10 +381,10 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="300"/>
-                    <ColumnDefinition Width="410*"/>
-                    <ColumnDefinition Width="39*"/>
-                    <ColumnDefinition Width="88*"/>
-                    <ColumnDefinition Width="147*"/>
+                    <ColumnDefinition Width="500*"/>
+                    <ColumnDefinition Width="48*"/>
+                    <ColumnDefinition Width="123*"/>
+                    <ColumnDefinition Width="163*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
 
@@ -401,7 +419,7 @@
                                 Background="Transparent" Grid.ColumnSpan="4">
                             <TextBlock Text="Datos Iniciales"
                                FontWeight="DemiBold" Foreground="#00897B" Height="19" 
-                                       VerticalAlignment="Top" x:Name="txtDetalleInicial" Width="388" />
+                                       VerticalAlignment="Top" x:Name="txtDetalleInicial" Width="477" />
                         </Border>
                         <!--FRACCIONAMIENTO-->
                         <TextBlock Text="Fraccionamiento: " Grid.Row="1" HorizontalAlignment="Left"
@@ -487,15 +505,15 @@
                         </ListView>
                     </Grid>
                 </Border>
-                <Border Grid.Row="0" Grid.Column="2" Margin="10,5,10,5"
-                           HorizontalAlignment="Center" CornerRadius="3" BorderBrush="LightGray" BorderThickness="1" Grid.ColumnSpan="3">
+                <Border Grid.Row="0" Grid.Column="2" Margin="13,5"
+                           HorizontalAlignment="Center" CornerRadius="3" BorderBrush="LightGray" BorderThickness="1" Grid.ColumnSpan="3" Width="308">
                     <ListView Grid.Row="1" Background="Transparent"
                           x:Name="ListPrincipal" HorizontalAlignment="Center"
                               BorderBrush="Transparent">
                         <ListView.View>
                             <GridView x:Name="GridPrinc" Selector.IsSelected="False">
                                 <!--RUMBO DGV-->
-                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding InicialRumbo}">
+                                <GridViewColumn Width="100" DisplayMemberBinding="{Binding inicialRumbo}">
                                     <GridViewColumnHeader IsHitTestVisible="False" BorderBrush="LightGray"
                                                           BorderThickness="1,1,1,1">
                                         <TextBlock Text="Rumbo" FontWeight="DemiBold"></TextBlock>
@@ -503,14 +521,14 @@
                                 </GridViewColumn>
 
                                 <!--COLINDANCIA DGV-->
-                                <GridViewColumn Width="165">
+                                <GridViewColumn Width="200">
                                     <GridViewColumnHeader IsHitTestVisible="False" BorderBrush="LightGray"
                                                           BorderThickness="1">
                                         <TextBlock Text="Colindancia"/>
                                     </GridViewColumnHeader>
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding TextColindancia}" FontWeight="DemiBold"/>
+                                            <TextBlock Text="{Binding textColindancia}" FontWeight="DemiBold"/>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
 
@@ -522,14 +540,14 @@
 
                 <Button HorizontalAlignment="Right" Click="tb2CleanDGVError_Click" 
                         x:Name="tb2CleanDGVError" BorderBrush="Transparent" Focusable="False" Grid.Row="1"
-                        BorderThickness="0" Background="Transparent" Grid.Column="2" >
+                        BorderThickness="0" Background="Transparent" Grid.Column="2" Width="32" >
                     <Image Source="pack://application:,,,/RegimenCondominio;component/Images/DeleteGreen.png"/>
                 </Button>
 
-                <TextBox Grid.Column="4" Width="130" Height="25" HorizontalAlignment="Right"
+                <TextBox Grid.Column="4" Width="143" Height="26" HorizontalAlignment="Right"
                                            VerticalAlignment="Bottom" Margin="0,0,10,5" BorderBrush="LightGray"
                                            BorderThickness="1" x:Name="tb2cmbText" Grid.Row="1" TextChanged="tb2cmbText_TextChanged"/>
-                <ComboBox Grid.Column="3" Width="80" Height="25" VerticalAlignment="Bottom"
+                <ComboBox Grid.Column="3" Width="111" Height="26" VerticalAlignment="Bottom"
                                          HorizontalAlignment="Right" Margin="0,0,0,5" x:Name="tb2cmbSearch" Grid.Row="1">
                 </ComboBox>
                 <!--________________________DGV DE PUNTOS_____________________________-->
@@ -556,12 +574,12 @@
                                         <TextBlock Text="Hora"></TextBlock>
                                     </GridViewColumnHeader>
                                 </GridViewColumn>
-                                <GridViewColumn Width="200" DisplayMemberBinding="{Binding Error}">
+                                <GridViewColumn Width="200" DisplayMemberBinding="{Binding error}">
                                     <GridViewColumnHeader>
                                         <TextBlock Text="Error"></TextBlock>
                                     </GridViewColumnHeader>
                                 </GridViewColumn>
-                                <GridViewColumn Width="600" DisplayMemberBinding="{Binding Description}">
+                                <GridViewColumn Width="600" DisplayMemberBinding="{Binding description}">
                                     <GridViewColumnHeader>
                                         <TextBlock Text="Descripción"></TextBlock>
                                     </GridViewColumnHeader>
@@ -571,7 +589,7 @@
                                         <TextBlock Text="Error"></TextBlock>
                                     </GridViewColumnHeader>
                                 </GridViewColumn>
-                                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Metodo}">
+                                <GridViewColumn Width="150" DisplayMemberBinding="{Binding metodo}">
                                     <GridViewColumnHeader>
                                         <TextBlock Text="Método"></TextBlock>
                                     </GridViewColumnHeader>

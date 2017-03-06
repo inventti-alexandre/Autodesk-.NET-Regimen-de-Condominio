@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 namespace RegimenCondominio.M
 {
 
-    public class DatosFracc
+    public class Fraccionamiento
     {
-        public string Fraccionamiento { get; set; }
-        public string Estado { get; set; }
-        public string Municipio { get; set; }
+        public string fraccionamiento { get; set; }
+        public string estado { get; set; }
+        public string municipio { get; set; }
     }
 
 
@@ -25,21 +25,21 @@ namespace RegimenCondominio.M
 
         public string nombreAreaComun { get; set; }
     }
-    public class DatosManzana
+    public class ManzanaData
     {
 
-        public Handle HndPlColindancia { get; set; }
+        public Handle hndPlColindancia { get; set; }
 
-        public Handle HndTxtColindancia { get; set; }
+        public Handle hndTxtColindancia { get; set; }
 
-        public string TextColindancia { get; set; }
+        public string textColindancia { get; set; }
 
-        public string InicialRumbo { get; set; }
+        public string inicialRumbo { get; set; }
 
-        public string RumboActual { get; set; }
+        public string rumboActual { get; set; }
     }
 
-    public class EncMachote
+    public class EncabezadoMachote
     {
         public int IdMachote { get; set; }
 
@@ -52,9 +52,9 @@ namespace RegimenCondominio.M
 
 
 
-    public class DatosColindancia
+    public class ColindanciaData
     {
-        public int numVivienda { get; set; }
+        public int Edificio_Lote { get; set; }
 
         public string Apartamento { get; set; }
 
@@ -89,15 +89,7 @@ namespace RegimenCondominio.M
         public long idVivienda { get; set; }
     }
 
-    public class DGVColindancia
-    {
-        public string Fraccionamiento { get; set; }
-        public string TipoViv { get; set; }
-        public int Manzana { get; set; }
-        public int NoOficial { get; set; }
-    }
-
-    public class InLotes
+    public class Lote
     {
         /// <summary>
         /// ObjectId de Entidad
@@ -133,11 +125,11 @@ namespace RegimenCondominio.M
         public string TextAp { get; set; }
     }
 
-    public class DescribeError
+    public class Error
     {
-        public string Error { get; set; }
+        public string error { get; set; }
 
-        public string Description { get; set; }
+        public string description { get; set; }
 
         public long longObject { get; set; }
 
@@ -145,7 +137,7 @@ namespace RegimenCondominio.M
 
         public TipoError tipoError { get; set; }
 
-        public string Metodo { get; set; }
+        public string metodo { get; set; }
     }
 
 
@@ -185,7 +177,7 @@ namespace RegimenCondominio.M
         G270
     }
 
-    public enum TipoLinea
+    public enum TableInfo
     {
         Line,
         Arc

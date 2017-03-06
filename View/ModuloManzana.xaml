@@ -7,12 +7,13 @@
         xmlns:cscontrol ="clr-namespace:RegimenCondominio.UserControls"
         xmlns:local="clr-namespace:RegimenCondominio.V"
         mc:Ignorable="d"
-        Title="Modulo Manzana" Height="480" Width="440"
+        Title="Información de la Manzana" Height="480" Width="440"
                    TitleCaps="False"
                    WindowStartupLocation="CenterScreen"
                    ResizeMode="CanMinimize"                  
                    Icon="pack://application:,,,/RegimenCondominio;component/Images/JaverIcono.png"
-                   Loaded="MetroWindow_Loaded">
+                   Loaded="MetroWindow_Loaded"
+                   Closing="MetroWindow_Closing">
     <Window.Resources>
         <ResourceDictionary>
 
@@ -152,7 +153,7 @@
                         <ListView.View>
                             <GridView x:Name="GridPrinc" Selector.IsSelected="False">
                                 <!--RUMBO DGV-->
-                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding InicialRumbo}">
+                                <GridViewColumn Width="70" DisplayMemberBinding="{Binding inicialRumbo}">
                                     <GridViewColumnHeader IsHitTestVisible="False" BorderBrush="LightGray"
                                                           BorderThickness="1">
                                         <TextBlock Text="Rumbo" FontWeight="DemiBold"></TextBlock>
@@ -167,7 +168,7 @@
                                     </GridViewColumnHeader>
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding TextColindancia}" FontWeight="DemiBold"/>
+                                            <TextBlock Text="{Binding textColindancia}" FontWeight="DemiBold"/>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
 

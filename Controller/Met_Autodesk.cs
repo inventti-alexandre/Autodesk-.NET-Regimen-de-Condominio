@@ -178,34 +178,49 @@ namespace RegimenCondominio.C
                     {
                         if (SegmentsToPolyline(listSegments, out plSegments))
                         {
-                            M.Colindante.IdPolManzana = plSegments.Id;
-
-                            plSegments.Focus(50, 10);
-
-                            Point3dCollection pt3d = plSegments.Id.ExtractVertex();
-
-                            TypedValue[] tvs = new TypedValue[2]
+                            if (plSegments.Id.IsValid)
                             {
+                                M.Colindante.IdPolManzana = plSegments.Id;
+
+                                plSegments.Focus(50, 10);
+
+                                Point3dCollection pt3d = plSegments.Id.ExtractVertex();
+
+                                TypedValue[] tvs = new TypedValue[2]
+                                {
                                 new TypedValue((int)DxfCode.LayerName, layerName),
                                 new TypedValue( (int)DxfCode.Start, RXObject.GetClass(typeof(Polyline)).DxfName)
-                            };
+                                };
 
-                            SelectionFilter sf = new SelectionFilter(tvs);
+                                SelectionFilter sf = new SelectionFilter(tvs);
 
-                            Point3d min = new Point3d(), max = new Point3d();
+                                Point3d min = new Point3d(), max = new Point3d();
 
-                            //Obtengo punto mínimo de la polílinea
-                            min = plSegments.GeometricExtents.MinPoint;
-                            max = plSegments.GeometricExtents.MaxPoint;
+                                //Obtengo punto mínimo de la polílinea
+                                min = plSegments.GeometricExtents.MinPoint;
+                                max = plSegments.GeometricExtents.MaxPoint;
 
-                            idsInside = ObjectsInside(min, max, sf);
+                                idsInside = ObjectsInside(min, max, sf);
 
-                            //if (!plSegments.IsWriteEnabled)
-                            //    plSegments.UpgradeOpen();
+                                //if (!plSegments.IsWriteEnabled)
+                                //    plSegments.UpgradeOpen();
 
-                            //plSegments.Erase(true);                            
+                                //plSegments.Erase(true);                            
 
-                            tr.Commit();
+                                tr.Commit();
+                            }
+                            else
+                            {
+                                M.Colindante.ListadoErrores.Add(new M.Error()
+                                {
+                                    error = "Creación de Polilínea",
+                                    description = "No se creó la polilínea de Manzana correctamente",
+                                    longObject = plSegments.Id.Handle.Value,
+                                    metodo = "Met_Autodesk - GetPolylinesInSegments",
+                                    timeError = DateTime.Now.ToString(),
+                                    tipoError = M.TipoError.Error
+                                });
+                            }
                         }
                     }
                     catch (Autodesk.AutoCAD.Runtime.Exception ex)
@@ -299,7 +314,7 @@ namespace RegimenCondominio.C
         /// <param name="listSegments">Listado de segmentos</param>
         /// <param name="outPl">Polilinea Creada</param>
         /// <returns>Verdadero si Id es Válido/returns>
-        private static bool SegmentsToPolyline(List<ObjectId> listSegments, out Polyline outPl)
+        internal static bool SegmentsToPolyline(List<ObjectId> listSegments, out Polyline outPl)
         {
             outPl = new Polyline();           
             
@@ -390,7 +405,7 @@ namespace RegimenCondominio.C
             return outPl.Id.IsValid;
         }
 
-        internal static void DeleteObjects(string layername)
+        internal static void DeleteObjects(params string[] layersName)
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
             using (Transaction tr = doc.Database.TransactionManager.StartTransaction())
@@ -408,7 +423,7 @@ namespace RegimenCondominio.C
 
                             if(ent != null)
                             {
-                                if(ent.Layer == layername)
+                                if(layersName.Contains(ent.Layer))
                                 {
                                     ent.UpgradeOpen();
                                     ent.Erase(true);
@@ -1253,7 +1268,7 @@ namespace RegimenCondominio.C
                         {
                             Position = ptToAdd,
                             TextString = numPoint.ToString(),
-                            Height = 0.05d,
+                            Height = M.Colindante.DbTextSize,
                             Layer = M.Constant.LayerExcDBText
                         };
 
@@ -1407,7 +1422,7 @@ namespace RegimenCondominio.C
 
         internal static bool isEqualPosition(this Point3d ptA, Point3d ptB)
         {
-            return ptA.DistanceTo(ptB) <= M.Constant.ToleranceError;
+            return ptA.DistanceTo(ptB) <= M.Colindante.ToleranceError;
         }
 
         public static void SpecialOrder(List<Point3d> points)

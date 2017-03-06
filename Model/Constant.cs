@@ -17,7 +17,9 @@ namespace RegimenCondominio.M
             typeof(Polyline),
             typeof(Line),
             typeof(Arc)        
-        };       
+        };
+
+        private static bool isAutoClose = false;
 
         //Orden de búsqueda de los layers dentro de los Apartamentos
         private static List<string> busquedaApartamento = new List<string>(new string[] {            
@@ -79,7 +81,7 @@ namespace RegimenCondominio.M
             "Método"
         };
 
-        private static double toleranceError = 0.005;
+        
 
         private static List<string> tipoColindancias = new List<string>()
         {
@@ -433,15 +435,7 @@ namespace RegimenCondominio.M
             {
                 return layerAreaComun;
             }
-        }
-
-        public static double ToleranceError
-        {
-            get
-            {
-                return toleranceError;
-            }
-        }
+        }       
 
         public static string LayerExcRumbos
         {
@@ -461,6 +455,19 @@ namespace RegimenCondominio.M
             get
             {
                 return listError;
+            }
+        }
+
+        public static bool IsAutoClose
+        {
+            get
+            {
+                return isAutoClose;
+            }
+
+            set
+            {
+                isAutoClose = value;
             }
         }
     }

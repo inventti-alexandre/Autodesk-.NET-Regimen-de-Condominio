@@ -9,10 +9,10 @@ namespace RegimenCondominio.M
     public class Inicio
     {
         //Resultado de Fraccionamientos de consulta SQL
-        private static List<DatosFracc> resultFraccs;
+        private static List<Fraccionamiento> resultFraccs;
 
         //Resultado de Tipo de Viviendas de consulta SQL
-        private static List<EncMachote> resultTipoVivs;        
+        private static List<EncabezadoMachote> resultTipoVivs;        
 
         #region DatosIniciales
 
@@ -34,7 +34,7 @@ namespace RegimenCondominio.M
 
         #endregion
 
-        public static List<DatosFracc> ResultFraccs
+        public static List<Fraccionamiento> ResultFraccs
         {
             get
             {
@@ -47,7 +47,7 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static List<EncMachote> ResultTipoVivs
+        public static List<EncabezadoMachote> ResultTipoVivs
         {
             get
             {

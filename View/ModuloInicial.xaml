@@ -7,18 +7,21 @@
         xmlns:cscontrol ="clr-namespace:RegimenCondominio.UserControls"
         xmlns:local="clr-namespace:RegimenCondominio.V"
         mc:Ignorable="d"
-        Title="Módulo Inicial" Height="450" Width="450"
+        Title="Datos Iniciales" Height="450" Width="450"
                    TitleCaps="False"
                    WindowStartupLocation="CenterScreen"
                    ResizeMode="CanMinimize"
                    Loaded="MetroWindow_Loaded"
-                   Icon="pack://application:,,,/RegimenCondominio;component/Images/JaverIcono.png">
+                   Icon="pack://application:,,,/RegimenCondominio;component/Images/JaverIcono.png"
+                   Closing="MetroWindow_Closing">
     <Window.Resources>
         <ResourceDictionary>
             <BitmapImage x:Key="Fondo" UriSource="pack://application:,,,/RegimenCondominio;component/Images/fondo.png" />
             <BitmapImage x:Key="Usuario" UriSource="pack://application:,,,/RegimenCondominio;component/Images/user.png" />
             <BitmapImage x:Key="Next" UriSource="pack://application:,,,/RegimenCondominio;component/Images/GoNext.png" 
                          />
+            <Image x:Key="RefreshM" Source="pack://application:,,,/RegimenCondominio;component/Images/NewRefresh.png"                    
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Image x:Key="NextBtn" Source="pack://application:,,,/RegimenCondominio;component/Images/GoNext.png" Width="60" Height="60" 
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <!--ACCENT COLORS-->
@@ -146,6 +149,12 @@
         <cscontrol:CsComboBox  Grid.Column="1" Grid.Row="1" MessageCombo="Fraccionamiento"
                              x:Name="FraccionamientoCombo" Margin="23,4,10,2" Height="36" 
                                SelectChanged="FraccionamientoCombo_SelectChanged" />
+
+        <Button Grid.Column="2" Grid.Row="1" x:Name="btnRefresh" Content="{StaticResource RefreshM}"
+                Width="35" Height="35" Background="Transparent" VerticalAlignment="Center"
+                HorizontalAlignment="Left" BorderThickness="0" Click="btnRefresh_Click"
+                BorderBrush="Transparent" Focusable="False" Visibility="Visible">
+        </Button>
         <!--<ComboBox Grid.Column="1" Grid.Row="1" x:Name="FraccionamientoCombo" Margin="23,1,23,0" Height="36"/>-->
         <!--*************************************Estado*************************************-->
         <TextBlock Grid.Column="1" Text="Estado" FontSize="14" FontWeight="DemiBold"

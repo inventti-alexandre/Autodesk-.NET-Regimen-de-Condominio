@@ -23,7 +23,7 @@ namespace RegimenCondominio.C
             Polyline plLote = new Polyline();
 
             //Revisa que no haya problema
-            bool flag = false;
+            bool isCorrect = true;
 
             //Número de Vivienda y Número Oficial
             string  strNoOficial = "";
@@ -33,6 +33,8 @@ namespace RegimenCondominio.C
             long longLote = new long();
 
             ObjectIdCollection idsApartments = new ObjectIdCollection();
+
+            Polyline plManzana = new Polyline();
             //-----------------------------------------------------------------                                         
 
             //Obtengo NÚMERO OFICIAL siempre desde el LOTE----------------------------------------------------
@@ -40,11 +42,10 @@ namespace RegimenCondominio.C
             longLote = idLote.Handle.Value;
 
             //Busco el que concuerde con el Lote principal actual
-            M.InLotes itemLote = M.Colindante.Lotes.Where(x => x._long == longLote)
-                                 .FirstOrDefault();
+            M.Lote itemLote = M.Colindante.Lotes.Where(x => x._long == longLote)
+                                    .FirstOrDefault();
 
             //Obtengo número de Lote y Oficial
-
             numLote = itemLote.numLote;
             strNoOficial = itemLote.numOficial;
             //------------------------------------------------------------------------------------------------
@@ -54,7 +55,17 @@ namespace RegimenCondominio.C
 
             //Enfoco Polilínea
             //plLote.Focus(50, 10);
-            Polyline plManzana = (M.Colindante.IdPolManzana.OpenEntity() as Polyline);
+            if (M.Colindante.IdPolManzana.IsValid)
+                plManzana = (M.Colindante.IdPolManzana.OpenEntity() as Polyline);
+            else
+            {
+                //Leo los segmentos seleccionados
+                List<ObjectId> listSegments = M.Manzana.ColindanciaManzana
+                                                .Select(x => x.hndPlColindancia.toObjectId()).ToList();
+
+                Met_Autodesk.SegmentsToPolyline(listSegments, out plManzana);
+            }
+                
 
             //Enfoco Manzana
             plManzana.Focus(10, 30);
@@ -96,7 +107,7 @@ namespace RegimenCondominio.C
                             string TextAp = M.Colindante.OrderedApartments[i].TextAp;
 
                             //Punto mínimo y máximo del apartamento
-                            Point3d ptmin = plApartmento.GeometricExtents.MinPoint;                            
+                            Point3d ptmin = plApartmento.GeometricExtents.MinPoint;
                             Point3d ptMax = plApartmento.GeometricExtents.MaxPoint;
 
                             #region Por cada Sección
@@ -104,28 +115,29 @@ namespace RegimenCondominio.C
                             //Comienzo busqueda por cada Sección
                             foreach (string layerSeccion in M.Colindante.Secciones)
                             {
-                                List<ObjectId> idsSecciones = new List<ObjectId>();
+                                ObjectIdCollection idsSecciones = new ObjectIdCollection();
 
                                 SelectionFilter sf = typeof(Polyline).Filter(layerSeccion);
 
                                 //Obtengo cada sección de acuerdo al layer                               
-                                idsSecciones = Met_Autodesk.ObjectsInside(ptmin, ptMax, sf)
-                                            .OfType<ObjectId>().ToList();
+                                idsSecciones = Met_Autodesk.ObjectsInside(ptmin, ptMax, sf);
 
-                                foreach (ObjectId idSeccion in idsSecciones)
+                                //Si encontró sólo una sección
+                                if (idsSecciones.Count == 1)
                                 {
-                                    //Si encontro una polilínea válida dentro del layer de la sección
-                                    if (idSeccion.IsValid)
+                                    ObjectId idSeccion = idsSecciones[0];
+
+                                    //Polilinea de la sección
+                                    Polyline plSeccion = idSeccion.OpenEntity() as Polyline;
+
+                                    //Distancia, Punto Medio, Punto Inicial y Punto Final
+                                    List<M.SegmentInfo> listSegments = new List<M.SegmentInfo>();
+
+                                    //Obtengo todos los arcos y sus puntos medios
+                                    listSegments = GetInfoSegments(plSeccion);
+
+                                    if (listSegments.Count > 0)
                                     {
-                                        //Polilinea de la sección
-                                        Polyline plSeccion = idSeccion.OpenEntity() as Polyline;
-
-                                        //Distancia, Punto Medio, Punto Inicial y Punto Final
-                                        List<M.SegmentInfo> listSegments = new List<M.SegmentInfo>();
-
-                                        //Obtengo todos los arcos y sus puntos medios
-                                        listSegments = GetInfoSegments(plSeccion);
-
                                         //Genera el orden correcto de los puntos
                                         List<Point3d> listPoints = plSeccion.ClockwisePoints();
 
@@ -171,7 +183,7 @@ namespace RegimenCondominio.C
                                             //Obtengo el index real
                                             //int idxPtActual = Met_Autodesk.GetPointIndex(plSeccion, ptA);
 
-                                            M.SegmentInfo data = FindMidData(listSegments, ptA, ptB);
+                                            M.SegmentInfo data = FindSegmentData(listSegments, ptA, ptB);
 
                                             //Obtengo distancia total del arco
                                             distance = data.Distance;
@@ -193,11 +205,11 @@ namespace RegimenCondominio.C
 
                                             //Encuentro Rumbo si no estaba en la colindancia
                                             if (strRumbo == "")
-                                                strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()));
+                                                strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()), idSeccion);
 
                                             //Lo trunco a las decimales establecidas
                                             distance = distance.Trunc(M.Colindante.Decimals);
-                                           
+
                                             //Enfoco de acuerdo a la polilínea guardada
                                             //(M.Colindante.IdPolManzana.OpenEntity() as Polyline).Focus(10, 30);
 
@@ -225,20 +237,7 @@ namespace RegimenCondominio.C
 
                                                     numPointB = ConsecutivePoint;
 
-                                                    ConsecutivePoint++;
-
-                                                    StackFrame callStack = new StackFrame(1, true);
-
-                                                    M.Colindante.ListadoErrores.Add(new M.DescribeError()
-                                                    {
-                                                        Error = "Puntos Planta Alta",
-                                                        Description = string.Format("Se agregaron los puntos A:{0} y B:{1} al Lote {2}, Apartamento {3}",
-                                                           numPointA, numPointB, numLote, TextAp),
-                                                        longObject = idSeccion.Handle.Value,
-                                                        timeError = DateTime.Now.ToString(),
-                                                        tipoError = M.TipoError.Warning,
-                                                        Metodo = (callStack.GetMethod().ToString()) + " " + (callStack.GetFileLineNumber().ToString())
-                                                    });
+                                                    ConsecutivePoint++;                                                   
                                                 }
                                             }
                                             else//Si no es el primer punto sólo asignó el Punto A como el último B, calculo el Punto B
@@ -264,13 +263,13 @@ namespace RegimenCondominio.C
 
                                             #endregion
 
-                                            M.Colindante.MainData.Add(new M.DatosColindancia()
+                                            M.Colindante.MainData.Add(new M.ColindanciaData()
                                             {
                                                 idVivienda = idLote.Handle.Value,
-                                                Seccion = Translate(layerSeccion),                                                
+                                                Seccion = Translate(layerSeccion),
                                                 LayerSeccion = layerSeccion,
                                                 Rumbo = strRumbo,
-                                                numVivienda = numLote,
+                                                Edificio_Lote = numLote,
                                                 NoOficial = strNoOficial,
                                                 Apartamento = "Apartamento " + TextAp,
                                                 PuntoA = numPointA,
@@ -285,186 +284,295 @@ namespace RegimenCondominio.C
                                                 esEsquinaB = false
                                             });
                                         }
+                                    }
+                                    else
+                                    {
+                                        M.Colindante.ListadoErrores.Add(new M.Error()
+                                        {
+                                            error = "Segmentos de Sección",
+                                            description = "Error al detectar los segmentos de Sección " + Translate(layerSeccion),                                            
+                                            timeError = DateTime.Now.ToString(),
+                                            longObject = idSeccion.Handle.Value,
+                                            metodo = "Met_Colindante - CreatePointsSet",
+                                            tipoError = M.TipoError.Error
+                                        });
 
-                                    }//Si es una sección valida
+                                        isCorrect = false;
 
-                                }//Por cada sección FIN                                
+                                        break;
+                                    }
+                                }
+                                else if(idsSecciones.Count > 1)
+                                {
+                                    foreach (ObjectId idSecc in idsSecciones)
+                                    {
+                                        M.Colindante.ListadoErrores.Add(new M.Error()
+                                        {
+                                            error = "Secciones en Ap. " + TextAp,
+                                            description = string.Format("Se detecto más de una sección {0} en el apartamento {1}"
+                                            , Translate(layerSeccion), TextAp),
+                                            timeError = DateTime.Now.ToString(),
+                                            longObject = idSecc.Handle.Value,
+                                            metodo = "Met_Colindante - CreatePointsMacroset",
+                                            tipoError = M.TipoError.Error
+                                        });
+                                    }
+
+                                    isCorrect = false;
+                                    break;
+                                }
+                                else
+                                {
+                                    M.Colindante.ListadoErrores.Add(new M.Error()
+                                    {
+                                        error = "Secciones en Ap. " + TextAp,
+                                        description = "No se detectó sección " + Translate(layerSeccion),
+                                        timeError = DateTime.Now.ToString(),
+                                        longObject = plApartmento.Id.Handle.Value,
+                                        metodo = "Met_Colindante - CreatePointsMacroset",
+                                        tipoError = M.TipoError.Info
+                                    });
+                                }
+
                             }
                             #endregion
+
+                            //Si en algún punto tiene error detiene la iteración de Apartamentos
+                            if (!isCorrect)
+                                break;
                         }
 
                         #endregion
 
-                        //Ordeno Área Común
-                        M.Colindante.ListCommonArea.Sort((s1, s2) => s1.nombreAreaComun.CompareTo(s2.nombreAreaComun));
-
-                        //Nombre de Área Común
-                        for(int i = 0; i < M.Colindante.ListCommonArea.Count; i++)
+                        //Si no ha detectado algún error
+                        if (isCorrect)
                         {
-                            M.AreaComun areaActual = M.Colindante.ListCommonArea[i];
+                            //Ordeno Área Común
+                            M.Colindante.ListCommonArea.Sort((s1, s2) => s1.nombreAreaComun.CompareTo(s2.nombreAreaComun));
 
-                            if(areaActual._longLote == idLote.Handle.Value)
+                            #region Por cada Área Común
+                            //Nombre de Área Común
+                            for (int i = 0; i < M.Colindante.ListCommonArea.Count; i++)
                             {
-                                ObjectId idArea = new Handle(areaActual._longAreaComun).toObjectId();
+                                M.AreaComun areaActual = M.Colindante.ListCommonArea[i];
 
-                                Polyline plAreaComun = idArea.OpenEntity() as Polyline;
-
-                                //Distancia, Punto Medio, Punto Inicial y Punto Final
-                                List<M.SegmentInfo> listSegments = new List<M.SegmentInfo>();
-
-                                //Obtengo todos los arcos y sus puntos medios
-                                listSegments = GetInfoSegments(plAreaComun);
-
-                                //Genera el orden correcto de los puntos
-                                List<Point3d> listPoints = plAreaComun.ClockwisePoints();
-
-                                //Guardo Punto donde Inició la Búsqueda
-                                int startPoint = ConsecutivePoint;
-
-                                //Puntos A y B
-                                int numPointA = new int(),
-                                    numPointB = new int();
-
-                                //Por cada vertice de la sección
-                                for (int j = 0; j < listPoints.Count; j++)
+                                if (areaActual._longLote == idLote.Handle.Value)
                                 {
-                                    //Inicializo variables de cada VERTICE
-                                    //Colindancia
-                                    string strColindancia = "",
-                                            strRumbo = "";
+                                    ObjectId idArea = new Handle(areaActual._longAreaComun).toObjectId();
 
-                                    Point3d ptA = new Point3d(),//Punto Actual 
-                                            ptB = new Point3d(),//Punto siguiente
-                                            ptMedio = new Point3d();//Punto Medio
-
-                                    List<string> layersColindancia = new List<string>();
-
-                                    //Inicializo distancia
-                                    double distance = new double();
-
-                                    bool isArc = new bool();
-                                    //-----------------------------------
-
-                                    ////Punto A
-                                    ptA = listPoints[j];
-
-                                    //Asigno Punto B
-                                    //Si no es el último punto le asigno 1 más, en dado caso que si, asigno Index 0.
-                                    if (j + 1 < listPoints.Count)
-                                        ptB = listPoints[j + 1];
-                                    else
-                                        ptB = listPoints[0];
-
-                                    #region Calculo Distancia y Punto Medio                                                                                
-
-                                    //Obtengo el index real
-                                    //int idxPtActual = Met_Autodesk.GetPointIndex(plSeccion, ptA);
-
-                                    M.SegmentInfo data = FindMidData(listSegments, ptA, ptB);
-
-                                    //Obtengo distancia total del arco
-                                    distance = data.Distance;
-
-                                    //Obtengo el punto medio
-                                    ptMedio = data.MiddlePoint;
-
-                                    //Reviso si es Arco
-                                    isArc = data.isArc;
-
-                                    #endregion
-
-                                    //Encuentro colindancia de acuerdo al punto medio
-                                    //Si no es planta alta se busca la adyacencia
-                                    strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, 
-                                                                   new Handle(areaActual._longAreaComun).toObjectId());
-
-                                    //Encuentro Rumbo si no estaba en la colindancia
-                                    if (strRumbo == "")
-                                        strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()));
-
-                                    //Lo trunco a las decimales establecidas
-                                    distance = distance.Trunc(M.Colindante.Decimals);
-
-                                    //Enfoco de acuerdo a la polilínea guardada
-                                    //(M.Colindante.IdPolManzana.OpenEntity() as Polyline).Focus(10, 30);
-
-                                    #region Creo DB Points y DB Text
-
-                                    //Si es el primer punto debo de analizar PuntoA y PuntoB
-                                    if (j == 0)
+                                    if (idArea.IsValid)
                                     {
-                                        if (ValidatePoint(ptA, ConsecutivePoint, out numPointA))
-                                            ConsecutivePoint++;
-                                        else
-                                            //Valido si realmente el punto de Inicio ya estaba insertado                                            
-                                            startPoint = numPointA;
+                                        Polyline plAreaComun = idArea.OpenEntity() as Polyline;
 
-                                        if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
-                                            ConsecutivePoint++;
-                                    }
-                                    else//Si no es el primer punto sólo asignó el Punto A como el último B, calculo el Punto B
-                                    {
-                                        numPointA = numPointB;
+                                        //Distancia, Punto Medio, Punto Inicial y Punto Final
+                                        List<M.SegmentInfo> listSegments = new List<M.SegmentInfo>();
 
-                                        if (j + 1 < listPoints.Count)//Si no es el último Punto lo valido
+                                        //Obtengo todos los arcos y sus puntos medios
+                                        listSegments = GetInfoSegments(plAreaComun);
+
+                                        if (listSegments.Count > 0)
                                         {
-                                            if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
-                                                ConsecutivePoint++;
+                                            //Genera el orden correcto de los puntos
+                                            List<Point3d> listPoints = plAreaComun.ClockwisePoints();
+
+                                            //Guardo Punto donde Inició la Búsqueda
+                                            int startPoint = ConsecutivePoint;
+
+                                            //Puntos A y B
+                                            int numPointA = new int(),
+                                                numPointB = new int();
+
+                                            //Por cada vertice de la sección
+                                            for (int j = 0; j < listPoints.Count; j++)
+                                            {
+                                                //Inicializo variables de cada VERTICE
+                                                //Colindancia
+                                                string strColindancia = "",
+                                                        strRumbo = "";
+
+                                                Point3d ptA = new Point3d(),//Punto Actual 
+                                                        ptB = new Point3d(),//Punto siguiente
+                                                        ptMedio = new Point3d();//Punto Medio
+
+                                                List<string> layersColindancia = new List<string>();
+
+                                                //Inicializo distancia
+                                                double distance = new double();
+
+                                                bool isArc = new bool();
+                                                //-----------------------------------
+
+                                                ////Punto A
+                                                ptA = listPoints[j];
+
+                                                //Asigno Punto B
+                                                //Si no es el último punto le asigno 1 más, en dado caso que si, asigno Index 0.
+                                                if (j + 1 < listPoints.Count)
+                                                    ptB = listPoints[j + 1];
+                                                else
+                                                    ptB = listPoints[0];
+
+                                                #region Calculo Distancia y Punto Medio                                                                                
+
+                                                //Obtengo el index real
+                                                //int idxPtActual = Met_Autodesk.GetPointIndex(plSeccion, ptA);
+
+                                                M.SegmentInfo data = FindSegmentData(listSegments, ptA, ptB);
+
+                                                //Obtengo distancia total del arco
+                                                distance = data.Distance;
+
+                                                //Obtengo el punto medio
+                                                ptMedio = data.MiddlePoint;
+
+                                                //Reviso si es Arco
+                                                isArc = data.isArc;
+
+                                                #endregion
+
+                                                //Encuentro colindancia de acuerdo al punto medio
+                                                //Si no es planta alta se busca la adyacencia
+                                                strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia,
+                                                                               new Handle(areaActual._longAreaComun).toObjectId());
+
+                                                //Encuentro Rumbo si no estaba en la colindancia
+                                                if (strRumbo == "")
+                                                    strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()), idArea);
+
+                                                //Lo trunco a las decimales establecidas
+                                                distance = distance.Trunc(M.Colindante.Decimals);
+
+                                                //Enfoco de acuerdo a la polilínea guardada
+                                                //(M.Colindante.IdPolManzana.OpenEntity() as Polyline).Focus(10, 30);
+
+                                                #region Creo DB Points y DB Text
+
+                                                //Si es el primer punto debo de analizar PuntoA y PuntoB
+                                                if (j == 0)
+                                                {
+                                                    if (ValidatePoint(ptA, ConsecutivePoint, out numPointA))
+                                                        ConsecutivePoint++;
+                                                    else
+                                                        //Valido si realmente el punto de Inicio ya estaba insertado                                            
+                                                        startPoint = numPointA;
+
+                                                    if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
+                                                        ConsecutivePoint++;
+                                                }
+                                                else//Si no es el primer punto sólo asignó el Punto A como el último B, calculo el Punto B
+                                                {
+                                                    numPointA = numPointB;
+
+                                                    if (j + 1 < listPoints.Count)//Si no es el último Punto lo valido
+                                                    {
+                                                        if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
+                                                            ConsecutivePoint++;
+                                                    }
+                                                    else//En dado caso que si es el último punto cierro la polilínea con el punto Inicial
+                                                        numPointB = startPoint;
+                                                }
+
+                                                #endregion
+
+                                                M.Colindante.MainData.Add(new M.ColindanciaData()
+                                                {
+                                                    idVivienda = idLote.Handle.Value,
+                                                    Seccion = areaActual.nombreAreaComun.FormatString(),
+                                                    LayerSeccion = M.Constant.LayerAreaComun,
+                                                    Rumbo = strRumbo,
+                                                    Edificio_Lote = numLote,
+                                                    NoOficial = strNoOficial,
+                                                    Apartamento = Translate(M.Constant.LayerAreaComun),
+                                                    PuntoA = numPointA,
+                                                    PuntoB = numPointB,
+                                                    CoordenadaA = ptA,
+                                                    CoordenadaB = ptB,
+                                                    Colindancia = strColindancia,
+                                                    LayersColindancia = layersColindancia,
+                                                    Distancia = distance,
+                                                    esArco = isArc,
+                                                    esEsquinaA = false,
+                                                    esEsquinaB = false
+                                                });
+                                            }
                                         }
-                                        else//En dado caso que si es el último punto cierro la polilínea con el punto Inicial
-                                            numPointB = startPoint;
+                                        else
+                                        {
+                                            M.Colindante.ListadoErrores.Add(new M.Error()
+                                            {
+                                                error = "Segmentos de Sección",
+                                                description = "Error al detectar los segmentos de Sección " + Translate(M.Constant.LayerAreaComun),
+                                                timeError = DateTime.Now.ToString(),
+                                                longObject = idArea.Handle.Value,
+                                                metodo = "Met_Colindante - CreatePointsSet",
+                                                tipoError = M.TipoError.Error
+                                            });
+
+                                            isCorrect = false;
+
+                                            break;
+                                        }
                                     }
-
-                                    #endregion
-
-                                    M.Colindante.MainData.Add(new M.DatosColindancia()
+                                    else
                                     {
-                                        idVivienda = idLote.Handle.Value,
-                                        Seccion = areaActual.nombreAreaComun.FormatString(),
-                                        LayerSeccion = M.Constant.LayerAreaComun,
-                                        Rumbo = strRumbo,
-                                        numVivienda = numLote,
-                                        NoOficial = strNoOficial,
-                                        Apartamento = Translate(M.Constant.LayerAreaComun),
-                                        PuntoA = numPointA,
-                                        PuntoB = numPointB,
-                                        CoordenadaA = ptA,
-                                        CoordenadaB = ptB,
-                                        Colindancia = strColindancia,
-                                        LayersColindancia = layersColindancia,
-                                        Distancia = distance,
-                                        esArco = isArc,
-                                        esEsquinaA = false,
-                                        esEsquinaB = false
-                                    });
+                                        M.Colindante.ListadoErrores.Add(new M.Error()
+                                        {
+                                            error = "Id Inválida",
+                                            description = "El id del Área Común no esta disponible o fue eliminada",
+                                            longObject = M.Colindante.IdMacrolote.Handle.Value,
+                                            metodo = "Met_Colindante - CreatePointsSet",
+                                            timeError = DateTime.Now.ToString(),
+                                            tipoError = M.TipoError.Error
+                                        });
+
+                                        isCorrect = false;
+
+                                        break;
+                                    }
                                 }
+                                #endregion
                             }
-
                         }
-
-                        flag = true;
                     }
                     catch (Exception exc)
                     {
                         //Se deshace lo que sale mal en la transacción
                         //El abort lo destruye
                         exc.Message.ToEditor();
+                        isCorrect = false;
                     }
-                }                               
+                }
+                else
+                {
+                    M.Colindante.ListadoErrores.Add(new M.Error()
+                    {
+                        error = "Apartamentos en Lote",
+                        description = "Hubo un error al ordenar los apartamentos dentro del Lote",
+                        timeError = DateTime.Now.ToString(),
+                        longObject = idLote.Handle.Value,
+                        metodo = "Met_Colindante - CreatePointsSet",
+                        tipoError = M.TipoError.Error
+                    });
+
+                    isCorrect = false;
+                }                            
             }
             else
             {
-                M.Colindante.ListadoErrores.Add(new M.DescribeError()
+                M.Colindante.ListadoErrores.Add(new M.Error()
                 {
-                    Error = "Sin Apartamentos",
-                    Description = "No se encontraron apartamentos en el lote seleccionado",
+                    error = "Cantidad de Apartamentos",
+                    description = string.Format("El Lote tiene {0} apartamentos y deben de ser {1}", 
+                                    idsApartments.Count, M.Inicio.ApartamentosXVivienda),
                     timeError = DateTime.Now.ToString(),
                     longObject = idLote.Handle.Value,
-                    Metodo = "Met_Colindante-CreatePoints Ln-309",
+                    metodo = "Met_Colindante-CreatePointsSet",
                     tipoError = M.TipoError.Error
                 });
+
+                isCorrect = false;
             }
-            return flag;
+            return isCorrect;
         }
 
         internal static void GetCommonArea(ObjectId idLote)
@@ -499,7 +607,11 @@ namespace RegimenCondominio.C
                     .OfType<ObjectId>().FirstOrDefault();
 
                 string nomArea = idText.IsValid ? (idText.OpenEntity() as DBText).TextString : Translate(M.Constant.LayerAreaComun);
-
+                
+                //Si ya existía este elemento ligado a un área común lo elimino    
+                M.Colindante.ListCommonArea.RemoveAll(x => x._longAreaComun == id.Handle.Value);
+                
+                //Agrego el elemento a Listado
                 M.Colindante.ListCommonArea.Add(new M.AreaComun()
                 {
                     _longLote = idLote.Handle.Value,
@@ -519,7 +631,7 @@ namespace RegimenCondominio.C
             Polyline plEdificio = new Polyline();
 
             //Revisa que no haya problema
-            bool flag = false;
+            bool isCorrect = true;
 
             //Número de Vivienda y Número Oficial
             string strNoOficial = "";
@@ -538,8 +650,8 @@ namespace RegimenCondominio.C
             longLote = M.Colindante.IdMacrolote.Handle.Value;
 
             //Busco el que concuerde con la polilínea principal actual o macrolote
-            M.InLotes itemLote = M.Colindante.Lotes.Where(x => x._long == longLote)
-                .FirstOrDefault();
+            M.Lote itemLote = M.Colindante.Lotes.Where(x => x._long == longLote)
+                                .FirstOrDefault();
 
             //Obtengo número Oficial
             strNoOficial = itemLote.numOficial;
@@ -559,8 +671,25 @@ namespace RegimenCondominio.C
             //Abro Polilínea como lectura
             plEdificio = idEdificio.OpenEntity() as Polyline;
 
+            Polyline plManzana = new Polyline();
+
             //Enfoco Polilínea
-            (M.Colindante.IdPolManzana.OpenEntity() as Polyline).Focus(50, 10);
+            if (M.Colindante.IdPolManzana.IsValid)
+            {
+                plManzana = M.Colindante.IdPolManzana.OpenEntity() as Polyline;
+
+                plManzana.Focus(50, 10);
+            }                
+            else
+            {
+                //Leo los segmentos seleccionados
+                List<ObjectId> listSegments = M.Manzana.ColindanciaManzana
+                                                .Select(x => x.hndPlColindancia.toObjectId()).ToList();
+
+                Met_Autodesk.SegmentsToPolyline(listSegments, out plManzana);
+
+                plManzana.Focus(50, 10);
+            }
 
             //Obtengo Punto mínimo y máximo
             min = plEdificio.GeometricExtents.MinPoint;
@@ -605,16 +734,16 @@ namespace RegimenCondominio.C
                             //Comienzo busqueda por cada Sección
                             foreach (string layerSeccion in M.Colindante.Secciones)
                             {
-                                ObjectId idSeccion = new ObjectId();
+                                ObjectIdCollection idsSecciones = new ObjectIdCollection();
 
                                 //Obtengo cada sección de acuerdo al layer (En dado caso que no sea Área Común)
+                                idsSecciones = Met_Autodesk.ObjectsInside(ptmin, ptMax, 
+                                                    typeof(Polyline).Filter(layerSeccion));
 
-                                idSeccion = Met_Autodesk.ObjectsInside(ptmin, ptMax, typeof(Polyline).Filter(layerSeccion))
-                                            .OfType<ObjectId>().FirstOrDefault();
-
-                                //Si encontro una polilínea válida dentro del layer de la sección
-                                if (idSeccion.IsValid)
+                                if (idsSecciones.Count == 1)
                                 {
+                                    ObjectId idSeccion = idsSecciones[0];
+
                                     //Polilinea de la sección
                                     Polyline plSeccion = idSeccion.OpenEntity() as Polyline;
 
@@ -624,181 +753,225 @@ namespace RegimenCondominio.C
                                     //Obtengo todos los arcos y sus puntos medios
                                     listSegments = GetInfoSegments(plSeccion);
 
-                                    //Genera el orden correcto de los puntos
-                                    List<Point3d> listPoints = plSeccion.ClockwisePoints();
-
-                                    //Guardo Punto donde Inició la Búsqueda
-                                    int startPoint = ConsecutivePoint;
-
-                                    //Puntos A y B
-                                    int numPointA = new int(),
-                                        numPointB = new int();
-
-                                    //Por cada vertice de la sección
-                                    for (int j = 0; j < listPoints.Count; j++)
+                                    if (listSegments.Count > 0)
                                     {
-                                        //Inicializo variables de cada VERTICE
-                                        //Colindancia
-                                        string strColindancia = "",
-                                                strRumbo = "";
+                                        //Genera el orden correcto de los puntos
+                                        List<Point3d> listPoints = plSeccion.ClockwisePoints();
 
-                                        Point3d ptA = new Point3d(),//Punto Actual 
-                                                ptB = new Point3d(),//Punto siguiente
-                                                ptMedio = new Point3d();//Punto Medio
+                                        //Guardo Punto donde Inició la Búsqueda
+                                        int startPoint = ConsecutivePoint;
 
-                                        List<string> layersColindancia = new List<string>();
+                                        //Puntos A y B
+                                        int numPointA = new int(),
+                                            numPointB = new int();
 
-                                        //Inicializo distancia
-                                        double distance = new double();
-
-                                        bool isArc = new bool(),
-                                                isCornerA = new bool(),
-                                                isCornerB = new bool(); ;
-                                        //-----------------------------------
-
-                                        ////Punto A
-                                        ptA = listPoints[j];
-
-                                        //Asigno Punto B
-                                        //Si no es el último punto le asigno 1 más, en dado caso que si, asigno Index 0.
-                                        if (j + 1 < listPoints.Count)
-                                            ptB = listPoints[j + 1];
-                                        else
-                                            ptB = listPoints[0];
-
-                                        #region Calculo Distancia y Punto Medio
-
-                                        //Dependiendo del tipo de segmento
-                                        M.SegmentInfo data = FindMidData(listSegments, ptA, ptB);
-
-                                        //Obtengo distancia total del arco
-                                        distance = data.Distance.Trunc(M.Colindante.Decimals);
-
-                                        //Obtengo el punto medio
-                                        ptMedio = data.MiddlePoint;
-
-                                        isArc = data.isArc;
-                                        #endregion
-
-                                        //Encuentro colindancia de acuerdo al punto medio
-                                        //Si no es planta alta se busca la adyacencia
-                                        if (layerSeccion != M.Constant.LayerAPAlta)
-                                            strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, idSeccion, plApartmento.Id, plEdificio.Id);
-                                        else
-                                            strColindancia = "Vacío";
-
-                                        //Encuentro Rumbo si no estaba en la colindancia
-                                        if (strRumbo == "")
-                                            strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()));
-
-                                        #region Creo DB Points y DB Text
-
-                                        //Si es el primer punto debo de analizar PuntoA y PuntoB
-                                        if (j == 0)
+                                        //Por cada vertice de la sección
+                                        for (int j = 0; j < listPoints.Count; j++)
                                         {
-                                            if (layerSeccion != M.Constant.LayerAPAlta)
-                                            {
-                                                if (ValidatePoint(ptA, ConsecutivePoint, out numPointA))
-                                                    ConsecutivePoint++;
-                                                else
-                                                    //Valido si realmente el punto de Inicio ya estaba insertado                                            
-                                                    startPoint = numPointA;
+                                            //Inicializo variables de cada VERTICE------------
+                                            //Colindancia
+                                            string strColindancia = "",
+                                                    strRumbo = "";
 
-                                                if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
-                                                    ConsecutivePoint++;
-                                            }
+                                            Point3d ptA = new Point3d(),//Punto Actual 
+                                                    ptB = new Point3d(),//Punto siguiente
+                                                    ptMedio = new Point3d();//Punto Medio
+
+                                            List<string> layersColindancia = new List<string>();
+
+                                            //Inicializo distancia
+                                            double distance = new double();
+
+                                            bool    isArc = new bool(),
+                                                    isCornerA = new bool(),
+                                                    isCornerB = new bool(); ;
+                                            //--------------------------------------------
+
+                                            ////Punto A
+                                            ptA = listPoints[j];
+
+                                            //Asigno Punto B
+                                            //Si no es el último punto le asigno 1 más, en dado caso que si, asigno Index 0.
+                                            if (j + 1 < listPoints.Count)
+                                                ptB = listPoints[j + 1];
                                             else
-                                            {
-                                                numPointA = ConsecutivePoint;
+                                                ptB = listPoints[0];
 
-                                                ConsecutivePoint++;
+                                            #region Calculo Distancia y Punto Medio
 
-                                                numPointB = ConsecutivePoint;
+                                            //Dependiendo del tipo de segmento
+                                            M.SegmentInfo data = FindSegmentData(listSegments, ptA, ptB);
 
-                                                ConsecutivePoint++;
+                                            //Obtengo distancia total del arco
+                                            distance = data.Distance.Trunc(M.Colindante.Decimals);
 
-                                                M.Colindante.ListadoErrores.Add(new M.DescribeError()
-                                                {
-                                                    Error = "Puntos Planta Alta",
-                                                    Description = string.Format("Se agregaron los puntos A:{0} y B:{1} al Edificio {2}, Apartamento {3}",
-                                                       numPointA, numPointB, numEdificio, TextAp),
-                                                    longObject = idSeccion.Handle.Value,
-                                                    timeError = DateTime.Now.ToString(),
-                                                    tipoError = M.TipoError.Info,
-                                                    Metodo = "CreatePointsMacroSet"
-                                                });
-                                            }
-                                        }
-                                        else//Si no es el primer punto sólo asignó el Punto A como el último B, calculo el Punto B
-                                        {
-                                            numPointA = numPointB;
+                                            //Obtengo el punto medio
+                                            ptMedio = data.MiddlePoint;
 
-                                            if (j + 1 < listPoints.Count)//Si no es el último Punto lo valido
+                                            isArc = data.isArc;
+                                            #endregion
+
+                                            //Encuentro colindancia de acuerdo al punto medio
+                                            //Si no es planta alta se busca la adyacencia
+                                            if (layerSeccion != M.Constant.LayerAPAlta)
+                                                strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, idSeccion, plApartmento.Id, plEdificio.Id);
+                                            else
+                                                strColindancia = "Vacío";
+
+                                            //Encuentro Rumbo si no estaba en la colindancia
+                                            if (strRumbo == "")
+                                                strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()), idSeccion);
+
+                                            #region Creo DB Points y DB Text
+
+                                            //Si es el primer punto debo de analizar PuntoA y PuntoB
+                                            if (j == 0)
                                             {
                                                 if (layerSeccion != M.Constant.LayerAPAlta)
                                                 {
+                                                    if (ValidatePoint(ptA, ConsecutivePoint, out numPointA))
+                                                        ConsecutivePoint++;
+                                                    else
+                                                        //Valido si realmente el punto de Inicio ya estaba insertado                                            
+                                                        startPoint = numPointA;
+
                                                     if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
                                                         ConsecutivePoint++;
                                                 }
                                                 else
                                                 {
-                                                    numPointB = ConsecutivePoint;
+                                                    numPointA = ConsecutivePoint;
+
                                                     ConsecutivePoint++;
 
-                                                    M.Colindante.ListadoErrores.Add(new M.DescribeError()
-                                                    {
-                                                        Error = "Puntos Planta Alta",
-                                                        Description = string.Format("Se agregaron los puntos A:{0} y B:{1} al Edificio {2}, Apartamento {3}",
-                                                        numPointA, numPointB, numEdificio, TextAp),
-                                                        longObject = idSeccion.Handle.Value,
-                                                        timeError = DateTime.Now.ToString(),
-                                                        tipoError = M.TipoError.Info,
-                                                        Metodo = "CreatePointsMacroSet"
-                                                    });
+                                                    numPointB = ConsecutivePoint;
+
+                                                    ConsecutivePoint++;                                                    
                                                 }
                                             }
-                                            else//En dado caso que si es el último punto cierro la polilínea con el punto Inicial
-                                                numPointB = startPoint;
+                                            else//Si no es el primer punto sólo asignó el Punto A como el último B, calculo el Punto B
+                                            {
+                                                numPointA = numPointB;
+
+                                                if (j + 1 < listPoints.Count)//Si no es el último Punto lo valido
+                                                {
+                                                    if (layerSeccion != M.Constant.LayerAPAlta)
+                                                    {
+                                                        if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
+                                                            ConsecutivePoint++;
+                                                    }
+                                                    else
+                                                    {
+                                                        numPointB = ConsecutivePoint;
+                                                        ConsecutivePoint++;
+                                                    }
+                                                }
+                                                else//En dado caso que si es el último punto cierro la polilínea con el punto Inicial
+                                                    numPointB = startPoint;
+                                            }
+                                            #endregion
+
+                                            if (numPointA == -1)
+                                                isCornerA = true;
+
+                                            if (numPointB == -1)
+                                                isCornerB = true;
+
+                                            M.Colindante.MainData.Add(new M.ColindanciaData()
+                                            {
+                                                idVivienda = idEdificio.Handle.Value,
+                                                Seccion = Translate(layerSeccion),
+                                                LayerSeccion = layerSeccion,
+                                                Rumbo = strRumbo,
+                                                Edificio_Lote = numEdificio,
+                                                NoOficial = strNoOficial,
+                                                Apartamento = "Apartamento " + TextAp,
+                                                PuntoA = numPointA,
+                                                PuntoB = numPointB,
+                                                CoordenadaA = ptA,
+                                                CoordenadaB = ptB,
+                                                Colindancia = strColindancia,
+                                                LayersColindancia = layersColindancia,
+                                                Distancia = distance,
+                                                esArco = isArc,
+                                                esEsquinaA = isCornerA,
+                                                esEsquinaB = isCornerB
+                                            });
                                         }
-                                        #endregion
-
-                                        if (numPointA == -1)
-                                            isCornerA = true;
-
-                                        if (numPointB == -1)
-                                            isCornerB = true;
-
-                                        M.Colindante.MainData.Add(new M.DatosColindancia()
+                                    }
+                                    else
+                                    {
+                                        M.Colindante.ListadoErrores.Add(new M.Error()
                                         {
-                                            idVivienda = idEdificio.Handle.Value,
-                                            Seccion = Translate(layerSeccion),
-                                            LayerSeccion = layerSeccion,
-                                            Rumbo = strRumbo,
-                                            numVivienda = numEdificio,
-                                            NoOficial = strNoOficial,
-                                            Apartamento = "Apartamento " + TextAp,
-                                            PuntoA = numPointA,
-                                            PuntoB = numPointB,
-                                            CoordenadaA = ptA,
-                                            CoordenadaB = ptB,
-                                            Colindancia = strColindancia,
-                                            LayersColindancia = layersColindancia,
-                                            Distancia = distance,
-                                            esArco = isArc,
-                                            esEsquinaA = isCornerA,
-                                            esEsquinaB = isCornerB
+                                            error = "Segmentos de Sección",
+                                            description = "Error al detectar los segmentos de " + Translate(layerSeccion),
+                                            timeError = DateTime.Now.ToString(),
+                                            longObject = idSeccion.Handle.Value,
+                                            metodo = "Met_Colindante - CreatePointsMacroset",
+                                            tipoError = M.TipoError.Error
+                                        });
+
+                                        isCorrect = false;
+                                    }
+
+                                }
+                                else if(idsSecciones.Count > 1){
+
+                                    foreach (ObjectId idSecc in idsSecciones)
+                                    {
+                                        M.Colindante.ListadoErrores.Add(new M.Error()
+                                        {
+                                            error = "Secciones en Ap. " + TextAp,
+                                            description = string.Format("Se detecto más de una sección {0} en el apartamento {1}" 
+                                            ,layerSeccion,TextAp),
+                                            timeError = DateTime.Now.ToString(),
+                                            longObject = idSecc.Handle.Value,
+                                            metodo = "Met_Colindante - CreatePointsMacroset",
+                                            tipoError = M.TipoError.Error
                                         });
                                     }
 
-                                }//Si es una sección valida
+                                    isCorrect = false;
+                                    break;
+                                }
+                                else
+                                {
+                                    M.Colindante.ListadoErrores.Add(new M.Error()
+                                    {
+                                        error = "Secciones en Ap. " + TextAp,
+                                        description = "No se detectó sección " + Translate(layerSeccion),
+                                        timeError = DateTime.Now.ToString(),
+                                        longObject = plApartmento.Id.Handle.Value,
+                                        metodo = "Met_Colindante - CreatePointsMacroset",
+                                        tipoError = M.TipoError.Info
+                                    });
+                                }
+
+                                if (!isCorrect)
+                                    break;
                             }//Por cada  layer sección FIN
                             #endregion
                         }
 
-                        if (ConsecutivePoint > M.Colindante.LastPoint)
-                            M.Colindante.LastPoint = ConsecutivePoint;
+                        if (isCorrect)
+                        {
+                            if (ConsecutivePoint > M.Colindante.LastPoint)
+                                M.Colindante.LastPoint = ConsecutivePoint;
+                        }
+                    }
+                    else
+                    {
+                        M.Colindante.ListadoErrores.Add(new M.Error()
+                        {
+                            error = "Apartamentos en Edificio",
+                            description = "Hubo un error al ordenar los apartamentos dentro del Edificio",
+                            timeError = DateTime.Now.ToString(),
+                            longObject = idEdificio.Handle.Value,
+                            metodo = "Met_Colindante - CreatePointsMacroset",
+                            tipoError = M.TipoError.Error
+                        });
 
-                        flag = true;
+                        isCorrect = false;
                     }
                 }
                 catch (Exception exc)
@@ -806,32 +979,36 @@ namespace RegimenCondominio.C
                     //Se deshace lo que sale mal en la transacción
                     //El abort lo destruye
                     exc.Message.ToEditor();
+                    isCorrect = false;
                 }              
             }
             else
             {
-                M.Colindante.ListadoErrores.Add(new M.DescribeError()
+                M.Colindante.ListadoErrores.Add(new M.Error()
                 {
-                    Error = "Número Incorrecto de Apartamentos",
-                    Description = string.Format("Los Apartamentos detectados son {0} y deben de ser {1}"
+                    error = "Cantidad de Apartamentos",
+                    description = string.Format("El edificio tiene {0} apartamentos y deben de ser {1}"
                                                 , idsApartaments.Count, M.Inicio.ApartamentosXVivienda),
                     timeError = DateTime.Now.ToString(),
                     longObject = idEdificio.Handle.Value,
-                    Metodo = "CreatePoints",
+                    metodo = "Met_Colindante - CreatePointsMacroset",
                     tipoError = M.TipoError.Error
                 });
+
+                isCorrect = false;
             }
-            return flag;
+
+            return isCorrect;
         }
 
         internal static bool GenerateAllSets(bool EsMacrolote)
         {
 
-            List<M.DatosColindancia> lRepeatedData,
+            List<M.ColindanciaData> lRepeatedData,
                                      lToCalculate;
             //lNew = new List<M.DatosColindancia>();
 
-
+            bool isCorrect = true;
             try
             {
                 SeparateData(out lRepeatedData, out lToCalculate);
@@ -840,9 +1017,10 @@ namespace RegimenCondominio.C
                 if (EsMacrolote)
                 {
 
-                    M.InEdificios edificioRegular = M.Colindante.Edificios.Where(x => x._long == M.Colindante.IdTipo.Handle.Value).FirstOrDefault();
+                    M.InEdificios edificioRegular = M.Colindante.Edificios
+                        .Where(x => x._long == M.Colindante.IdTipo.Handle.Value).FirstOrDefault();
 
-                    List<M.Apartments> lApsEdificioRegular = lApsEdificioRegular = GetApartments(edificioRegular);
+                    List<M.Apartments> lApsEdificioRegular = GetApartments(edificioRegular);
 
                     string[,] translatorAps = new string[lApsEdificioRegular.Count, 2];
 
@@ -873,7 +1051,7 @@ namespace RegimenCondominio.C
 
                             List<string> rumbosCalculados = new List<string>();
 
-                            List<M.DatosColindancia> lSegmentData = new List<M.DatosColindancia>();
+                            List<M.ColindanciaData> lSegmentData = new List<M.ColindanciaData>();
 
                             List<M.Apartments> lApsEdificioActual = new List<M.Apartments>();
 
@@ -899,181 +1077,213 @@ namespace RegimenCondominio.C
                             //Lo convierto en ID
                             idEdificio = new Handle(mEdificio._long).toObjectId();
 
-                            //Obtengo Polilínea
-                            plEdificio = idEdificio.OpenEntity() as Polyline;
-
-                            //Obtengo los puntos mediante las manecillas del reloj
-                            listPoints = plEdificio.ClockwisePoints();
-
-                            //Obtengo todos los arcos y sus puntos medios
-                            listSegments = GetInfoSegments(plEdificio);
-
-
-                            #region Segmentos Repetidos por Edificio Regular
-                            foreach (M.DatosColindancia mColindancia in lRepeatedData)
+                            if (idEdificio.IsValid)
                             {
-                                string ApartmentTranslated = (translatorAps.FindInDimensions(mColindancia.Apartamento.GetAfterSpace(), 0, 1) ?? "").ToString();
+                                //Obtengo Polilínea
+                                plEdificio = idEdificio.OpenEntity() as Polyline;
 
-                                M.Colindante.MainData.Add(new M.DatosColindancia()
+                                //Obtengo los puntos mediante las manecillas del reloj
+                                listPoints = plEdificio.ClockwisePoints();
+
+                                //Obtengo todos los arcos y sus puntos medios
+                                listSegments = GetInfoSegments(plEdificio);
+
+                                if (listSegments.Count > 0)
                                 {
-                                    numVivienda = numEdificio,
-                                    idVivienda = mEdificio._long,
-                                    Apartamento = ApartmentTranslated,
-                                    Colindancia = mColindancia.Colindancia,
-                                    CoordenadaA = mColindancia.CoordenadaA,
-                                    CoordenadaB = mColindancia.CoordenadaB,
-                                    Distancia = mColindancia.Distancia,
-                                    esArco = mColindancia.esArco,
-                                    LayersColindancia = mColindancia.LayersColindancia,
-                                    LayerSeccion = mColindancia.LayerSeccion,
-                                    NoOficial = mColindancia.NoOficial,
-                                    PuntoA = mColindancia.PuntoA,
-                                    PuntoB = mColindancia.PuntoB,
-                                    Rumbo = mColindancia.Rumbo,
-                                    Seccion = mColindancia.Seccion
-                                });
-                            }
-                            #endregion
+                                    #region Segmentos Repetidos por Edificio Regular
+                                    foreach (M.ColindanciaData mColindancia in lRepeatedData)
+                                    {
+                                        string ApartmentTranslated = (translatorAps.FindInDimensions(mColindancia.Apartamento.GetAfterSpace(), 0, 1) ?? "").ToString();
 
-                            //Debo de guardar numPointA, numPointB, Rumbo y Colindancia
-                            for (int j = 0; j < listPoints.Count; j++)
-                            {
-                                //Inicializo variables
-                                Point3d ptA = new Point3d(),
-                                        ptB = new Point3d(),
-                                        ptMedio = new Point3d();//Punto Medio
+                                        M.Colindante.MainData.Add(new M.ColindanciaData()
+                                        {
+                                            Edificio_Lote = numEdificio,
+                                            idVivienda = mEdificio._long,
+                                            Apartamento = "Apartamento  " + ApartmentTranslated,
+                                            Colindancia = mColindancia.Colindancia,
+                                            CoordenadaA = mColindancia.CoordenadaA,
+                                            CoordenadaB = mColindancia.CoordenadaB,
+                                            Distancia = mColindancia.Distancia,
+                                            esArco = mColindancia.esArco,
+                                            LayersColindancia = mColindancia.LayersColindancia,
+                                            LayerSeccion = mColindancia.LayerSeccion,
+                                            NoOficial = mColindancia.NoOficial,
+                                            PuntoA = mColindancia.PuntoA,
+                                            PuntoB = mColindancia.PuntoB,
+                                            Rumbo = mColindancia.Rumbo,
+                                            Seccion = mColindancia.Seccion
+                                        });
+                                    }
+                                    #endregion
 
-                                string strColindancia = "",
-                                        strRumbo = "";
+                                    //Debo de guardar numPointA, numPointB, Rumbo y Colindancia
+                                    for (int j = 0; j < listPoints.Count; j++)
+                                    {
+                                        //Inicializo variables
+                                        Point3d ptA = new Point3d(),
+                                                ptB = new Point3d(),
+                                                ptMedio = new Point3d();//Punto Medio
 
-                                List<string> layersColindancia = new List<string>();
-                                //-----------------------------------
+                                        string strColindancia = "",
+                                                strRumbo = "";
 
-                                ////Punto A
-                                ptA = listPoints[j];
+                                        List<string> layersColindancia = new List<string>();
+                                        //-----------------------------------
 
-                                //Asigno Punto B
-                                //Si no es el último punto le asigno 1 más, en dado caso que si, asigno Index 0.
-                                if (j + 1 < listPoints.Count)
-                                    ptB = listPoints[j + 1];
+                                        ////Punto A
+                                        ptA = listPoints[j];
+
+                                        //Asigno Punto B
+                                        //Si no es el último punto le asigno 1 más, en dado caso que si, asigno Index 0.
+                                        if (j + 1 < listPoints.Count)
+                                            ptB = listPoints[j + 1];
+                                        else
+                                            ptB = listPoints[0];
+
+                                        //Dependiendo del tipo de segmento
+                                        M.SegmentInfo data = FindSegmentData(listSegments, ptA, ptB);
+
+                                        //Obtengo el punto medio
+                                        ptMedio = data.MiddlePoint;
+
+                                        //Encuentro colindancia de acuerdo al punto medio                            
+                                        strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, idEdificio);
+
+                                        //Encuentro Rumbo si no estaba en la colindancia
+                                        if (strRumbo == "")
+                                            strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()), idEdificio);
+
+                                        #region Creo DB Points y DB Text
+
+                                        //Si es el primer punto debo de analizar PuntoA y PuntoB
+                                        if (j == 0)
+                                        {
+                                            if (ValidatePoint(ptA, ConsecutivePoint, out numPointA))
+                                                ConsecutivePoint++;
+                                            else
+                                                //Valido si realmente el punto de Inicio ya estaba insertado                                            
+                                                startPoint = numPointA;
+
+                                            if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
+                                                ConsecutivePoint++;
+                                        }
+                                        else//Si no es el primer punto sólo asignó el Punto A como el último B, calculo el Punto B
+                                        {
+                                            numPointA = numPointB;
+
+                                            if (j + 1 < listPoints.Count)//Si no es el último Punto lo valido
+                                            {
+                                                if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
+                                                    ConsecutivePoint++;
+                                            }
+                                            else//En dado caso que si es el último punto cierro la polilínea con el punto Inicial
+                                                numPointB = startPoint;
+                                        }
+                                        #endregion
+
+                                        if (strRumbo != "" && !rumbosCalculados.Contains(strRumbo))
+                                        {
+                                            rumbosCalculados.Add(strRumbo);
+                                            lSegmentData.Add(new M.ColindanciaData()
+                                            {
+                                                PuntoA = numPointA,
+                                                CoordenadaA = ptA,
+                                                PuntoB = numPointB,
+                                                CoordenadaB = ptB,
+                                                Rumbo = strRumbo,
+                                                Colindancia = strColindancia
+                                            });
+                                        }
+                                    }
+
+                                    foreach (M.ColindanciaData itemToCalculate in lToCalculate)
+                                    {
+                                        string RumboActual = itemToCalculate.Rumbo,
+                                                ApartmentTranslated = (translatorAps.FindInDimensions(itemToCalculate.Apartamento.GetAfterSpace(), 0, 1) ?? "").ToString();
+
+                                        M.ColindanciaData currentItem = new M.ColindanciaData();
+
+                                        for (int k = 0; k < lSegmentData.Count; k++)
+                                        {
+                                            M.ColindanciaData itemSegment = lSegmentData[k];
+
+                                            if (itemSegment.Rumbo == itemToCalculate.Rumbo)
+                                            {
+                                                currentItem = itemSegment;
+                                                break;
+                                            }
+                                        }
+
+                                        if (currentItem != null && currentItem != new M.ColindanciaData())
+                                        {
+
+                                            if (itemToCalculate.esEsquinaA)
+                                            {
+                                                itemToCalculate.CoordenadaA = currentItem.CoordenadaA;
+                                                itemToCalculate.PuntoA = currentItem.PuntoA;
+                                            }
+
+                                            if (itemToCalculate.esEsquinaB)
+                                            {
+                                                itemToCalculate.CoordenadaB = currentItem.CoordenadaB;
+                                                itemToCalculate.PuntoB = currentItem.PuntoB;
+                                            }
+
+                                            M.Colindante.MainData.Add(new M.ColindanciaData()
+                                            {
+                                                //Globales
+                                                Edificio_Lote = mEdificio.numEdificio,
+                                                idVivienda = mEdificio._long,
+                                                //Repetibles
+                                                NoOficial = itemToCalculate.NoOficial,
+                                                esEsquinaA = itemToCalculate.esEsquinaA,
+                                                esEsquinaB = itemToCalculate.esEsquinaB,
+                                                Seccion = itemToCalculate.Seccion,
+                                                LayerSeccion = itemToCalculate.LayerSeccion,
+                                                Distancia = itemToCalculate.Distancia,
+                                                LayersColindancia = itemToCalculate.LayersColindancia,
+                                                esArco = itemToCalculate.esArco,
+                                                //Calculados
+                                                PuntoA = itemToCalculate.PuntoA,
+                                                PuntoB = itemToCalculate.PuntoB,
+                                                Apartamento = "Apartamento  " + ApartmentTranslated,
+                                                CoordenadaA = itemToCalculate.CoordenadaA,
+                                                CoordenadaB = itemToCalculate.CoordenadaB,
+                                                Colindancia = currentItem.Colindancia,
+                                                Rumbo = currentItem.Rumbo
+                                            });
+                                        }
+                                    }
+                                }
                                 else
-                                    ptB = listPoints[0];
-
-                                //Dependiendo del tipo de segmento
-                                M.SegmentInfo data = FindMidData(listSegments, ptA, ptB);
-
-                                //Obtengo el punto medio
-                                ptMedio = data.MiddlePoint;
-
-                                //Encuentro colindancia de acuerdo al punto medio                            
-                                strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, idEdificio);
-
-                                //Encuentro Rumbo si no estaba en la colindancia
-                                if (strRumbo == "")
-                                    strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()));
-
-                                #region Creo DB Points y DB Text
-
-                                //Si es el primer punto debo de analizar PuntoA y PuntoB
-                                if (j == 0)
                                 {
-                                    if (ValidatePoint(ptA, ConsecutivePoint, out numPointA))
-                                        ConsecutivePoint++;
-                                    else
-                                        //Valido si realmente el punto de Inicio ya estaba insertado                                            
-                                        startPoint = numPointA;
-
-                                    if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
-                                        ConsecutivePoint++;
-                                }
-                                else//Si no es el primer punto sólo asignó el Punto A como el último B, calculo el Punto B
-                                {
-                                    numPointA = numPointB;
-
-                                    if (j + 1 < listPoints.Count)//Si no es el último Punto lo valido
+                                    M.Colindante.ListadoErrores.Add(new M.Error()
                                     {
-                                        if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
-                                            ConsecutivePoint++;
-                                    }
-                                    else//En dado caso que si es el último punto cierro la polilínea con el punto Inicial
-                                        numPointB = startPoint;
-                                }
-                                #endregion
-
-                                if (strRumbo != "" && !rumbosCalculados.Contains(strRumbo))
-                                {
-                                    rumbosCalculados.Add(strRumbo);
-                                    lSegmentData.Add(new M.DatosColindancia()
-                                    {
-                                        PuntoA = numPointA,
-                                        CoordenadaA = ptA,
-                                        PuntoB = numPointB,
-                                        CoordenadaB = ptB,
-                                        Rumbo = strRumbo,
-                                        Colindancia = strColindancia
+                                        error = "Segmentos de Sección",
+                                        description = "Error al detectar los segmentos del Edificio",
+                                        longObject = idEdificio.Handle.Value,
+                                        metodo = "Met_Colindante - GenerateAllSets",
+                                        timeError = DateTime.Now.ToString(),
+                                        tipoError = M.TipoError.Error
                                     });
+
+                                    return false;
                                 }
+
                             }
-
-                            foreach (M.DatosColindancia itemToCalculate in lToCalculate)
+                            else
                             {
-                                string RumboActual = itemToCalculate.Rumbo,
-                                        ApartmentTranslated = (translatorAps.FindInDimensions(itemToCalculate.Apartamento.GetAfterSpace(), 0, 1) ?? "").ToString();
-
-
-
-                                M.DatosColindancia currentItem = new M.DatosColindancia();
-
-                                for (int k = 0; k < lSegmentData.Count; k++)
+                                M.Colindante.ListadoErrores.Add(new M.Error()
                                 {
-                                    M.DatosColindancia itemSegment = lSegmentData[k];
+                                    error = "Id Inválida",
+                                    description = "El id del Edificio no esta disponible o fue eliminado",
+                                    longObject = M.Colindante.IdMacrolote.Handle.Value,
+                                    metodo = "Met_Colindante - GenerateAllSets",
+                                    timeError = DateTime.Now.ToString(),
+                                    tipoError = M.TipoError.Error
+                                });
 
-                                    if (itemSegment.Rumbo == itemToCalculate.Rumbo)
-                                    {
-                                        currentItem = itemSegment;
-                                        break;
-                                    }
-                                }
-
-                                if (currentItem != null && currentItem != new M.DatosColindancia())
-                                {
-
-                                    if (itemToCalculate.esEsquinaA)
-                                    {
-                                        itemToCalculate.CoordenadaA = currentItem.CoordenadaA;
-                                        itemToCalculate.PuntoA = currentItem.PuntoA;
-                                    }
-
-                                    if (itemToCalculate.esEsquinaB)
-                                    {
-                                        itemToCalculate.CoordenadaB = currentItem.CoordenadaB;
-                                        itemToCalculate.PuntoB = currentItem.PuntoB;
-                                    }
-
-                                    M.Colindante.MainData.Add(new M.DatosColindancia()
-                                    {
-                                        //Globales
-                                        numVivienda = mEdificio.numEdificio,
-                                        idVivienda = mEdificio._long,
-                                        //Repetibles
-                                        NoOficial = itemToCalculate.NoOficial,
-                                        esEsquinaA = itemToCalculate.esEsquinaA,
-                                        esEsquinaB = itemToCalculate.esEsquinaB,
-                                        Seccion = itemToCalculate.Seccion,
-                                        LayerSeccion = itemToCalculate.LayerSeccion,
-                                        Distancia = itemToCalculate.Distancia,
-                                        LayersColindancia = itemToCalculate.LayersColindancia,
-                                        esArco = itemToCalculate.esArco,
-                                        //Calculados
-                                        PuntoA = itemToCalculate.PuntoA,
-                                        PuntoB = itemToCalculate.PuntoB,
-                                        Apartamento = ApartmentTranslated,
-                                        CoordenadaA = itemToCalculate.CoordenadaA,
-                                        CoordenadaB = itemToCalculate.CoordenadaB,
-                                        Colindancia = currentItem.Colindancia,
-                                        Rumbo = currentItem.Rumbo
-                                    });
-                                }
+                                return false;
                             }
                         }
                     }
@@ -1084,7 +1294,7 @@ namespace RegimenCondominio.C
                 {
                     for (int i = 0; i < M.Colindante.Lotes.Count; i++)
                     {
-                        M.InLotes mLote = M.Colindante.Lotes[i];
+                        M.Lote mLote = M.Colindante.Lotes[i];
 
                         //Si no es el Lote Tipo y No es de los Lotes Irregulares
                         if (mLote._long != M.Colindante.IdTipo.Handle.Value &&
@@ -1102,136 +1312,172 @@ namespace RegimenCondominio.C
 
                             List<string> rumbosCalculados = new List<string>();
 
-                            List<M.DatosColindancia> lSegmentData = new List<M.DatosColindancia>();
+                            List<M.ColindanciaData> lSegmentData = new List<M.ColindanciaData>();
                             //-------------------------------------------------------
 
                             //Lo convierto en ID
                             idLote = new Handle(mLote._long).toObjectId();
 
-                            //Obtengo Polilínea
-                            plLote = idLote.OpenEntity() as Polyline;
-
-                            //Obtengo los puntos mediante las manecillas del reloj
-                            listPoints = plLote.ClockwisePoints();
-
-                            //Obtengo todos los arcos y sus puntos medios
-                            listSegments = GetInfoSegments(plLote);
-
-                            #region Segmentos Repetidos por Lote Regular
-                            foreach (M.DatosColindancia mColindancia in lRepeatedData)
+                            if (idLote.IsValid)
                             {
-                                M.Colindante.MainData.Add(new M.DatosColindancia()
+                                //Obtengo Polilínea
+                                plLote = idLote.OpenEntity() as Polyline;
+
+                                //Obtengo los puntos mediante las manecillas del reloj
+                                listPoints = plLote.ClockwisePoints();
+
+                                //Obtengo todos los arcos y sus puntos medios
+                                listSegments = GetInfoSegments(plLote);
+
+                                if (listSegments.Count > 0)
                                 {
-                                    numVivienda = mLote.numLote,
-                                    idVivienda = mLote._long,
-                                    NoOficial = mLote.numOficial,
-                                    Apartamento = mColindancia.Apartamento,
-                                    Colindancia = mColindancia.Colindancia,
-                                    CoordenadaA = mColindancia.CoordenadaA,
-                                    CoordenadaB = mColindancia.CoordenadaB,
-                                    Distancia = mColindancia.Distancia,
-                                    esArco = mColindancia.esArco,
-                                    LayersColindancia = mColindancia.LayersColindancia,
-                                    LayerSeccion = mColindancia.LayerSeccion,
-                                    PuntoA = mColindancia.PuntoA,
-                                    PuntoB = mColindancia.PuntoB,
-                                    Rumbo = mColindancia.Rumbo,
-                                    Seccion = mColindancia.Seccion
-                                });
-                            }
-                            #endregion
-
-                            for (int j = 0; j < listPoints.Count; j++)
-                            {
-                                //Inicializo variables
-                                Point3d ptA = new Point3d(),
-                                        ptB = new Point3d(),
-                                        ptMedio = new Point3d();//Punto Medio
-
-                                string strColindancia = "",
-                                        strRumbo = "";
-
-                                List<string> layersColindancia = new List<string>();
-                                //-----------------------------------
-
-                                ////Punto A
-                                ptA = listPoints[j];
-
-                                //Asigno Punto B
-                                //Si no es el último punto le asigno 1 más, en dado caso que si, asigno Index 0.
-                                if (j + 1 < listPoints.Count)
-                                    ptB = listPoints[j + 1];
-                                else
-                                    ptB = listPoints[0];
-
-                                //Dependiendo del tipo de segmento
-                                M.SegmentInfo data = FindMidData(listSegments, ptA, ptB);
-
-                                //Obtengo el punto medio
-                                ptMedio = data.MiddlePoint;
-
-                                //Encuentro colindancia de acuerdo al punto medio                            
-                                strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, idLote);
-
-                                //Encuentro Rumbo si no estaba en la colindancia
-                                if (strRumbo == "")
-                                    strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()));
-
-                                if (strRumbo != "" && !rumbosCalculados.Contains(strRumbo))
-                                {
-                                    rumbosCalculados.Add(strRumbo);
-
-                                    lSegmentData.Add(new M.DatosColindancia()
+                                    #region Segmentos Repetidos por Lote Regular
+                                    foreach (M.ColindanciaData mColindancia in lRepeatedData)
                                     {
-                                        CoordenadaA = ptA,
-                                        CoordenadaB = ptB,
-                                        Rumbo = strRumbo,
-                                        Colindancia = strColindancia
-                                    });
-                                }
-                            }
-
-                            foreach (M.DatosColindancia itemToCalculate in lToCalculate)
-                            {
-                                M.DatosColindancia newData = new M.DatosColindancia();
-
-                                for (int k = 0; k < lSegmentData.Count; k++)
-                                {
-                                    M.DatosColindancia itemSegment = lSegmentData[k];
-
-                                    if (itemSegment.Rumbo == itemToCalculate.Rumbo)
-                                    {
-                                        newData = itemSegment;
-                                        break;
+                                        M.Colindante.MainData.Add(new M.ColindanciaData()
+                                        {
+                                            Edificio_Lote = mLote.numLote,
+                                            idVivienda = mLote._long,
+                                            NoOficial = mLote.numOficial,
+                                            Apartamento = "Apartamento  " + mColindancia.Apartamento,
+                                            Colindancia = mColindancia.Colindancia,
+                                            CoordenadaA = mColindancia.CoordenadaA,
+                                            CoordenadaB = mColindancia.CoordenadaB,
+                                            Distancia = mColindancia.Distancia,
+                                            esArco = mColindancia.esArco,
+                                            LayersColindancia = mColindancia.LayersColindancia,
+                                            LayerSeccion = mColindancia.LayerSeccion,
+                                            PuntoA = mColindancia.PuntoA,
+                                            PuntoB = mColindancia.PuntoB,
+                                            Rumbo = mColindancia.Rumbo,
+                                            Seccion = mColindancia.Seccion
+                                        });
                                     }
-                                }
+                                    #endregion
 
-                                if (newData != null && newData != new M.DatosColindancia())
-                                {
-                                    M.Colindante.MainData.Add(new M.DatosColindancia()
+                                    #region Segmentos a Calcular
+                                    for (int j = 0; j < listPoints.Count; j++)
                                     {
-                                        //Globales
-                                        numVivienda = mLote.numLote,
-                                        idVivienda = mLote._long,
-                                        NoOficial = mLote.numOficial,
-                                        //Repetibles
-                                        esEsquinaA = itemToCalculate.esEsquinaA,
-                                        esEsquinaB = itemToCalculate.esEsquinaB,
-                                        Seccion = itemToCalculate.Seccion,
-                                        LayerSeccion = itemToCalculate.LayerSeccion,
-                                        Distancia = itemToCalculate.Distancia,
-                                        LayersColindancia = itemToCalculate.LayersColindancia,
-                                        esArco = itemToCalculate.esArco,
-                                        PuntoA = itemToCalculate.PuntoA,
-                                        PuntoB = itemToCalculate.PuntoB,
-                                        Apartamento = itemToCalculate.Apartamento,
-                                        CoordenadaA = itemToCalculate.CoordenadaA,
-                                        CoordenadaB = itemToCalculate.CoordenadaB,
-                                        //Calculados
-                                        Colindancia = newData.Colindancia,
-                                        Rumbo = newData.Rumbo
-                                    });
+                                        //Inicializo variables
+                                        Point3d ptA = new Point3d(),
+                                                ptB = new Point3d(),
+                                                ptMedio = new Point3d();//Punto Medio
+
+                                        string strColindancia = "",
+                                                strRumbo = "";
+
+                                        List<string> layersColindancia = new List<string>();
+                                        //-----------------------------------
+
+                                        ////Punto A
+                                        ptA = listPoints[j];
+
+                                        //Asigno Punto B
+                                        //Si no es el último punto le asigno 1 más, en dado caso que si, asigno Index 0.
+                                        if (j + 1 < listPoints.Count)
+                                            ptB = listPoints[j + 1];
+                                        else
+                                            ptB = listPoints[0];
+
+                                        //Dependiendo del tipo de segmento
+                                        M.SegmentInfo data = FindSegmentData(listSegments, ptA, ptB);
+
+                                        //Obtengo el punto medio
+                                        ptMedio = data.MiddlePoint;
+
+                                        //Encuentro colindancia de acuerdo al punto medio                            
+                                        strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, idLote);
+
+                                        //Encuentro Rumbo si no estaba en la colindancia
+                                        if (strRumbo == "")
+                                            strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()), idLote);
+
+                                        if (strRumbo != "" && !rumbosCalculados.Contains(strRumbo))
+                                        {
+                                            rumbosCalculados.Add(strRumbo);
+
+                                            lSegmentData.Add(new M.ColindanciaData()
+                                            {
+                                                CoordenadaA = ptA,
+                                                CoordenadaB = ptB,
+                                                Rumbo = strRumbo,
+                                                Colindancia = strColindancia
+                                            });
+                                        }
+                                    }
+
+                                    foreach (M.ColindanciaData itemToCalculate in lToCalculate)
+                                    {
+                                        M.ColindanciaData newData = new M.ColindanciaData();
+
+                                        for (int k = 0; k < lSegmentData.Count; k++)
+                                        {
+                                            M.ColindanciaData itemSegment = lSegmentData[k];
+
+                                            if (itemSegment.Rumbo == itemToCalculate.Rumbo)
+                                            {
+                                                newData = itemSegment;
+                                                break;
+                                            }
+                                        }
+
+                                        if (newData != null && newData != new M.ColindanciaData())
+                                        {
+                                            M.Colindante.MainData.Add(new M.ColindanciaData()
+                                            {
+                                                //Globales
+                                                Edificio_Lote = mLote.numLote,
+                                                idVivienda = mLote._long,
+                                                NoOficial = mLote.numOficial,
+                                                //Repetibles
+                                                esEsquinaA = itemToCalculate.esEsquinaA,
+                                                esEsquinaB = itemToCalculate.esEsquinaB,
+                                                Seccion = itemToCalculate.Seccion,
+                                                LayerSeccion = itemToCalculate.LayerSeccion,
+                                                Distancia = itemToCalculate.Distancia,
+                                                LayersColindancia = itemToCalculate.LayersColindancia,
+                                                esArco = itemToCalculate.esArco,
+                                                PuntoA = itemToCalculate.PuntoA,
+                                                PuntoB = itemToCalculate.PuntoB,
+                                                Apartamento = "Apartamento  " + itemToCalculate.Apartamento,
+                                                CoordenadaA = itemToCalculate.CoordenadaA,
+                                                CoordenadaB = itemToCalculate.CoordenadaB,
+                                                //Calculados
+                                                Colindancia = newData.Colindancia,
+                                                Rumbo = newData.Rumbo
+                                            });
+                                        }
+                                    }
+                                    #endregion
                                 }
+                                else
+                                {
+                                    M.Colindante.ListadoErrores.Add(new M.Error()
+                                    {
+                                        error = "Segmentos de Sección",
+                                        description = "Error al detectar los segmentos del Lote",
+                                        longObject = idLote.Handle.Value,
+                                        metodo = "Met_Colindante - GenerateAllSets",
+                                        timeError = DateTime.Now.ToString(),
+                                        tipoError = M.TipoError.Error
+                                    });
+
+                                    return false;
+                                }
+                            }
+                            else
+                            {
+                                M.Colindante.ListadoErrores.Add(new M.Error()
+                                {
+                                    error = "Id Inválida",
+                                    description = "El id del Lote no esta disponible o fue eliminado",
+                                    longObject = 0,
+                                    metodo = "Met_Colindante - GenerateAllSets",
+                                    timeError = DateTime.Now.ToString(),
+                                    tipoError = M.TipoError.Error
+                                });
+
+                                return false;
                             }
                         }
                     }
@@ -1242,10 +1488,10 @@ namespace RegimenCondominio.C
             {
                 ex.Message.ToEditor();
                 "GenerateAllSets_Error".ToEditor();
-                return false;
+                isCorrect = false;
             }
 
-            return true;
+            return isCorrect;
         }
 
         private static List<M.Apartments> GetApartments(M.InEdificios edificio)
@@ -1277,14 +1523,14 @@ namespace RegimenCondominio.C
             return listApartments;
         }
 
-        private static void SeparateData(out List<M.DatosColindancia> lRepeatedData, out List<M.DatosColindancia> lDataCalculated)
+        private static void SeparateData(out List<M.ColindanciaData> lRepeatedData, out List<M.ColindanciaData> lDataCalculated)
         {
-            lRepeatedData = new List<M.DatosColindancia>();
-            lDataCalculated = new List<M.DatosColindancia>();
+            lRepeatedData = new List<M.ColindanciaData>();
+            lDataCalculated = new List<M.ColindanciaData>();
 
             for(int i = 0; i < M.Colindante.MainData.Count; i++)
             {
-                M.DatosColindancia itemDC = M.Colindante.MainData[i];
+                M.ColindanciaData itemDC = M.Colindante.MainData[i];
 
                 if (itemDC.idVivienda == M.Colindante.IdTipo.Handle.Value)
                 {
@@ -1325,104 +1571,140 @@ namespace RegimenCondominio.C
 
                     ObjectId idCommonArea = new Handle(lActual).toObjectId();
 
-                    Polyline pl = idCommonArea.OpenEntity() as Polyline;
-
-                    List<Point3d> listPoints = pl.ClockwisePoints();
-
-                    //Obtengo todos los arcos y sus puntos medios
-                    listSegments = GetInfoSegments(pl);
-
-                    //Por cada vértice de la polílinea
-                    for (int j = 0; j < listPoints.Count; j++)
+                    if (idCommonArea.IsValid)
                     {
-                        //Inicializo variables
-                        Point3d ptA = new Point3d(),
-                                ptB = new Point3d(),
-                                ptMedio = new Point3d();//Punto Medio
+                        Polyline pl = idCommonArea.OpenEntity() as Polyline;
 
-                        //Inicializo distancia
-                        double distance = new double();
+                        List<Point3d> listPoints = pl.ClockwisePoints();
 
-                        string strColindancia = "", strRumbo = "";
+                        //Obtengo todos los arcos y sus puntos medios
+                        listSegments = GetInfoSegments(pl);
 
-                        List<string> layersColindancia = new List<string>();
-                        //-----------------------------------
-
-                        ////Punto A
-                        ptA = listPoints[j];
-
-                        //Asigno Punto B
-                        //Si no es el último punto le asigno 1 más, en dado caso que si, asigno Index 0.
-                        if (j + 1 < listPoints.Count)
-                            ptB = listPoints[j + 1];
-                        else
-                            ptB = listPoints[0];
-
-                        //Dependiendo del tipo de segmento
-                        M.SegmentInfo data = FindMidData(listSegments, ptA, ptB);
-
-                        //Obtengo distancia total del arco
-                        distance = data.Distance.Trunc(M.Colindante.Decimals);
-
-                        //Obtengo el punto medio
-                        ptMedio = data.MiddlePoint;
-
-                        //Encuentro colindancia de acuerdo al punto medio
-                        //Si no es planta alta se busca la adyacencia
-                        strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, idCommonArea);
-
-                        //Encuentro Rumbo si no estaba en la colindancia
-                        if (strRumbo == "")
-                            strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()));
-
-                        #region Creo DB Points y DB Text
-
-                        //Si es el primer punto debo de analizar PuntoA y PuntoB
-                        if (j == 0)
+                        if (listSegments.Count > 0)
                         {
-                            if (ValidatePoint(ptA, ConsecutivePoint, out numPointA))
-                                ConsecutivePoint++;
-                            else
-                                //Valido si realmente el punto de Inicio ya estaba insertado                                            
-                                startPoint = numPointA;
 
-                            if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
-                                ConsecutivePoint++;
-                        }
-                        else//Si no es el primer punto sólo asignó el Punto A como el último B, calculo el Punto B
-                        {
-                            numPointA = numPointB;
-
-                            if (j + 1 < listPoints.Count)//Si no es el último Punto lo valido
+                            //Por cada vértice de la polílinea
+                            for (int j = 0; j < listPoints.Count; j++)
                             {
+                                //Inicializo variables
+                                Point3d ptA = new Point3d(),
+                                        ptB = new Point3d(),
+                                        ptMedio = new Point3d();//Punto Medio
 
-                                if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
-                                    ConsecutivePoint++;
+                                //Inicializo distancia
+                                double distance = new double();
+
+                                string strColindancia = "", strRumbo = "";
+
+                                List<string> layersColindancia = new List<string>();
+                                //-----------------------------------
+
+                                ////Punto A
+                                ptA = listPoints[j];
+
+                                //Asigno Punto B
+                                //Si no es el último punto le asigno 1 más, en dado caso que si, asigno Index 0.
+                                if (j + 1 < listPoints.Count)
+                                    ptB = listPoints[j + 1];
+                                else
+                                    ptB = listPoints[0];
+
+                                //Dependiendo del tipo de segmento
+                                M.SegmentInfo data = FindSegmentData(listSegments, ptA, ptB);
+
+                                //Obtengo distancia total del arco
+                                distance = data.Distance.Trunc(M.Colindante.Decimals);
+
+                                //Obtengo el punto medio
+                                ptMedio = data.MiddlePoint;
+
+                                //Encuentro colindancia de acuerdo al punto medio
+                                //Si no es planta alta se busca la adyacencia
+                                strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, idCommonArea);
+
+                                //Encuentro Rumbo si no estaba en la colindancia
+                                if (strRumbo == "")
+                                    strRumbo = FindDirection(ptMedio, new Point3dCollection(listPoints.ToArray()), idCommonArea);
+
+                                #region Creo DB Points y DB Text
+
+                                //Si es el primer punto debo de analizar PuntoA y PuntoB
+                                if (j == 0)
+                                {
+                                    if (ValidatePoint(ptA, ConsecutivePoint, out numPointA))
+                                        ConsecutivePoint++;
+                                    else
+                                        //Valido si realmente el punto de Inicio ya estaba insertado                                            
+                                        startPoint = numPointA;
+
+                                    if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
+                                        ConsecutivePoint++;
+                                }
+                                else//Si no es el primer punto sólo asignó el Punto A como el último B, calculo el Punto B
+                                {
+                                    numPointA = numPointB;
+
+                                    if (j + 1 < listPoints.Count)//Si no es el último Punto lo valido
+                                    {
+
+                                        if (ValidatePoint(ptB, ConsecutivePoint, out numPointB))
+                                            ConsecutivePoint++;
+                                    }
+                                    else//En dado caso que si es el último punto cierro la polilínea con el punto Inicial
+                                        numPointB = startPoint;
+                                }
+                                #endregion
+
+                                M.Colindante.MainData.Add(new M.ColindanciaData()
+                                {
+                                    idVivienda = lActual,
+                                    Seccion = Translate(pl.Layer),
+                                    LayerSeccion = pl.Layer,
+                                    Rumbo = strRumbo,
+                                    Edificio_Lote = 0,
+                                    NoOficial = strNoOficial,
+                                    Apartamento = "Area Común",
+                                    PuntoA = numPointA,
+                                    PuntoB = numPointB,
+                                    CoordenadaA = ptA,
+                                    CoordenadaB = ptB,
+                                    Colindancia = strColindancia,
+                                    LayersColindancia = layersColindancia,
+                                    Distancia = distance
+                                });
+
                             }
-                            else//En dado caso que si es el último punto cierro la polilínea con el punto Inicial
-                                numPointB = startPoint;
                         }
-                        #endregion                        
-
-                        M.Colindante.MainData.Add(new M.DatosColindancia()
+                        else
                         {
-                            idVivienda = lActual,
-                            Seccion = Translate(pl.Layer),
-                            LayerSeccion = pl.Layer,
-                            Rumbo = strRumbo,
-                            numVivienda = 0,
-                            NoOficial = strNoOficial,
-                            Apartamento = "Area Común",
-                            PuntoA = numPointA,
-                            PuntoB = numPointB,
-                            CoordenadaA = ptA,
-                            CoordenadaB = ptB,
-                            Colindancia = strColindancia,
-                            LayersColindancia = layersColindancia,
-                            Distancia = distance
+                            M.Colindante.ListadoErrores.Add(new M.Error()
+                            {
+                                error = "Segmentos de Sección",
+                                description = "Error al detectar los segmentos de " + M.Constant.LayerAreaComun,
+                                longObject = M.Colindante.IdMacrolote.Handle.Value,
+                                metodo = "Met_Colindante - GenerateMacroCommonArea",
+                                timeError = DateTime.Now.ToString(),
+                                tipoError = M.TipoError.Error
+                            });
+                        }
+                    }
+                    else
+                    {
+                        M.Colindante.ListadoErrores.Add(new M.Error()
+                        {
+                            error = "Id Inválida",
+                            description = "El id del Área Común no esta disponible o fue eliminada",
+                            longObject = M.Colindante.IdMacrolote.Handle.Value,
+                            metodo = "Met_Colindante - GenerateMacroCommonArea",
+                            timeError = DateTime.Now.ToString(),
+                            tipoError = M.TipoError.Error
                         });
 
+                        isCorrect = false;
+
+                        break;                        
                     }
+                    
                 }
             }
             catch(Exception ex)
@@ -1502,6 +1784,7 @@ namespace RegimenCondominio.C
 
                                     if (idXRecord.IsValid)
                                         data = DManager.GetData(idXRecord);
+                                    
                                     //Actualizo información de número de esquinas de los Edificios Insertados
                                     ReplaceCorners(pointFound.Position, int.Parse(data[0]));
                                 }
@@ -1514,16 +1797,25 @@ namespace RegimenCondominio.C
                     }
                     else
                     {
-                        throw new Exception("No se encontró Edificio");
-                    }
+                        M.Colindante.ListadoErrores.Add(new M.Error()
+                        {
+                            error = "Sin Edificios",
+                            description = "No se encontó el Edificio del Apartamento " + apartamentoActual.TextAp,
+                            longObject = apartamentoActual.longPl,
+                            metodo = "Met_Colindante - GenerateCornerPoints",
+                            timeError = DateTime.Now.ToString(),
+                            tipoError = M.TipoError.Error
+                        });
+
+                        return false;                        
+                    }                    
                 }
 
                 M.Colindante.LastPoint = index;
             }
             catch(Exception ex)
             {
-                ex.Message.ToEditor();
-                ex.StackTrace.ToEditor();
+                ex.Message.ToEditor();                
                 return false;
             }
 
@@ -1534,7 +1826,7 @@ namespace RegimenCondominio.C
         {
             for(int i = 0; i< M.Colindante.MainData.Count; i ++)
             {
-                M.DatosColindancia mDatos = M.Colindante.MainData[i];
+                M.ColindanciaData mDatos = M.Colindante.MainData[i];
 
                 if (mDatos.CoordenadaA.isEqualPosition(pointFound) && mDatos.PuntoA == -1)
                     mDatos.PuntoA = numPoint;
@@ -1544,8 +1836,8 @@ namespace RegimenCondominio.C
             }
         }
 
-        private static M.SegmentInfo FindMidData(List<M.SegmentInfo> listSegments, 
-                                                                                Point3d startPoint, Point3d endPoint)
+        private static M.SegmentInfo FindSegmentData(List<M.SegmentInfo> listSegments, 
+                                                     Point3d startPoint, Point3d endPoint)
         {
 
             M.SegmentInfo data = new M.SegmentInfo();
@@ -1707,13 +1999,15 @@ namespace RegimenCondominio.C
             for (int i = 0; i < idsApartments.Count; i++)
             {
                 long lActual = idsApartments[i].Handle.Value;
-
-                List<M.Apartments> listIn = M.Colindante.OrderedApartments.Where(x => x.longPl == lActual).ToList();
-
-                bool isIn = listIn.Count() > 0;
-
-                if (isIn)
-                    listado.Add(listIn.FirstOrDefault());
+                
+                foreach (M.Apartments ApActual in M.Colindante.OrderedApartments)
+                {
+                    if (ApActual.longPl == lActual)
+                    {
+                        listado.Add(ApActual);
+                        break;
+                    }
+                }                                                    
             }
 
             return listado.OrderBy(x => x.TextAp).ToList();
@@ -1723,7 +2017,7 @@ namespace RegimenCondominio.C
         {
             M.Colindante.OrderedApartments = new List<M.Apartments>();
 
-            string letrasFaltantes = "";
+            string letrasFaltantes = "";            
 
             //Validar que los apartamentos
             for (int i = 0; i < idsApartments.Count; i++)
@@ -1733,10 +2027,10 @@ namespace RegimenCondominio.C
                 ObjectId idTextApartment = new ObjectId(), 
                          idPlApartment = new ObjectId();
 
-                //Letra del Apartamento Inicial
-                string letter = numeroActualAp.ToEnumerate();
-
                 bool esFaltante = new bool();
+
+                //Letra del Apartamento Inicial
+                string letter = numeroActualAp.ToEnumerate();               
 
                 //Encuentro cantidad de Apartamentos con esta letra
                 idTextApartment = FindApartment(idsApartments, letter, out idPlApartment, out esFaltante);
@@ -1752,25 +2046,26 @@ namespace RegimenCondominio.C
                     });
                 }
                 else if (esFaltante) //Sólo en dado caso que no encontró letra
-                {
-                    //Si es más de 1 lo imprimo en el log de errores                    
-                    if (i + 1 < idsApartments.Count)
-                        letrasFaltantes = letrasFaltantes + letter + ", ";
-                    else
-                        letrasFaltantes = letrasFaltantes + letter;
+                {                                      
+                    letrasFaltantes = letrasFaltantes + letter + ", ";      
                 }
             }
 
             if (letrasFaltantes != "")
-                M.Colindante.ListadoErrores.Add(new M.DescribeError()
+            {
+                //Si solamente encontró un apartamento faltante elimina la última coma                
+                letrasFaltantes = letrasFaltantes.Remove(letrasFaltantes.LastIndexOf(','), 1);
+
+                M.Colindante.ListadoErrores.Add(new M.Error()
                 {
-                    Error = "Letras Faltantes",
-                    Description = "Faltan los apartamentos " + letrasFaltantes,
+                    error = "Letras Faltantes",
+                    description = "Faltan los apartamentos " + letrasFaltantes,
                     longObject = 0,
                     timeError = DateTime.Now.ToString(),
                     tipoError = M.TipoError.Error,
-                    Metodo = "OrderByLetters"
+                    metodo = "Met_Colindante - CheckAndOrderApartment"
                 });
+            }
 
             return M.Colindante.OrderedApartments.Count == idsApartments.Count;
         }
@@ -1816,15 +2111,15 @@ namespace RegimenCondominio.C
             {
                 foreach (ObjectId idApp in idsTextMatch)
                 {
-                    M.Colindante.ListadoErrores.Add(new M.DescribeError()
+                    M.Colindante.ListadoErrores.Add(new M.Error()
                     {
-                        Error = "Más de 1 Texto",
-                        Description = string.Format("Se encontraron {0} Textos en Layer {1}"
+                        error = "Más de 1 Texto",
+                        description = string.Format("Se encontraron {0} Textos en Layer {1}"
                                                     , idsTextMatch.Count, M.Constant.LayerApartamento),
                         longObject = idApp.Handle.Value,
                         timeError = DateTime.Now.ToString(),
                         tipoError = M.TipoError.Error,
-                        Metodo = "FindApartment"
+                        metodo = "FindApartment"
                     });
                 }
             }
@@ -1917,50 +2212,63 @@ namespace RegimenCondominio.C
                                 List<long> apartments = apsInEdificio.OfType<ObjectId>().Select(x => x.Handle.Value).ToList();
 
                                 //Reviso que sólo sea un texto Edificio
-                                numEdificio = isOneText(textosEnEdificio, idEdificio, apartments);                               
+                                numEdificio = isOneText(textosEnEdificio, idEdificio, apartments);
 
                                 if (apsInEdificio.Count != M.Inicio.ApartamentosXVivienda)
-                                {                                                                     
-                                    M.Colindante.ListadoErrores.Add(new M.DescribeError()
+                                {
+                                    M.Colindante.ListadoErrores.Add(new M.Error()
                                     {
-                                        Error = "Menor Cant. de Apartamentos",
-                                        Description = string.Format("En el Edificio {0} se detectaron {1} y deben ser {2} Apartamentos (Polilíneas)",
+                                        error = "Menor Cant. de Apartamentos",
+                                        description = string.Format("En el Edificio {0} se detectaron {1} y deben ser {2} Apartamentos (Polilíneas)",
                                                                     idEdificio, apsInEdificio.Count, M.Inicio.ApartamentosXVivienda),
                                         longObject = idEdificio.Handle.Value,
                                         timeError = DateTime.Now.ToString(),
                                         tipoError = M.TipoError.Error,
-                                        Metodo = "Asigna_Edificios"
+                                        metodo = "Asigna_Edificios"
                                     });
 
                                     siIncorrecto = true;
-                                }                    
+                                }
                             }
                         }
                         else
-                            //**********************************************SI INCORRECTO
+                        {
+                            //Reviso que los apartamentos contengan las letras que le corresponden. 
+                            //Ejemplo si son 26 =>  A hasta la Z
                             siIncorrecto = true;
+                        }
                     }
                     else
                     {                           
                         siIncorrecto = true;
 
-                        M.Colindante.ListadoErrores.Add(new M.DescribeError()
+                        M.Colindante.ListadoErrores.Add(new M.Error()
                         {
-                            Error = "Menor Cant. de Apartamentos",
-                            Description =
+                            error = "Cantidad de Apartamentos",
+                            description =
                                 string.Format("En el Macrolote se detectaron {0} y deben ser {1} Apartamentos",
                                                  cantAps.Count, cantCorrectaAps),
                             longObject = idMacrolote.Handle.Value,
                             timeError = DateTime.Now.ToString(),
                             tipoError = M.TipoError.Error,
-                            Metodo = "Asigna_Edificios"
+                            metodo = "Met_Colindante - noEstaEnEdificios"
                         });                       
 
                     }
                 }
                 else
                 {
-                    //**********************************************SI INCORRECTO
+                    //Cuando no se encuentran edificios dentro del Lote
+                    M.Colindante.ListadoErrores.Add(new M.Error()
+                    {
+                        error = "Sin Edificios",
+                        description ="No se encontraron Edificios en el lote seleccionado",
+                        longObject = idMacrolote.Handle.Value,
+                        timeError = DateTime.Now.ToString(),
+                        tipoError = M.TipoError.Error,
+                        metodo = "Met_Colindante - noEstaEnEdificios"
+                    });
+
                     siIncorrecto = true;
                 }
             }
@@ -1980,7 +2288,7 @@ namespace RegimenCondominio.C
 
             if (textoEnEdificio.Count == 1)
             {
-                DBText text = textoEnEdificio.OfType<ObjectId>().FirstOrDefault().OpenEntity() as DBText;
+                DBText text = textoEnEdificio[0].OpenEntity() as DBText;
 
                 strEdificio = text.TextString.GetAfterSpace();
 
@@ -1995,40 +2303,44 @@ namespace RegimenCondominio.C
                 }
                 else
                 {
-                    M.Colindante.ListadoErrores.Add(new M.DescribeError()
+                    M.Colindante.ListadoErrores.Add(new M.Error()
                     {
                         longObject = idActual.Handle.Value,
-                        Error = "Error de Conversión",
-                        Description = string.Format("El edificio {0} debe de ser número Entero", strEdificio),
+                        error = "Error de Conversión",
+                        description = string.Format("El edificio {0} debe de ser número Entero", strEdificio),
                         timeError = DateTime.Now.ToString(),
                         tipoError = M.TipoError.Error,
-                        Metodo = "AsignaEdificios"
+                        metodo = "AsignaEdificios"
                     });
                 }
                
             }
             else if (textoEnEdificio.Count > 1)
             {
-                M.Colindante.ListadoErrores.Add(new M.DescribeError()
+                foreach(ObjectId idTexto in textoEnEdificio)
                 {
-                    longObject = idActual.Handle.Value,
-                    Error = "Más de 1 Texto",
-                    Description = "Se encontró más de 1 Texto con Layer " + M.Constant.LayerEdificio,
-                    timeError = DateTime.Now.ToString(),
-                    tipoError = M.TipoError.Error,
-                    Metodo = "AsignaEdificios"
-                });
+                    M.Colindante.ListadoErrores.Add(new M.Error()
+                    {
+                        longObject = idTexto.Handle.Value,
+                        error = "Más de 1 Texto",
+                        description = "Se encontró más de 1 Texto con Layer " + M.Constant.LayerEdificio,
+                        timeError = DateTime.Now.ToString(),
+                        tipoError = M.TipoError.Error,
+                        metodo = "AsignaEdificios"
+                    });
+                }
+                
             }
             else
             {
-                M.Colindante.ListadoErrores.Add(new M.DescribeError()
+                M.Colindante.ListadoErrores.Add(new M.Error()
                 {
                     longObject = idActual.Handle.Value,
-                    Error = "Sin Texto",
-                    Description = "No se encontró Texto con Layer " + M.Constant.LayerEdificio,
+                    error = "Sin Texto",
+                    description = "No se encontró Texto con Layer " + M.Constant.LayerEdificio,
                     timeError = DateTime.Now.ToString(),
                     tipoError = M.TipoError.Error,
-                    Metodo = "AsignaEdificios"
+                    metodo = "AsignaEdificios"
                 });
             }
 
@@ -2051,36 +2363,42 @@ namespace RegimenCondominio.C
             ptsGeometry = Met_Autodesk.CreateGeometry(7, 0.05, ptMedio);
 
             //Polyline pl = new Polyline();
-
             //for (int i = 0; i < ptsGeometry.Count; i++)
             //    pl.AddVertexAt(i, new Point2d(ptsGeometry[i].X, ptsGeometry[i].Y), 0, 0, 0);
-
             //pl.Closed = true;
-
             //ObjectId idFigure = pl.DrawInModel();
 
             //Obtengo todos los Ids que colindan de Polylinea
             idsSelected = ptsGeometry.SelectByFence(typeof(Polyline).Filter(), idsToIgnore);
 
+            //Obtengo todos los Ids que colindan de Linea
             idsLines = ptsGeometry.SelectByFence(typeof(Line).Filter(), idsToIgnore);
 
+            //Uno Polilineas y Lineas
             foreach(ObjectId idLine in idsLines)
                 idsSelected.Add(idLine);
 
             if (idsSelected.Count > 0)
             {
-                ObjectId idManzana = new ObjectId(),
+                ObjectId    idManzana = new ObjectId(),
                             idLote = new ObjectId(),
                             idEdificio = new ObjectId(),
                             idApartamento = new ObjectId(), 
                             idSeccion = new ObjectId();
 
-                List<string> allLayers = M.Colindante.TodosLayers.Select(x => x.Layername).ToList();
+                //Inicializo
+                List<ObjectId> idsAdjacent = new List<ObjectId>();
+
+                List<string> allLayers = M.Colindante.TodosLayers.Select(x => x.Layername).ToList();                
 
                 //Todos los ids que tengan colindancia (adyacencia)
-                List<ObjectId> idsAdjacent = idsSelected.OfType<ObjectId>()
-                                .Where(x => x.OpenEntity().Layer != M.Constant.LayerAPAlta
-                                && allLayers.Contains(x.OpenEntity().Layer)).ToList();
+                for (int i = 0; i < idsSelected.Count; i++)
+                {
+                    Entity entActual = idsSelected[i].OpenEntity();
+
+                    if (entActual.Layer != M.Constant.LayerAPAlta && allLayers.Contains(entActual.Layer))
+                        idsAdjacent.Add(entActual.Id);
+                }                
 
                 //Busco si tiene colindancia con Manzana
                 idManzana = ContainedInLayer(idsAdjacent, M.Constant.LayerManzana);
@@ -2129,7 +2447,7 @@ namespace RegimenCondominio.C
 
                         long longLote = idLote.Handle.Value;
 
-                        int numLote = M.Colindante.Lotes.Where(X => X._long == longLote).FirstOrDefault().numLote;
+                        int numLote = M.Colindante.Lotes.Search(longLote).numLote;
 
                         seccionColindancia = Met_General.JoinToWord(Translate(M.Constant.LayerLote), numLote.ToString());
                     }
@@ -2162,14 +2480,15 @@ namespace RegimenCondominio.C
                                 //-----------------------------------------                               
 
                                 //Obtengo Número de Edificio
-                                numEdificio = M.Colindante.Edificios.Where(X => X._long == longEdificio).FirstOrDefault().numEdificio;
+                                numEdificio = M.Colindante.Edificios.Search(longEdificio).numEdificio;                                    
 
                                 //Agrego Edificios al listado de colindancia
                                 layersColindancia.Add(M.Constant.LayerEdificio);
 
                                 if (idApartamento.IsValid)
                                 {
-                                    aps = M.Colindante.OrderedApartments.Where(x => x.longPl == idApartamento.Handle.Value).FirstOrDefault();
+                                    aps = M.Colindante.OrderedApartments.Search(idApartamento.Handle.Value);
+                                                                            
                                     layersColindancia.Add(M.Constant.LayerApartamento);
                                 }
 
@@ -2185,8 +2504,7 @@ namespace RegimenCondominio.C
 
                                     if (idSeccion.IsValid)
                                     {
-                                        M.AreaComun areaComun = M.Colindante.ListCommonArea
-                                                        .Where(x => x._longAreaComun == idSeccion.Handle.Value).FirstOrDefault();
+                                        M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);                                                        
 
                                         if (areaComun != null && areaComun != new M.AreaComun())
                                             seccionColindancia = areaComun.nombreAreaComun;
@@ -2215,8 +2533,7 @@ namespace RegimenCondominio.C
 
                                     lApartamento = idApartamento.Handle.Value;
 
-                                    numAp = M.Colindante.OrderedApartments.Where(x => x.longPl == lApartamento)
-                                            .FirstOrDefault().TextAp;
+                                    numAp = M.Colindante.OrderedApartments.Search(lApartamento).TextAp;                                        
 
                                     layersColindancia.Add(M.Constant.LayerApartamento);
 
@@ -2233,8 +2550,7 @@ namespace RegimenCondominio.C
 
                                         if (idSeccion.IsValid)
                                         {
-                                            M.AreaComun areaComun = M.Colindante.ListCommonArea
-                                                            .Where(x => x._longAreaComun == idSeccion.Handle.Value).FirstOrDefault();
+                                            M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);                                                            
 
                                             if (areaComun != null && areaComun != new M.AreaComun())
                                                 seccionColindancia = areaComun.nombreAreaComun;
@@ -2262,8 +2578,7 @@ namespace RegimenCondominio.C
 
                                         if (idSeccion.IsValid)
                                         {
-                                            M.AreaComun areaComun = M.Colindante.ListCommonArea
-                                                            .Where(x => x._longAreaComun == idSeccion.Handle.Value).FirstOrDefault();
+                                            M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);
 
                                             if(areaComun != null && areaComun != new M.AreaComun())                                            
                                                 seccionColindancia = areaComun.nombreAreaComun;                                            
@@ -2297,8 +2612,7 @@ namespace RegimenCondominio.C
 
                                 lApartamento = idApartamento.Handle.Value;
 
-                                numAp = M.Colindante.OrderedApartments.Where(x => x.longPl == lApartamento)
-                                        .FirstOrDefault().TextAp;
+                                numAp = M.Colindante.OrderedApartments.Search(lApartamento).TextAp;                                    
 
                                 layersColindancia.Add(M.Constant.LayerApartamento);
 
@@ -2314,8 +2628,7 @@ namespace RegimenCondominio.C
 
                                     if (idSeccion.IsValid)
                                     {
-                                        M.AreaComun areaComun = M.Colindante.ListCommonArea
-                                                        .Where(x => x._longAreaComun == idSeccion.Handle.Value).FirstOrDefault();
+                                        M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);                                                        
 
                                         if (areaComun != null && areaComun != new M.AreaComun())
                                             seccionColindancia = areaComun.nombreAreaComun;
@@ -2343,8 +2656,7 @@ namespace RegimenCondominio.C
 
                                     if (idSeccion.IsValid)
                                     {
-                                        M.AreaComun areaComun = M.Colindante.ListCommonArea
-                                                        .Where(x => x._longAreaComun == idSeccion.Handle.Value).FirstOrDefault();
+                                        M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);                                                        
 
                                         if (areaComun != null && areaComun != new M.AreaComun())
                                             seccionColindancia = areaComun.nombreAreaComun.FormatString();
@@ -2400,8 +2712,8 @@ namespace RegimenCondominio.C
 
         private static string Translate(string layerColindancia)
         {
-            M.DescribeLayer itemFound = 
-                M.Colindante.TodosLayers.Where(x => x.Layername == layerColindancia).ToList().FirstOrDefault();
+            M.DescribeLayer itemFound =
+                M.Colindante.TodosLayers.Search(layerColindancia);
 
             if (itemFound != null && itemFound != new M.DescribeLayer())
             {
@@ -2411,36 +2723,46 @@ namespace RegimenCondominio.C
                 return layerColindancia;
         }
 
-        internal static string FindDirection(Point3d ptMedio, Point3dCollection pts)
+        internal static string FindDirection(Point3d ptMedio, Point3dCollection pts, ObjectId idSeccion)
         {
             string Rumbo = "";
 
             try
             {
-                ObjectIdCollection idsSelected = new ObjectIdCollection(),
+                //Inicializo-----------------------------------------------------------
+                ObjectIdCollection  idsSelected = new ObjectIdCollection(),
                                     idsLines = new ObjectIdCollection();
-                //idsOut = new ObjectIdCollection();
+                                    //idsOut = new ObjectIdCollection();
 
-                List<Tuple<ObjectId, Point3d, Point3d>> list = new List<Tuple<ObjectId, Point3d, Point3d>>();
-                //Genero los puntos en 4 vertices
-                List<M.SegmentInfo> PointsInQuadrant = CreateQuadrants(ptMedio);
+                List<Tuple<ObjectId, Point3d, Point3d>> list 
+                                                        = new List<Tuple<ObjectId, Point3d, Point3d>>();
 
                 List<Point3dCollection> vertexPolygons = new List<Point3dCollection>();
+                //----------------------------------------------------------------------
 
+                //Genero los puntos con los 4 cuadrantes
+                List<M.SegmentInfo> PointsInQuadrant = CreateQuadrants(ptMedio);                
+
+                //Creo polilíneas de cada Cuadrante
                 foreach (M.SegmentInfo segInfo in PointsInQuadrant)
                 {
-                    Point3dCollection vertexPoints = Met_Autodesk.CreateGeometry(4, 0.05, segInfo.MiddlePoint);
-
                     Polyline pl = new Polyline();
 
+                    //Obtengo todas las vertices de la geometria calculada
+                    Point3dCollection vertexPoints = Met_Autodesk.CreateGeometry(4, 0.01, segInfo.MiddlePoint);
+                    
+                    //Asigno vertices a Polilínea
                     for (int j = 0; j < vertexPoints.Count; j++)
                         pl.AddVertexAt(j, new Point2d(vertexPoints[j].X, vertexPoints[j].Y), 0, 0, 0);
 
+                    //Le agrego atributos
                     pl.Closed = true;
                     pl.Layer = M.Constant.LayerExcRumbos;
 
+                    //Obtengo Id dibujada
                     ObjectId idPl = pl.DrawInModel();
 
+                    //Extraigo la información
                     list.Add(new Tuple<ObjectId, Point3d, Point3d>(idPl, segInfo.StartPoint, segInfo.EndPoint));                    
                 }                
 
@@ -2448,18 +2770,15 @@ namespace RegimenCondominio.C
                 idsSelected = pts.SelectCrossing(typeof(Polyline).Filter(M.Constant.LayerExcRumbos));                
 
                 //De las líneas que cruzan las comparo con las líneas creadas
-                List<ObjectId> idsFound = list.Select(x=> x.Item1).Where(x => !idsSelected.Contains(x)).ToList();
+                List<ObjectId> idsRumbo = list.Select(x=> x.Item1).Where(x => !idsSelected.Contains(x)).ToList();
 
                 //Las líneas que están afuera
                 //List<ObjectId> idsOut = idsLines.OfType<ObjectId>().Where(x => idsSelected.Contains(x)).ToList();
 
-                Rumbo = string.Format("{0} Líneas", idsFound.Count);
-
-                if (idsFound.Count == 1)
+                //Si encuentra el Rumbo correcto
+                if (idsRumbo.Count == 1)
                 {
-
-
-                    ObjectId idLine = idsFound.FirstOrDefault();
+                    ObjectId idLine = idsRumbo[0];
 
                     Point3d startPoint = new Point3d(),
                             endPoint = new Point3d();
@@ -2497,30 +2816,46 @@ namespace RegimenCondominio.C
                                 Rumbo = data[0];
                         }
                     }
+                    else
+                    {
+                        M.Colindante.ListadoErrores.Add(new M.Error()
+                        {
+                            error = "Sin Rumbo",
+                            description = "No se encontró un rumbo para la sección " + Translate(idSeccion.OpenEntity().Layer),
+                            timeError = DateTime.Now.ToString(),
+                            longObject = idSeccion.Handle.Value,
+                            metodo = "Met_Colindante-FindDirection",
+                            tipoError = M.TipoError.Warning
+                        });
+                    }
+                }
+                else
+                {
+                    M.Colindante.ListadoErrores.Add(new M.Error()
+                    {
+                        error = "Cantidad de Rumbos",
+                        description = string.Format("La sección {0} tiene {1} y debe de ser sólo 1",
+                        Translate(idSeccion.OpenEntity().Layer) , idsRumbo.Count),
+                        timeError = DateTime.Now.ToString(),
+                        longObject = idSeccion.Handle.Value,
+                        metodo = "Met_Colindante-FindDirection",
+                        tipoError = M.TipoError.Warning
+                    });
                 }
 
                 //Elimino todas las líneas
-                foreach (Tuple<ObjectId, Point3d, Point3d> item in list)
-                    item.Item1.GetAndRemove();
-                //else
-                //{
-                //    Rumbo = string.Format("{0} Líneas", idsFound.Count);
-                //}
+                //foreach (Tuple<ObjectId, Point3d, Point3d> item in list)
+                //    item.Item1.GetAndRemove();              
+                if (idsRumbo.Count == 1)
+                    foreach (Tuple<ObjectId, Point3d, Point3d> item in list)
+                        item.Item1.GetAndRemove();
+                else
+                {
+                    List<ObjectId> idsOut = idsLines.OfType<ObjectId>().Where(x => idsSelected.Contains(x)).ToList();
 
-                //if (idsFound.Count != 1)
-                //{
-                //    //Elimino todas las líneas
-                //    foreach (ObjectId idDel in idsOut)
-                //        idDel.GetAndRemove();
-                //}
-                //else
-                //{
-                //Elimino todas las líneas
-                //foreach (ObjectId idDel in idsLines)
-                //        idDel.GetAndRemove();
-                //}
-
-
+                    foreach (ObjectId id in idsOut)
+                        id.GetAndRemove();
+                }
             }
             catch (Exception ex)
             {
@@ -2532,9 +2867,7 @@ namespace RegimenCondominio.C
 
         internal static void DeleteAdjacencyObjects()
         {
-            Met_Autodesk.DeleteObjects(M.Constant.LayerExcDBText);
-
-            Met_Autodesk.DeleteObjects(M.Constant.LayerExcDBPoints);
+            Met_Autodesk.DeleteObjects(M.Constant.LayerExcDBText, M.Constant.LayerExcDBPoints);            
         }
 
         private static ObjectId SearchRumbo(Point3d startPoint, Point3d endPoint, double angle)
@@ -2566,8 +2899,8 @@ namespace RegimenCondominio.C
                 List<ObjectId> idsSegmentos = new List<ObjectId>();
 
 
-                foreach (M.DatosManzana mManzana in M.Manzana.ColindanciaManzana)
-                    idsSegmentos.Add(mManzana.HndPlColindancia.toObjectId());
+                foreach (M.ManzanaData mManzana in M.Manzana.ColindanciaManzana)
+                    idsSegmentos.Add(mManzana.hndPlColindancia.toObjectId());
 
                 List<ObjectId> listManzana = idsManzana.OfType<ObjectId>().Where(x => x.OpenEntity().Layer == M.Constant.LayerManzana 
                     && idsSegmentos.Contains(x)).ToList();
@@ -2648,7 +2981,7 @@ namespace RegimenCondominio.C
 
             //Linea 1 a 0°-------------------------------------------
             Point3d ptStart0G = new Point3d(ptMedio.X + .01, ptMedio.Y, 0),
-                    ptEnd0G = new Point3d(ptMedio.X + .2, ptMedio.Y, 0),
+                    ptEnd0G = new Point3d(ptMedio.X + .02, ptMedio.Y, 0),
                     midPoint0G = ptStart0G.MiddlePoint(ptEnd0G);
 
             listPolygons.Add(new M.SegmentInfo()
@@ -2662,7 +2995,7 @@ namespace RegimenCondominio.C
 
             //Linea 2 a 90°------------------------------------------
             Point3d ptStart90G = new Point3d(ptMedio.X, ptMedio.Y + .01, 0),
-                    ptEnd90G = new Point3d(ptMedio.X, ptMedio.Y + .2, 0),
+                    ptEnd90G = new Point3d(ptMedio.X, ptMedio.Y + .02, 0),
                     midPoint90G = ptStart90G.MiddlePoint(ptEnd90G);
 
             listPolygons.Add(new M.SegmentInfo()
@@ -2676,7 +3009,7 @@ namespace RegimenCondominio.C
 
             //Linea 3 a 180°-------------------------------------------------
             Point3d ptStart180G = new Point3d(ptMedio.X - .01, ptMedio.Y, 0),
-                    ptEnd180G = new Point3d(ptMedio.X - .2, ptMedio.Y, 0),
+                    ptEnd180G = new Point3d(ptMedio.X - .02, ptMedio.Y, 0),
                     midPoint180G = ptStart180G.MiddlePoint(ptEnd180G);
 
             listPolygons.Add(new M.SegmentInfo()
@@ -2690,7 +3023,7 @@ namespace RegimenCondominio.C
 
             //270°--------------------------
             Point3d ptStart270G = new Point3d(ptMedio.X, ptMedio.Y - .01, 0),
-                    ptEnd270G = new Point3d(ptMedio.X, ptMedio.Y - .2, 0),
+                    ptEnd270G = new Point3d(ptMedio.X, ptMedio.Y - .02, 0),
                     midPoint270G = ptStart270G.MiddlePoint(ptEnd270G);
 
             listPolygons.Add(new M.SegmentInfo()
@@ -2818,6 +3151,7 @@ namespace RegimenCondominio.C
             layerstoCreate.Add(M.Constant.LayerExcRegimen);
             layerstoCreate.Add(M.Constant.LayerExcDBPoints);
             layerstoCreate.Add(M.Constant.LayerExcDBText);
+            Met_Autodesk.CreateLayer(M.Constant.LayerExcRumbos);
 
             foreach (string layer in layerstoCreate)
             {

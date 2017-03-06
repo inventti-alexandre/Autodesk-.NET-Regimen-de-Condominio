@@ -35,6 +35,7 @@ namespace RegimenCondominio.V
         {
             ModuloInicial M_Inicial = new ModuloInicial();
             M_Inicial.Show();
+            M.Constant.IsAutoClose = true;
             this.Close();
         }
 
@@ -62,6 +63,8 @@ namespace RegimenCondominio.V
             else
                 rbLote.IsChecked = true;
         }
+
+
 
         private List<string> ObtengoManzanas()
         {                      
@@ -208,14 +211,14 @@ namespace RegimenCondominio.V
                         string txtColindancia = DBTextColindancia.TextString.FormatString();
 
                         //Modelo los datos
-                        M.DatosManzana insertedData = new M.DatosManzana()
+                        M.ManzanaData insertedData = new M.ManzanaData()
                         {
-                            HndPlColindancia = idLineCol.Handle,
-                            HndTxtColindancia = idtxtCol.Handle,
-                            InicialRumbo = (M.Constant.Orientaciones
+                            hndPlColindancia = idLineCol.Handle,
+                            hndTxtColindancia = idtxtCol.Handle,
+                            inicialRumbo = (M.Constant.Orientaciones
                                                 [Met_Manzana.ObtengoPosicion(rumboSeleccionado, 0), 1]),
-                            RumboActual = rumboSeleccionado,
-                            TextColindancia = cmbTipo.SelectedIndex > 0 ? txtColindancia :
+                            rumboActual = rumboSeleccionado,
+                            textColindancia = cmbTipo.SelectedIndex > 0 ? txtColindancia :
                                                                             "calle " + txtColindancia
                         };
 
@@ -226,12 +229,12 @@ namespace RegimenCondominio.V
 
                         //Si ya se había insertado esa polilinea
                         PolilineaNueva = M.Manzana.ColindanciaManzana.Where
-                            (x => x.HndPlColindancia.Value == insertedData.HndPlColindancia.Value).
+                            (x => x.hndPlColindancia.Value == insertedData.hndPlColindancia.Value).
                             Count() > 0 ? false : true;
 
                         //Si ya se había insertado ese rumbo en la lista
                         RumboNuevo = M.Manzana.ColindanciaManzana.
-                            Where(x => x.RumboActual == insertedData.RumboActual).Count() > 0
+                            Where(x => x.rumboActual == insertedData.rumboActual).Count() > 0
                             ? false : true;
 
                         //Si es Nueva Polilinea y nuevo Rumbo
@@ -314,7 +317,7 @@ namespace RegimenCondominio.V
                         //Una vez se validaron los datos los encapsulo
                         M.Manzana.NoManzana = outNoManzana;
                         M.Manzana.RumboFrente = CmbRumboFrente.SelectedItem.ToString();
-
+                        M.Constant.IsAutoClose = true;
                         this.Close();
                         ModuloColindante M_Colindante = new ModuloColindante();
                         M_Colindante.Show();
@@ -353,6 +356,22 @@ namespace RegimenCondominio.V
                 //    txtHeaderPaso2.Text = "2. Sel. Último Edificio Tipo";
                 //    txtHeaderPaso3.Text = "3. Sel. Edificios Irregulares";
                 //}
+        }
+
+        private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (!M.Constant.IsAutoClose)
+            {
+                MessageBoxResult dg = MessageBox.Show("¿Desea Cerrar la ventana? \n Se perderá el avance completado", "Cerrando",
+                                            MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
+
+                if (dg == MessageBoxResult.No)
+                    e.Cancel = true;
+                else
+                    C.Met_General.ClearData();
+            }
+            else
+                M.Constant.IsAutoClose = false;
         }
     }
 }

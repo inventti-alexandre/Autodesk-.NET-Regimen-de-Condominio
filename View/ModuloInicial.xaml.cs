@@ -75,16 +75,21 @@ namespace RegimenCondominio.V
                     System.Windows.Media.Animation.Storyboard).Begin();                            
                                 
                 //Asigno Municipio
-                EstadoBox.Text = 
+
+                if(FraccionamientoCombo.SelectedItem != null)
+                {
+                    EstadoBox.Text =
                     M.Inicio.ResultFraccs.
-                    Where(i => i.Fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
-                    Select(j => j.Estado).FirstOrDefault().ToString().FormatString();
+                    Where(i => i.fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
+                    Select(j => j.estado).FirstOrDefault().ToString().FormatString();
 
 
-                municipioBox.Text = 
-                    M.Inicio.ResultFraccs.
-                    Where(i => i.Fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
-                    Select(j => j.Municipio).FirstOrDefault().ToString().FormatString();
+                    municipioBox.Text =
+                        M.Inicio.ResultFraccs.
+                        Where(i => i.fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
+                        Select(j => j.municipio).FirstOrDefault().ToString().FormatString();
+                }
+                
             }
             else
                 (this.Resources["hideFracc"] as
@@ -154,7 +159,7 @@ namespace RegimenCondominio.V
         private void btnSiguiente_Click(object sender, RoutedEventArgs e)
         {
             //Reviso que no haya valores nulos, espacios en blanco o 
-            if(
+            if (
                 !string.IsNullOrWhiteSpace((FraccionamientoCombo.SelectedItem ?? "").ToString()) //Fraccionamiento
                 && !string.IsNullOrWhiteSpace((EstadoBox.Text ?? "").ToString())//Estado
                 && !string.IsNullOrWhiteSpace((municipioBox.Text ?? "").ToString())//Municipio
@@ -164,7 +169,7 @@ namespace RegimenCondominio.V
               )
             {
                 //Asigno Valores seleccionados
-                M.Inicio.Fraccionamiento = FraccionamientoCombo.SelectedItem.ToString();                
+                M.Inicio.Fraccionamiento = FraccionamientoCombo.SelectedItem.ToString();
                 M.Inicio.Estado = EstadoBox.Text;
                 M.Inicio.Municipio = municipioBox.Text;
                 M.Inicio.Region = RegionBox.Text;
@@ -172,9 +177,10 @@ namespace RegimenCondominio.V
                 M.Inicio.TipoViv = tipoVivCombo.SelectedItem.ToString();
                 M.Inicio.ApartamentosXVivienda = M.Inicio.ResultTipoVivs.Where(x => x.Encabezado == M.Inicio.TipoViv.ToUpper())
                                                     .FirstOrDefault().Cant_Viviendas;
-
+                               
                 ModuloManzana M_Manzana = new ModuloManzana();
                 M_Manzana.Show();
+                M.Constant.IsAutoClose = true;
                 this.Close();
 
             }
@@ -196,7 +202,7 @@ namespace RegimenCondominio.V
                 //Si la lista contiene fraccionamientos
                 if (M.Inicio.ResultFraccs.Count > 0)
                     FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs.
-                                            Select(x => x.Fraccionamiento.FormatString()).ToList();
+                                            Select(x => x.fraccionamiento.FormatString()).ToList();
 
                 //Si la lista contiene Tipo de Viviendas
                 if (M.Inicio.ResultTipoVivs.Count > 0)
@@ -230,6 +236,39 @@ namespace RegimenCondominio.V
 
         }
 
+        private void btnRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            //Envío itemsource a nulls
+            tipoVivCombo.ItemsSource = null;
+            FraccionamientoCombo.ItemsSource = null;
+
+            //Envío a vacío 
+            EstadoBox.Text = "";
+            municipioBox.Text = "";
+
+            //Obtengo Fraccionamientos ejecutando consulta a BD
+            new C.SqlTransaction(null, LoadDataTask, DataLoaded).Run();
+
+        }
+
+        private void MetroWindow_Closing(object sender, CancelEventArgs e)
+        {
+            //MessageDialogResult dg = this.ShowMessageAsync("Cerrando",
+            //                "¿Desea Cerrar la ventana? \n Se perderá el avance completado", MessageDialogStyle.AffirmativeAndNegative);
+
+            if (!M.Constant.IsAutoClose)
+            {
+                MessageBoxResult dg = MessageBox.Show("¿Desea Cerrar la ventana? \n Se perderá el avance completado", "Cerrando",
+                                            MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
+
+                if (dg == MessageBoxResult.No)
+                    e.Cancel = true;
+                else
+                    C.Met_General.ClearData();
+            }
+            else
+                M.Constant.IsAutoClose = false;
+        }
 
         private void ShowControls()
         {
@@ -256,8 +295,8 @@ namespace RegimenCondominio.V
             DataSet dtSet = result as DataSet;
 
             //Inicializo listas
-            M.Inicio.ResultFraccs = new List<M.DatosFracc>();
-            M.Inicio.ResultTipoVivs = new List<M.EncMachote>();
+            M.Inicio.ResultFraccs = new List<M.Fraccionamiento>();
+            M.Inicio.ResultTipoVivs = new List<M.EncabezadoMachote>();
 
             char separator = '|';
 
@@ -277,11 +316,11 @@ namespace RegimenCondominio.V
 
                         string[] cell = row.Split(separator);
 
-                        M.Inicio.ResultFraccs.Add(new M.DatosFracc
+                        M.Inicio.ResultFraccs.Add(new M.Fraccionamiento
                         {
-                            Fraccionamiento = cell[0],//NOMBRE_FRACC
-                            Estado = cell[1],//ESTADO
-                            Municipio = cell[2]//MUNICIPIO
+                            fraccionamiento = cell[0],//NOMBRE_FRACC
+                            estado = cell[1],//ESTADO
+                            municipio = cell[2]//MUNICIPIO
 
                         });                      
                     }                   
@@ -297,7 +336,7 @@ namespace RegimenCondominio.V
                         string[] cell = row.Split(separator);
 
                         //Agrego 
-                        M.Inicio.ResultTipoVivs.Add(new M.EncMachote
+                        M.Inicio.ResultTipoVivs.Add(new M.EncabezadoMachote
                         {
                             IdMachote = int.Parse(cell[0]),
                             Encabezado = cell[1],
@@ -311,7 +350,7 @@ namespace RegimenCondominio.V
             //Si la lista contiene fraccionamientos
             if (M.Inicio.ResultFraccs.Count > 0)
                 FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs.
-                                        Select(x => x.Fraccionamiento.FormatString()).ToList();
+                                        Select(x => x.fraccionamiento.FormatString()).ToList();
 
             //Si la lista contiene Tipo de Viviendas
             if (M.Inicio.ResultTipoVivs.Count > 0)

@@ -5,6 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using System.ComponentModel;
+using Autodesk.AutoCAD.Geometry;
+using cadDB = Autodesk.AutoCAD.DatabaseServices;
 
 namespace RegimenCondominio.C
 {
@@ -152,6 +155,41 @@ namespace RegimenCondominio.C
             return mainList;
         }
 
+        public static DataTable ConvertToDataTable<T>(this IList<T> data)
+
+        {
+
+            PropertyDescriptorCollection properties =
+
+            TypeDescriptor.GetProperties(typeof(T));
+
+            DataTable table = new DataTable();
+
+            foreach (PropertyDescriptor prop in properties)
+            {                
+                if(prop.PropertyType.Name != typeof(List<T>).Name && prop.PropertyType.Name != typeof(Point3d).Name)
+                    table.Columns.Add(prop.Name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
+            }
+
+            foreach (T item in data)
+
+            {
+                DataRow row = table.NewRow();
+
+                foreach (PropertyDescriptor prop in properties)
+                {
+                    if (prop.PropertyType.Name != typeof(List<T>).Name && prop.PropertyType.Name != typeof(Point3d).Name)
+                        row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
+                }
+
+                table.Rows.Add(row);
+
+            }
+
+            return table;
+
+        }
+
         internal static string GetAfterSpace(this string sentence)
         {
             if (sentence.Contains(" "))
@@ -291,6 +329,11 @@ namespace RegimenCondominio.C
             return Num2Text;
         }
 
+        internal static void ClearData()
+        {
+            
+        }
+
         public static string FindInDimensions(this string[,] target, string searchTerm, 
                                                     int columnToLook = -1, int resultColumn = -1)
         {
@@ -325,26 +368,115 @@ namespace RegimenCondominio.C
             
             return result;
         }        
-    }
-    
-    public class CustomComparer : IComparer<M.DatosColindancia>
-    {
-        public int Compare(M.DatosColindancia x, M.DatosColindancia y)
+
+        internal static M.Lote Search(this List<M.Lote> listLote, long objToLook)
         {
-            var regex = new Regex("^(d+)");
+            M.Lote lote = new M.Lote();
 
-            // run the regex on both strings
-            var xRegexResult = regex.Match(x.numVivienda.ToString());
-            var yRegexResult = regex.Match(y.numVivienda.ToString());
-
-            // check if they are both numbers
-            if (xRegexResult.Success && yRegexResult.Success)
+            for(int i = 0; i < listLote.Count; i++)
             {
-                return int.Parse(xRegexResult.Groups[1].Value).CompareTo(int.Parse(yRegexResult.Groups[1].Value));
+                lote = listLote[i];
+
+                if (lote._long == objToLook)
+                    return lote;
             }
 
-            // otherwise return as string comparison
-            return x.numVivienda.CompareTo(y.numVivienda);
+            return new M.Lote();
+        }
+
+        internal static M.InEdificios Search(this List<M.InEdificios> listLote, long objToLook)
+        {
+            M.InEdificios edificio = new M.InEdificios();
+
+            for (int i = 0; i < listLote.Count; i++)
+            {
+                edificio = listLote[i];
+
+                if (edificio._long == objToLook)
+                    return edificio;
+            }
+
+            return new M.InEdificios();
+        }
+
+        internal static cadDB.ObjectId Search(this List<cadDB.ObjectId> list, long objToLook)
+        {
+            cadDB.ObjectId id = new cadDB.ObjectId();
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                id = list[i];
+
+                if (id.Handle.Value == objToLook )
+                    return id;
+            }
+
+            return new cadDB.ObjectId();
+        }
+
+        internal static M.AreaComun Search(this List<M.AreaComun> list, long objToLook)
+        {
+            M.AreaComun areaComun = new M.AreaComun();
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                areaComun = list[i];
+
+                if (areaComun._longAreaComun == objToLook)
+                    return areaComun;
+            }
+
+            return new M.AreaComun();
+        }
+
+        internal static M.Apartments Search(this List<M.Apartments> list, long objToLook)
+        {
+            M.Apartments colindante = new M.Apartments();
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                colindante = list[i];
+
+                if (colindante.longPl == objToLook)
+                    return colindante;
+            }
+
+            return new M.Apartments();
+        }
+        internal static M.DescribeLayer Search(this List<M.DescribeLayer> list, string layerToLook)
+        {
+            M.DescribeLayer describe = new M.DescribeLayer();
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                describe = list[i];
+
+                if (describe.Layername == layerToLook)
+                    return describe;
+            }
+
+            return new M.DescribeLayer();
         }
     }
+    
+    //public class CustomComparer : IComparer<M.ColindanciaData>
+    //{
+    //    public int Compare(M.ColindanciaData x, M.ColindanciaData y)
+    //    {
+    //        var regex = new Regex("^(d+)");
+
+    //        // run the regex on both strings
+    //        var xRegexResult = regex.Match(x.Edificio_Lote.ToString());
+    //        var yRegexResult = regex.Match(y.Edificio_Lote.ToString());
+
+    //        // check if they are both numbers
+    //        if (xRegexResult.Success && yRegexResult.Success)
+    //        {
+    //            return int.Parse(xRegexResult.Groups[1].Value).CompareTo(int.Parse(yRegexResult.Groups[1].Value));
+    //        }
+
+    //        // otherwise return as string comparison
+    //        return x.Edificio_Lote.CompareTo(y.Edificio_Lote);
+    //    }
+    //}
 }

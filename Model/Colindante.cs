@@ -36,13 +36,13 @@ namespace RegimenCondominio.M
         /// </summary>
         private static List<InEdificios> edificios = new List<InEdificios>();
 
-        private static List<InLotes> lotes = new List<InLotes>();                      
+        private static List<Lote> lotes = new List<Lote>();                      
 
-        private static ObservableCollection<DescribeError> listadoErrores = new ObservableCollection<DescribeError>();
+        private static ObservableCollection<Error> listadoErrores = new ObservableCollection<Error>();
 
         private static object _lock = new object();
 
-        private static List<DatosColindancia> mainData = new List<DatosColindancia>();        
+        private static List<ColindanciaData> mainData = new List<ColindanciaData>();        
 
         private static List<Apartments> orderedApartments = new List<Apartments>();
 
@@ -54,12 +54,15 @@ namespace RegimenCondominio.M
 
         private static List<M.AreaComun> listCommonArea = new List<M.AreaComun>();
 
+        private static double toleranceError = 0.02;
+
+        private static double dbTextSize = 0.05;
 
         public static List<string> sourceComboError
         {
             get
             {
-                DescribeError db = new DescribeError();
+                Error db = new Error();
                 List<string> properties = new List<string>();
 
                 foreach (PropertyInfo prop in db.GetType().GetProperties())
@@ -152,7 +155,7 @@ namespace RegimenCondominio.M
         /// <summary>
         /// Información Principal en Cálculo de Puntos
         /// </summary>
-        public static List<DatosColindancia> MainData
+        public static List<ColindanciaData> MainData
         {
             get
             {
@@ -165,7 +168,7 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static List<InLotes> Lotes
+        public static List<Lote> Lotes
         {
             get
             {
@@ -178,7 +181,7 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static ObservableCollection<DescribeError> ListadoErrores
+        public static ObservableCollection<Error> ListadoErrores
         {
             get
             {
@@ -314,6 +317,32 @@ namespace RegimenCondominio.M
             set
             {
                 listCommonArea = value;
+            }
+        }
+
+        public static double ToleranceError
+        {
+            get
+            {
+                return toleranceError;
+            }
+
+            set
+            {
+                toleranceError = value;
+            }
+        }
+
+        public static double DbTextSize
+        {
+            get
+            {
+                return dbTextSize;
+            }
+
+            set
+            {
+                dbTextSize = value;
             }
         }
     }

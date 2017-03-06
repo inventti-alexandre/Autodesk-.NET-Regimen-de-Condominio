@@ -3,22 +3,17 @@ using MahApps.Metro.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using RegimenCondominio.C;
 using MahApps.Metro.Controls.Dialogs;
 using System.ComponentModel;
 using Autodesk.AutoCAD.Geometry;
-using System.Windows.Controls.Primitives;
 using System.Diagnostics;
+using FormWindow =  System.Windows.Forms;
 
 namespace RegimenCondominio.V
 {
@@ -37,6 +32,7 @@ namespace RegimenCondominio.V
         {
             ModuloManzana mM = new ModuloManzana();
             Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModelessWindow(mM);
+            M.Constant.IsAutoClose = true;
             this.Close();
         }
 
@@ -44,19 +40,22 @@ namespace RegimenCondominio.V
         {
             ModuloInfoTabla mI = new ModuloInfoTabla();
             Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModelessWindow(mI);
+            M.Constant.IsAutoClose = true;
             this.Close();
         }
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {           
             //Comienzo transacción minimizando
-            this.WindowState = WindowState.Minimized;
+            this.WindowState = WindowState.Minimized;           
+
+            tb1GridColindancia.ItemsSource = M.Colindante.MainData;
 
             //Crea Layers en dado caso que no exista
             string.Format("Creó {0} Layers \n", Met_Colindante.CreateAdjacencyLayers()).ToEditor();
 
             //Encuentro segmentos 
-            ValidateEntityNumbers();                                  
+            CreateAndValidatePolyline();                                  
 
             #region Si es Macrolote
             //Solamente cuando sea Macrolote leo los Macrolotes--------------------------------------
@@ -72,7 +71,7 @@ namespace RegimenCondominio.V
             FillControlsData();            
         }
 
-        private void ValidateEntityNumbers()
+        private void CreateAndValidatePolyline()
         {
             //Inicializo Variables--------------------------------------
 
@@ -93,18 +92,31 @@ namespace RegimenCondominio.V
 
             //Obtengo los lotes dentro de los segmentos
             ObjectIdCollection idsLotes = new ObjectIdCollection();
+            //----------------------------------------------------------   
 
+            //Leo los segmentos seleccionados
+            listSegments = M.Manzana.ColindanciaManzana.Select(x => x.hndPlColindancia.toObjectId()).ToList();
+
+            //Obtengo los Lotes / Macrolotes creando Polilínea
+            idsLotes = Met_Autodesk.GetPolylinesInSegments(listSegments, M.Constant.LayerLote);
+
+            if (idsLotes.Count > 0)
+            {
+                GetInfoLote(idsLotes);
+            }
+            else
+            {
+                this.ShowMessageAsync("Sin Lotes", "No se encontraron Lotes dentro de la Manzana, ejecutar Lectura de Lotes nuevamente");
+            }
+
+        }
+
+        private void GetInfoLote(ObjectIdCollection idsLotes)
+        {
             string LoteOMacroLote = "";//Complementa lbl de Lotes                    
 
             int countLote = 0, //Reviso cuantos Número de Lotes encontré
                 countNumOficial = 0; //Reviso cuantos Números Oficiales encontré
-            //----------------------------------------------------------   
-
-            //Leo los segmentos seleccionados
-            listSegments = M.Manzana.ColindanciaManzana.Select(x => x.HndPlColindancia.toObjectId()).ToList();
-
-            //Obtengo los Lotes / Macrolotes creando Polilínea
-            idsLotes = Met_Autodesk.GetPolylinesInSegments(listSegments, M.Constant.LayerLote);
 
             //Por cada lote encontrado en los segmentos
             foreach (ObjectId idLote in idsLotes)
@@ -148,7 +160,7 @@ namespace RegimenCondominio.V
 
                     valorLote = idTextLote.TextString.GetAfterSpace();
 
-                    if(int.TryParse(valorLote, out numLote))
+                    if (int.TryParse(valorLote, out numLote))
                         countLote++;
                 }
                 else if (idsTextoLotes.Count > 1) //Si encontro más de uno imprimo cuantos encontró
@@ -173,7 +185,7 @@ namespace RegimenCondominio.V
                 //***-----------------------------------------------------------------------------------------
 
                 //Agrego Valor de Lotes
-                M.Colindante.Lotes.Add(new M.InLotes()
+                M.Colindante.Lotes.Add(new M.Lote()
                 {
                     _long = idLote.Handle.Value,
                     numOficial = valorNumOficial,
@@ -181,18 +193,19 @@ namespace RegimenCondominio.V
                 });
             }
 
+
             //Valido si tiene todos los elementos necesarios
             if (countLote == idsLotes.Count && countNumOficial == idsLotes.Count)
             {
-                if (M.Manzana.EsMacrolote)                    
+                if (M.Manzana.EsMacrolote)
                     tb1Paso0.IsEnabled = true;//Activo Paso 0
-                else                    
+                else
                     tb1Paso1.IsEnabled = true;//Activo Paso 1
             }
             else
             {
-                this.ShowMessageAsync("Error de Detección en Lotes",
-                           "La cantidad de Lotes y/o Números Oficiales no es la correcta \n Ir a Detalles > Información del Lote");
+                this.ShowMessageAsync("Error en Lotes",
+                           "La cantidad de Números de Lotes u Oficiales no es la correcta \n Ir a Detalles > Información del Lote");
             }
 
             //Dependiendo de cuantos lotes encontró
@@ -204,7 +217,6 @@ namespace RegimenCondominio.V
             lblGnLotes.Text = idsLotes.Count.ToString() + " " + LoteOMacroLote;
 
             tb2GridLotes.ItemsSource = M.Colindante.Lotes;
-            
         }
 
         private void FillControlsData()
@@ -212,6 +224,8 @@ namespace RegimenCondominio.V
             tb1cmbDecimales.Items.Add("1");
             tb1cmbDecimales.Items.Add("2");
             tb1cmbDecimales.Items.Add("3");
+            tb1cmbDecimales.Items.Add("4");
+            tb1cmbDecimales.Items.Add("5");
 
             //Datos Iniciales
             tb2txtFracc.Text = M.Inicio.Fraccionamiento;
@@ -267,21 +281,17 @@ namespace RegimenCondominio.V
                 if (idPl.OpenEntity().Layer == M.Constant.LayerLote)
                 {
                     //Reviso que este dentro de los Lotes Leídos al Inicio
-                    if (M.Colindante.Lotes.OfType<M.InLotes>()
+                    if (M.Colindante.Lotes.OfType<M.Lote>()
                         .Select(x => new Handle(x._long).toObjectId()).Contains(idPl))
                     {
                         //Busco Edificios y Apartamentos dentro de Macrolote
                         if (!Met_Colindante.noEstaEnEdificios(idPl))
                         {
-                            //Dependiendo de cuantos edificios encuentre los asigno en lbl
-                            if (M.Colindante.Edificios.Count > 0)
-                                lblGnEdificios.Text = string.Format("{0} Edificios", M.Colindante.Edificios.Count);
-                            else
-                                lblGnEdificios.Text = "0 Edificios";
+                            //Dependiendo de cuantos edificios encuentre los asigno en lbl                            
+                            lblGnEdificios.Text = string.Format("{0} Edificios", M.Colindante.Edificios.Count);
 
                             //Asigno Número de Lote
-                            lblMacrolote.Text = M.Colindante.Lotes.Where(x => new Handle(x._long).toObjectId() == idPl)
-                                .FirstOrDefault().numLote.ToString();
+                            lblMacrolote.Text = M.Colindante.Lotes.Search(idPl.Handle.Value).numLote.ToString();
 
                             //Inicializo Obtención de Área Común
                             M.Colindante.ListCommonArea = new List<M.AreaComun>();
@@ -301,35 +311,30 @@ namespace RegimenCondominio.V
                         else
                         {
                             this.ShowMessageAsync("Selección de Edificios",
-                            "Hay un problema dentro del Macrolote, ir a Detalle...");
-
-                            tb2GridErrores.Items.Refresh();
+                            "Hay un problema dentro del Macrolote, ir a Detalle...");                            
                         }
 
                     }
                     else
                         this.ShowMessageAsync("Error de selección",
-                            "El lote seleccionado esta fuera de la Manzana");
+                            "El lote seleccionado esta afuera de la Manzana");
                 }
                 else
                     this.ShowMessageAsync("Error de selección",
-                           string.Format("El lote no tiene el layer {0}", M.Constant.LayerLote));
+                           string.Format("El lote seleccionado no tiene el layer {0}", M.Constant.LayerLote));
                 
             }
             else
             {
-                M.Colindante.ListadoErrores.Add(new M.DescribeError()
+                M.Colindante.ListadoErrores.Add(new M.Error()
                 {
-                    Error = "Id no Valida",
-                    Description = "No se seleccionó Polilínea o se canceló",
+                    error = "Error de Selección",
+                    description = "No se seleccionó Polilínea válida o se canceló",
                     timeError = DateTime.Now.ToString(),
                     tipoError = M.TipoError.Warning,
                     longObject = 0,
-                    Metodo = "tb1SelMacrolote_Click"
-                });
-
-                tb2GridErrores.ItemsSource = null;
-                tb2GridErrores.ItemsSource = M.Colindante.ListadoErrores;
+                    metodo = "ModuloColindante-tb1SelMacrolote_Click"
+                });                
             }
 
             this.WindowState = WindowState.Normal;
@@ -345,7 +350,7 @@ namespace RegimenCondominio.V
             string msg = M.Manzana.EsMacrolote ? "Selecciona Edificio Tipo" : "Selecciona Lote Tipo";
 
             //Inicializo Obtención de Área Común
-            M.Colindante.ListCommonArea = new List<M.AreaComun>();
+            //M.Colindante.ListCommonArea = new List<M.AreaComun>();
 
             this.WindowState = WindowState.Minimized;
 
@@ -366,60 +371,49 @@ namespace RegimenCondominio.V
                         M.Colindante.IdTipo = idPl;
 
                         long l = listaTipo.Where(x => new Handle(x).toObjectId() == idPl)
-                            .FirstOrDefault();
+                                    .FirstOrDefault();
 
-                        string VivTipo = "";
+                        string numVivienda = "";
 
                         if (M.Manzana.EsMacrolote)
-                            VivTipo = M.Colindante.Edificios.Where(x => x._long == l)
-                                .Select(x => x.numEdificio).FirstOrDefault().ToString();
+                        {
+                            numVivienda = M.Colindante.Edificios.Search(l).numEdificio.ToString();
+                        }
                         else
                         {
-                            VivTipo = M.Colindante.Lotes.Where(x => x._long == l)
-                                .Select(x => x.numLote).FirstOrDefault().ToString();
+                            numVivienda = M.Colindante.Lotes.Search(l).numLote.ToString();
 
                             C.Met_Colindante.GetCommonArea(idPl);
                         }
 
-                        lblLoteTipo.Text = VivTipo;
+                        lblLoteTipo.Text = numVivienda;
 
                         //lblLoteTipo.Text = 
                         lblLoteTipo.Visibility = System.Windows.Visibility.Visible;
-                        tb1Paso2.IsEnabled = true;
-                        tb1Paso3.IsEnabled = true;                       
+                        tb1Paso2.IsEnabled = true;                                              
                     }
                     //Cuando el layer de Polilínea no esta dentro del mismo layer
-                    else
-                    {                        
+                    else                                            
                         this.ShowMessageAsync("Error de selección",
-                            "El lote seleccionado esta fuera de la Manzana y/o tiene distinto layer");
-                    }
+                            "La polilínea seleccionada esta afuera de las leídas por la Manzana");
+                    
                 }
                 else
                 {
                     this.ShowMessageAsync("Error de selección",
-                           string.Format("El lote no esta dentró del layer {0}", M.Colindante.LayerTipo));
-
-                    M.Colindante.ListadoErrores.Add(new M.DescribeError()
-                    {
-                        Error = "Layer Inválida",
-                        Description = string.Format("El objeto debe de tener Layer {0}", M.Colindante.LayerTipo),
-                        timeError = DateTime.Now.ToString()
-                    });
-
-                    tb2GridErrores.Items.Refresh();
+                           string.Format("La polilínea no tiene el layer {0}", M.Colindante.LayerTipo));
                 }
             }
             else
             {
-                M.Colindante.ListadoErrores.Add(new M.DescribeError()
+                M.Colindante.ListadoErrores.Add(new M.Error()
                 {
-                    Error = "Id no Valida",
-                    Description = "Id de Polilínea no Válido",
+                    error = "Error de Selección",
+                    description = "No se seleccionó Id Valido o se canceló",
                     timeError = DateTime.Now.ToString(),
                     tipoError = M.TipoError.Warning,
                     longObject = 0,
-                    Metodo = "tb1Sel_Tipo"
+                    metodo = "ModuloColindante-tb1Sel_Tipo_Click"
                 });
 
             }
@@ -432,65 +426,80 @@ namespace RegimenCondominio.V
             //Ids seleccionados
             ObjectIdCollection idsSelected = new ObjectIdCollection();
 
+            //Envío a false selección para que vuelva a evaluar
+            tb1CheckLoteIrregular.IsChecked = false;
+
             //Mensaje a Mostrar
             string msg = M.Manzana.EsMacrolote ? "Selecciona los Edificios irregulares" : "Selecciona los lotes irregulares";
 
             this.WindowState = WindowState.Minimized;
 
             //Selecciona Polilíneas
-            if (Met_Autodesk.SelectPolylines(out idsSelected, msg, M.Colindante.LayerTipo))
+            if (Met_Autodesk.SelectPolylines(out idsSelected, msg, M.Colindante.LayerTipo) && idsSelected.Count > 0)
             {               
-                List<long> listTipo = M.Manzana.EsMacrolote ?  M.Colindante.Edificios.Select(x=> x._long).ToList() : 
-                                                                    M.Colindante.Lotes.Select(x => x._long).ToList();
+                List<long> listTipo = M.Manzana.EsMacrolote ?   M.Colindante.Edificios.Select(x=> x._long).ToList() : 
+                                                                M.Colindante.Lotes.Select(x => x._long).ToList();
 
                 //Obtengo todos los ids en el Lote
-                List<ObjectId> allIdsInLote = listTipo.Select(x => new Handle(x).toObjectId()).ToList();
+                List<ObjectId> allIdsIn = listTipo.Select(x => new Handle(x).toObjectId()).ToList();
 
                 //Todos los ids fuera del lote
-                List<ObjectId> idsAreOut = idsSelected.OfType<ObjectId>().Where(x => !allIdsInLote.Contains(x)).ToList();
+                List<ObjectId> idsAreOut = idsSelected.OfType<ObjectId>()
+                                            .Where(x => !allIdsIn.Contains(x)).ToList();
 
                 //Si ninguno esta afuera de la manzana
                 if (idsAreOut.Count == 0)
                 {
+                    //Lo asigno a los IdsIrregulares
                     M.Colindante.IdsIrregulares = idsSelected;
+
+                    //Envío a siguiente paso
                     tb1Paso3.IsEnabled = true;
+
+                    //Envío a true Lote Irregular
                     tb1CheckLoteIrregular.IsChecked = true;
 
+                    //Si no es macrolote obtengo Área Común de cada uno de ellos
                     if(!M.Manzana.EsMacrolote)
                         foreach(ObjectId idPl in idsSelected)
                             Met_Colindante.GetCommonArea(idPl);
                 }
                 else
                 {
-                    string _in = M.Manzana.EsMacrolote ? "del Macrolote" : "de la Manzana"; 
-                    string msgLote = idsAreOut.Count == 1 ? "Lote seleccionado esta fuera" + _in:
-                                                            "Lotes seleccionados están fuera" + _in;
+                    string _in = M.Manzana.EsMacrolote ? "del Macrolote" : "de la Manzana";
+
+                    string msgOut = idsAreOut.Count == 1 ? "Polilínea seleccionado esta fuera" + _in:
+                                                            "Polilínea seleccionados están fuera" + _in;
 
                     for(int i = 0; i < idsAreOut.Count;i++)
                     {
                         ObjectId id = idsAreOut[i];
-                        M.Colindante.ListadoErrores.Add(new M.DescribeError()
+
+                        M.Colindante.ListadoErrores.Add(new M.Error()
                         {
-                            Error = "Id Inválido",
-                            Description = "El id seleccionado esta afuera " + _in,
+                            error = "Error de selección",
+                            description = "La polilínea seleccionada esta fuera " + _in,
                             timeError = DateTime.Now.ToString(),
                             longObject = id.Handle.Value,
-                            Metodo = "tb1SelMultiple_Click",
+                            metodo = "ModuloColindante-tb1SelMultiple_Click",
                             tipoError = M.TipoError.Error
                         });
 
                     }
 
-                    this.ShowMessageAsync("Error de selección", msgLote);
+                    this.ShowMessageAsync("Error de selección", msgOut);
                 }
             }
             else
             {
-                M.Colindante.ListadoErrores.Add(new M.DescribeError()
+                M.Colindante.ListadoErrores.Add(new M.Error()
                 {
-                    Error = "Ids Invalidos",
-                    Description = "Error al seleccionar Polilíneas en Paso 3",
-                    timeError = DateTime.Now.ToString()
+                    error = "Error de Selección",
+                    description = "No se seleccionaron Ids o se canceló el proceso",
+                    timeError = DateTime.Now.ToString(),
+                    tipoError = M.TipoError.Warning,
+                    longObject = 0,
+                    metodo = "ModuloColindante-tb1SelMultiple_Click"
                 });
             }
 
@@ -501,7 +510,7 @@ namespace RegimenCondominio.V
         private void tb1CalPuntos_Click(object sender, RoutedEventArgs e)
         {
             int cont = 0;
-            Met_Autodesk.CreateLayer(M.Constant.LayerExcRumbos);
+            
             tb1CalPuntos.IsEnabled = false;
             tb1GridColindancia.ItemsSource = null;
             M.Colindante.MainData.Clear();
@@ -541,6 +550,7 @@ namespace RegimenCondominio.V
                             //Genero Descripción de Área Común
                             if (Met_Colindante.GenerateMacroCommonArea())
                             {
+                                //Genero los Edificios restantes que son regulares
                                 if (Met_Colindante.GenerateAllSets(M.Manzana.EsMacrolote))
                                 {
                                     AssignMainData();
@@ -571,9 +581,7 @@ namespace RegimenCondominio.V
                         }
                     }
 
-                }
-                
-                
+                }                               
                 else
                 {
                     RollBackPoints();
@@ -606,8 +614,10 @@ namespace RegimenCondominio.V
 
                     if (siGeneroTodo)
                     {
-                        if (Met_Colindante.GenerateAllSets(M.Manzana.EsMacrolote))                        
-                            AssignMainData();                     
+                        if (Met_Colindante.GenerateAllSets(M.Manzana.EsMacrolote))
+                        {
+                            AssignMainData();
+                        }
                         else
                         {
                             RollBackPoints();
@@ -626,7 +636,6 @@ namespace RegimenCondominio.V
                 }
             }
             #endregion
-
            
             tb1CalPuntos.IsEnabled = true;
 
@@ -644,27 +653,21 @@ namespace RegimenCondominio.V
             //Busco en Lotes que NO son Regulares e Irregulares
             if (tb2GridErrores.Items.NeedsRefresh)
                 tb2GridErrores.Items.Refresh();
-
-            //M.Colindante.MainData.Sort((s1, s2) => s1.numVivienda.CompareTo(s2.numVivienda));                                    
-
-            // var myComparer = new CustomComparer();
-
-            //M.Colindante.MainData.Sort(myComparer);
                        
             tb1GridColindancia.ItemsSource = M.Colindante.MainData;
             CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(this.tb1GridColindancia.ItemsSource);
             view.GroupDescriptions.Clear();
             view.SortDescriptions.Clear();
-            view.SortDescriptions.Add(new SortDescription("numVivienda", ListSortDirection.Ascending));
+            view.SortDescriptions.Add(new SortDescription("Edificio_Lote", ListSortDirection.Ascending));
             view.SortDescriptions.Add(new SortDescription("Apartamento", ListSortDirection.Ascending));
             view.SortDescriptions.Add(new SortDescription("Seccion", ListSortDirection.Ascending));
-            view.GroupDescriptions.Add(new PropertyGroupDescription("numVivienda"));
+            view.GroupDescriptions.Add(new PropertyGroupDescription("Edificio_Lote"));
             view.GroupDescriptions.Add(new PropertyGroupDescription("Apartamento"));
         }
 
         private void RollBackPoints()
         {
-            
+            Met_Colindante.DeleteAdjacencyObjects();
         }
 
         #endregion
@@ -733,7 +736,7 @@ namespace RegimenCondominio.V
 
                     this.tb1GridColindancia.Items.Refresh();
 
-                    this.WindowState = WindowState.Maximized;
+                    this.WindowState = WindowState.Normal;
                 }
             }
         }
@@ -748,33 +751,46 @@ namespace RegimenCondominio.V
             {
                 ModuloInicial mi = new ModuloInicial();
                 mi.Show();
+                M.Constant.IsAutoClose = true;
                 this.Close();
             }
         }
 
         private void DataGridTextColumn_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            TextBlock txt = sender as TextBlock;
-
-            long result = 0;
-
-            if (long.TryParse(txt.Text, out result))
-            {
-                if(result  != 0)
-                {
-                    Handle handle = new Handle(result);
-
-                    ObjectId id = handle.toObjectId();
-
-                    Met_Autodesk.SetImpliedSelection(handle.toObjectId());
-
-                    (id.OpenEntity() as Autodesk.AutoCAD.DatabaseServices.Polyline).Focus(10, 10);
-
-                    this.WindowState = WindowState.Minimized;
-                }
-                
-            }
             
+
+            if (sender is TextBlock)
+            {
+                TextBlock txt = sender as TextBlock;
+
+                long result = 0;
+
+                if (long.TryParse(txt.Text, out result))
+                {
+                    if (result != 0)
+                    {
+                        Handle handle = new Handle(result);
+
+                        ObjectId id = handle.toObjectId();
+
+                        if(id.IsValid)
+                        {
+                            Met_Autodesk.SetImpliedSelection(handle.toObjectId());
+
+                            (id.OpenEntity() as Autodesk.AutoCAD.DatabaseServices.Polyline).Focus(10, 10);
+
+                            this.WindowState = WindowState.Minimized;
+                        }
+                        else
+                        {
+                            MessageBox.Show("Id Inválido");
+                        } 
+                        
+                    }
+
+                }
+            }
         }
 
         private void tb1btnReload_Click(object sender, RoutedEventArgs e)
@@ -782,7 +798,7 @@ namespace RegimenCondominio.V
             //Comienzo transacción minimizando
             this.WindowState = WindowState.Minimized;
 
-            ValidateEntityNumbers();
+            CreateAndValidatePolyline();
 
             //Termino transacción maximizando
             this.WindowState = WindowState.Normal;
@@ -815,7 +831,7 @@ namespace RegimenCondominio.V
 
         public bool Contains(object de)
         {
-            M.DescribeError dError = de as M.DescribeError;
+            M.Error dError = de as M.Error;
 
             //Buscar por ID del Objeto
             if (tb2cmbSearch.SelectedIndex == 0)
@@ -825,16 +841,16 @@ namespace RegimenCondominio.V
                 return dError.timeError.ToUpper().Contains(tb2cmbText.Text.ToUpper());
             //Buscar por Error
             else if (tb2cmbSearch.SelectedIndex == 2)
-                return dError.Error.ToUpper().Contains(tb2cmbText.Text.ToUpper());
+                return dError.error.ToUpper().Contains(tb2cmbText.Text.ToUpper());
             //Buscar por Descripcion
             else if (tb2cmbSearch.SelectedIndex == 3)
-                return dError.Description.ToUpper().Contains(tb2cmbText.Text.ToUpper());
+                return dError.description.ToUpper().Contains(tb2cmbText.Text.ToUpper());
             //Buscar por Tipo de Error
             else if (tb2cmbSearch.SelectedIndex == 4)
                 return dError.tipoError.ToString().ToUpper().Contains(tb2cmbText.Text.ToUpper());
             //Buscar por Metodo
             else if(tb2cmbSearch.SelectedIndex == 5)
-                return dError.Metodo.ToUpper().Contains(tb2cmbText.Text.ToUpper());
+                return dError.metodo.ToUpper().Contains(tb2cmbText.Text.ToUpper());
 
             return false;      
         }
@@ -853,6 +869,83 @@ namespace RegimenCondominio.V
                 if (tb2GridErrores.Items.NeedsRefresh)
                     tb2GridErrores.Items.Refresh();
             }
+        }
+        BackgroundWorker bkWorker;
+        string Path = "";
+
+        private void tb1Export_Click(object sender, RoutedEventArgs e)
+        {
+            if (M.Colindante.MainData.Count > 0 && tb1GridColindancia.Items.Count > 0)
+            {
+                FormWindow.FolderBrowserDialog fd = new FormWindow.FolderBrowserDialog();
+
+                if (fd.ShowDialog() == FormWindow.DialogResult.OK)
+                {
+                    Path = fd.SelectedPath;
+
+                    //Envío Fondo del Botón a Blanco
+                    tb1Export.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom("#FFFFFF"));
+                    tb1Export.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#D3D3D3"));
+                    tb1Export.Content = "Exportando..";
+
+                    //Desplegar progress Ring
+                    tb1ProgressExport.Visibility = System.Windows.Visibility.Visible;
+
+                    bkWorker = new BackgroundWorker();
+                    bkWorker.DoWork += new DoWorkEventHandler(BGWorker_DoWork);
+                    if (bkWorker.IsBusy == false)
+                    {
+                        bkWorker.RunWorkerAsync();
+                    }
+
+                    bkWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
+                }
+            }
+        }
+
+        private void BGWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            System.Data.DataTable dt = M.Colindante.MainData.ConvertToDataTable();
+
+            dt.ToExcel(Path);
+        }
+
+        private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //Desplegar progress Ring
+            tb1ProgressExport.Visibility = System.Windows.Visibility.Collapsed;
+
+            //Envío Fondo del Botón a Blanco
+            tb1Export.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom("#00897B"));
+            tb1Export.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#FFFFFF"));
+            tb1Export.Content = "Exportar";
+
+            Path = "";
+        }
+
+        private void tb1Tools_Click(object sender, RoutedEventArgs e)
+        {
+            ModuloHerramientas mH = new ModuloHerramientas();
+
+            mH.Owner = this;            
+                        
+            Autodesk.AutoCAD.ApplicationServices.Application.ShowModalWindow(mH);
+        }
+
+        private void MetroWindow_Closing(object sender, CancelEventArgs e)
+        {
+            if (!M.Constant.IsAutoClose)
+            {
+                MessageBoxResult dg = MessageBox.Show("¿Desea Cerrar la ventana? \n Se perderá el avance completado", "Cerrando",
+                                            MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
+
+                if (dg == MessageBoxResult.No)
+                    e.Cancel = true;
+                else
+                    C.Met_General.ClearData();
+            }
+            else
+                M.Constant.IsAutoClose = false;
         }
     }
 }
