@@ -4,16 +4,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:metro="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:scroll="clr-namespace:SoftwareArchitects.Windows.Controls"
         xmlns:cscontrol ="clr-namespace:RegimenCondominio.UserControls"
         xmlns:local="clr-namespace:RegimenCondominio.V"
         mc:Ignorable="d"
-        Title="Información de la Tabla" Height="800" Width="1200" MinWidth="1000" TitleCaps="False"
-        ResizeMode="CanResize"                                      
+        Title="Información de la Tabla" Height="600" Width="1200" MinWidth="1000" TitleCaps="False"
+        ResizeMode="CanMinimize"                                      
         Icon="pack://application:,,,/RegimenCondominio;component/Images/JaverIcono.png"
         Loaded="MetroWindow_Loaded"
-                   Closing="MetroWindow_Closing">
+        Closing="MetroWindow_Closing"
+        Name="UI">
     <Window.Resources>
-        
+
         <ResourceDictionary>
             <BitmapImage x:Key="Fondo" UriSource="pack://application:,,,/RegimenCondominio;component/Images/fondo.png" />
 
@@ -26,29 +28,213 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Teal.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            
-        </ResourceDictionary>
-        
-    </Window.Resources>
 
+        </ResourceDictionary>
+
+    </Window.Resources>
     <Grid>
+        
         <Grid.RowDefinitions>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="10*"/>
-            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1.5*"/>
+            <RowDefinition Height="400"/>
+            <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
-        <Border BorderBrush="LightGray" Height="500" 
-                VerticalAlignment="Center" Grid.Row="1" BorderThickness="0,5,0,5">
+        <Grid.Background>
+            <ImageBrush ImageSource="{StaticResource Fondo}"></ImageBrush>
+        </Grid.Background>
+        <Border BorderBrush="LightGray" BorderThickness="2" Grid.Row="0" Margin="5"
+               CornerRadius="2" >
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <DataGrid Grid.Row="2" Width="1500">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" 
+                           Text="Información General" FontWeight="DemiBold" Foreground="#00897B"/>
+                <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="30"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="100"/>
+                    </Grid.ColumnDefinitions>
                     
-                </DataGrid>
+                    <TextBlock Text="Manzana" Margin="5" VerticalAlignment="Center" FontWeight="DemiBold"
+                           Grid.Row="1" Grid.Column="0"></TextBlock>
+                    <TextBox IsEnabled="False" Margin="2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Height="25"></TextBox>
+                   
+                    <TextBlock Text="Número de Lote" Margin="5" VerticalAlignment="Center" FontWeight="DemiBold"
+                           Grid.Row="2" Grid.Column="0"></TextBlock>
+                    <ComboBox Margin="2" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Height="25"></ComboBox>
+                </Grid>
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="30"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Content="Exportar" Grid.Row="1" Grid.Column="1"></Button>
+                </Grid>
             </Grid>
         </Border>
+        
+        <Border BorderBrush="LightGray"  
+                VerticalAlignment="Center" Grid.Row="1" BorderThickness="0,5,0,5" Height="400" Margin="0,7,0,11">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Grid>
+                    <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                                  ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                                  scroll:ScrollSynchronizer.ScrollGroup="Group1"
+                                  HorizontalAlignment="Left" Grid.Column="1" Grid.Row="1" >
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Row="0">
+                                <Border BorderBrush="Black" BorderThickness="1">
+                                    <TextBlock Text="DATOS GENERALES" Width="200"  FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="LightBlue"></TextBlock>
+                                </Border>
+                            </StackPanel>
+                            <DataGrid Name="dtHeader"
+                                      Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
+                              HorizontalGridLinesBrush="LightGray"
+                              VerticalGridLinesBrush="Black" GridLinesVisibility="Horizontal" Background="Transparent">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn  Width="100" Binding="{ Binding NoOficial}" 
+                                                 IsReadOnly="True">
+                                        <DataGridTextColumn.Header>
+                                            <TextBlock Text="No. Oficial"></TextBlock>
+                                        </DataGridTextColumn.Header>
+                                    </DataGridTextColumn>
+
+                                    <DataGridTextColumn  Width="100" Binding="{ Binding Apartamento}" 
+                                                 IsReadOnly="True">
+                                        <DataGridTextColumn.Header>
+                                            <TextBlock Text="Apartamento"></TextBlock>
+                                        </DataGridTextColumn.Header>
+                                    </DataGridTextColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                        </Grid>
+                    </ScrollViewer>
+                </Grid>
+
+                <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Visible" scroll:ScrollSynchronizer.ScrollGroup="Group1"
+                              Grid.Row="0" HorizontalAlignment="Left" Grid.Column="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"></RowDefinition>
+                            <RowDefinition Height="*"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Row="0">
+                            <Border BorderBrush="Black" BorderThickness="1,1,0,1" Width="700" >
+                                <TextBlock Text="ÁREA TOTAL CUBIERTA" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="LightBlue"></TextBlock>
+                            </Border>
+                            <Border BorderBrush="Black" BorderThickness="1" Width="700">
+                                <TextBlock Text="ÁREA TOTAL DESCUBIERTA" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="LightBlue"></TextBlock>
+                            </Border>
+                        </StackPanel>
+                        <DataGrid Grid.Column="1" Name="dtDetalle"
+                              VerticalAlignment="Stretch" AutoGenerateColumns="False" Grid.Row="1"
+                                HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="Black" 
+                                  HorizontalScrollBarVisibility="Auto"
+                                  GridLinesVisibility="Horizontal" CanUserAddRows="False" Background="Transparent">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn  Width="100" Binding="{ Binding CPlantaBaja}" 
+                                                 IsReadOnly="False">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Planta Baja"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding CPlantaAlta}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Planta Alta"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding CLavanderia}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Lavandería"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding CEstacionamiento}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Estacionamiento"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding CPasillo}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Pasillo"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding CPatio}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Patio"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding AreaTotalCubierta}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Área Cubierta"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{ Binding CPlantaBaja}" 
+                                                 IsReadOnly="False">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Planta Baja"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding CPlantaAlta}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Planta Alta"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding CLavanderia}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Lavandería"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding CEstacionamiento}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Estacionamiento"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding CPasillo}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Pasillo"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding CPatio}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Patio"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding AreaTotalCubierta}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Área Cubierta"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
     </Grid>
+
 </metro:MetroWindow>

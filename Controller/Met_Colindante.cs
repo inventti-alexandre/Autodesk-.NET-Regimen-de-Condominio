@@ -1487,7 +1487,7 @@ namespace RegimenCondominio.C
             catch(Exception ex)
             {
                 ex.Message.ToEditor();
-                "GenerateAllSets_Error".ToEditor();
+                "\n GenerateAllSets_Error".ToEditor();
                 isCorrect = false;
             }
 
@@ -2631,7 +2631,7 @@ namespace RegimenCondominio.C
                                         M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);                                                        
 
                                         if (areaComun != null && areaComun != new M.AreaComun())
-                                            seccionColindancia = areaComun.nombreAreaComun;
+                                            seccionColindancia = (areaComun.nombreAreaComun ?? "").FormatString();
                                         else
                                             seccionColindancia = Translate(idSeccion.OpenEntity().Layer);
 
@@ -2659,7 +2659,7 @@ namespace RegimenCondominio.C
                                         M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);                                                        
 
                                         if (areaComun != null && areaComun != new M.AreaComun())
-                                            seccionColindancia = areaComun.nombreAreaComun.FormatString();
+                                            seccionColindancia = (areaComun.nombreAreaComun ?? "").FormatString();
                                         else
                                             seccionColindancia = Translate(idSeccion.OpenEntity().Layer);
 

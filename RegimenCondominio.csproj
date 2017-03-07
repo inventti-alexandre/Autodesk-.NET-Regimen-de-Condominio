@@ -32,7 +32,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -109,8 +109,10 @@
     <Compile Include="Model\Colindante.cs" />
     <Compile Include="Model\Constant.cs" />
     <Compile Include="Model\DataClass.cs" />
+    <Compile Include="Model\InfoTabla.cs" />
     <Compile Include="Model\Inicio.cs" />
     <Compile Include="Model\Manzana.cs" />
+    <Compile Include="ScrollSynchronizer.cs" />
     <Compile Include="UserControls\CsNormalCombo.xaml.cs">
       <DependentUpon>CsNormalCombo.xaml</DependentUpon>
     </Compile>

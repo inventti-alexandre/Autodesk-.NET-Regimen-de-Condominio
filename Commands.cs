@@ -18,8 +18,10 @@ namespace RegimenCondominio
         public void IniciaReg()
         {
             //V.ModuloColindante win = new V.ModuloColindante();
-            V.ModuloInicial win = new V.ModuloInicial();
-            Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModelessWindow(win);
+            //V.ModuloInicial win = new V.ModuloInicial();
+            V.ModuloInfoTabla win = new V.ModuloInfoTabla();
+            win.Show();
+            
         }
 
         [CommandMethod("DICTIONARY_ENTITIES")]
