@@ -221,26 +221,7 @@ namespace RegimenCondominio.M
             {
                 return C.Met_General.GetAllLayers();
             }
-        }
-
-        public static SelectionFilter LineFilter
-        {
-            get
-            {
-                //RXClass nos sirve para obtener el nombre del DXF en AutoCAD
-                //El Start nos sirve para definir el tipo de entidad a filtrar
-                return new SelectionFilter(
-                    new TypedValue[]
-                                    {
-                                        new TypedValue((int)DxfCode.Operator,"<and"),
-                                        new TypedValue((int)DxfCode.Operator,"<or"),
-                                        new TypedValue((int)DxfCode.Start, RXClass.GetClass(typeof(Polyline)).DxfName),
-                                        new TypedValue((int)DxfCode.Operator,"or>"),
-                                        new TypedValue((int)DxfCode.Start, RXClass.GetClass(typeof(Line)).DxfName),
-                                        new TypedValue((int)DxfCode.Operator,"and>")
-                                    });
-            }
-        }
+        }        
 
         public static object Lock
         {

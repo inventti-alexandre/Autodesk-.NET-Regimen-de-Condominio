@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         Title="Herramientas" Height="400" Width="400" TitleCaps="False"
         WindowStartupLocation="CenterScreen" 
-                   ResizeMode="CanMinimize" Loaded="MetroWindow_Loaded">
+        ResizeMode="CanMinimize" Loaded="MetroWindow_Loaded">
     <Window.Resources>
         <ResourceDictionary>
 

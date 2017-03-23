@@ -6,17 +6,34 @@
         xmlns:metro="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:scroll="clr-namespace:SoftwareArchitects.Windows.Controls"
         xmlns:cscontrol ="clr-namespace:RegimenCondominio.UserControls"
+        xmlns:model="clr-namespace:RegimenCondominio.M"
         xmlns:local="clr-namespace:RegimenCondominio.V"
         mc:Ignorable="d"
-        Title="Información de la Tabla" Height="600" Width="1200" MinWidth="1000" TitleCaps="False"
-        ResizeMode="CanMinimize"                                      
+        Title="Información de la Tabla" Height="650" Width="1200" MinWidth="1200" MinHeight="600"  TitleCaps="False"
+        ResizeMode="CanResize"     
+        WindowStartupLocation="CenterScreen"
         Icon="pack://application:,,,/RegimenCondominio;component/Images/JaverIcono.png"
-        Loaded="MetroWindow_Loaded"
+        Loaded="MetroWindow_Loaded"                
         Closing="MetroWindow_Closing"
         Name="UI">
     <Window.Resources>
 
         <ResourceDictionary>
+            <!--ACCENT COLORS-->
+            <SolidColorBrush x:Key="HighlightBrush" Color="#6cb1e6"/>
+            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#6cb1e6" />
+
+            <SolidColorBrush x:Key="AccentColorBrush" Color="#6cb1e6" />
+            <SolidColorBrush x:Key="AccentColorBrush2" Color="#6cb1e6" />
+            <SolidColorBrush x:Key="AccentColorBrush3" Color="#6cb1e6" />
+            <SolidColorBrush x:Key="AccentColorBrush4" Color="#6cb1e6"/>
+
+            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#00897B" />
+
+            <SolidColorBrush x:Key="MetroDataGrid.HighlightBrush" Color="#6cb1e6"/>
+
+            <Image x:Key="GoBack" Source="pack://application:,,,/RegimenCondominio;component/Images/NewGoBack.png"                    
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <BitmapImage x:Key="Fondo" UriSource="pack://application:,,,/RegimenCondominio;component/Images/fondo.png" />
 
             <ResourceDictionary.MergedDictionaries>
@@ -33,26 +50,317 @@
 
     </Window.Resources>
     <Grid>
-        
+
         <Grid.RowDefinitions>
-            <RowDefinition Height="1.5*"/>
-            <RowDefinition Height="400"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="150"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="80"/>
         </Grid.RowDefinitions>
         <Grid.Background>
             <ImageBrush ImageSource="{StaticResource Fondo}"></ImageBrush>
         </Grid.Background>
-        <Border BorderBrush="LightGray" BorderThickness="2" Grid.Row="0" Margin="5"
-               CornerRadius="2" >
-            <Grid>
 
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" 
-                           Text="Información General" FontWeight="DemiBold" Foreground="#00897B"/>
+        <!--GRID ROW 0-->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="103*"/>
+                <RowDefinition Height="47*"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border BorderBrush="LightGray" BorderThickness="1" Grid.Row="0" Margin="5" Grid.Column="0"
+               CornerRadius="2" Grid.RowSpan="2" x:Name="bPaso0">
+                <Grid Grid.Row="0" Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="53*"/>
+                        <ColumnDefinition Width="43*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="51"/>
+                        <RowDefinition Height="27"/>
+                        <RowDefinition Height="60"/>
+                    </Grid.RowDefinitions>
+                    <Border BorderBrush="Black" BorderThickness="0,0,0,1" 
+                                Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                                Background="Transparent" Grid.ColumnSpan="2" Width="288">
+                        <TextBlock Text="1. Lotes con calle a espaldas de Rumbo de Frente"
+                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                                       VerticalAlignment="Top" x:Name="txtPaso0" Width="477" />
+                    </Border>
+                    <TextBlock x:Name="txtCalleInversa" Text="Sin Asignar" HorizontalAlignment="Left" Foreground="Black"
+                               Margin="5,0,0,1" Height="16" FontWeight="DemiBold" VerticalAlignment="Bottom"/>
+                    <TextBlock x:Name="txtRumboInverso" Text="Sin Asignar" HorizontalAlignment="Left" Foreground="Black"
+                               Margin="5,5,0,6" FontWeight="DemiBold" Grid.Row="1"/>
+                    <StackPanel Orientation="Vertical" Grid.Row="2" VerticalAlignment="Top" Height="43">
+                        <TextBlock Text="Filtrar por" HorizontalAlignment="Left"
+                               Margin="5,0,0,1" Height="16" Width="65"/>
+                        <ComboBox x:Name="cmbAsignadoPor" Grid.Row="2" Width="90" HorizontalAlignment="Left"
+                              VerticalAlignment="Top" Height="25" Margin="5,0,1,0" Background="White" SelectionChanged="cmbAsignadoPor_SelectChanged"/>
+                    </StackPanel>
+
+                    <CheckBox HorizontalAlignment="Right" Grid.Row="0" Grid.Column="1" Height="25" Name="checkAll"
+                              VerticalAlignment="Bottom" FlowDirection="RightToLeft" Margin="0,0,5,0"
+                              Checked="checkAll_Checked" Unchecked="checkAll_Unchecked">
+                        <CheckBox.Content>
+                            <TextBlock Text="Marcar Todo" VerticalAlignment="Bottom"/>
+                        </CheckBox.Content>
+                    </CheckBox>
+                    <ListBox Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" Height="80" Name="lBoxLoteCalle"
+                             Grid.RowSpan="2" Grid.Column="1" Background="White" VerticalAlignment="Top" Margin="5,2,5,2">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsChecked}" 
+                                          Content="{Binding Path=Item.Name}" FlowDirection="RightToLeft" HorizontalAlignment="Left"
+                                          Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                </Grid>
+            </Border>
+            <Border x:Name="bPaso1" BorderBrush="LightGray" BorderThickness="1" Grid.Row="0" Margin="5" Grid.Column="1"
+               CornerRadius="2" Grid.RowSpan="2" IsEnabled="False">
+                <Grid Grid.Row="0" Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="1.5*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border BorderBrush="Black" BorderThickness="0,0,0,1" 
+                                Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                                Background="Transparent" Grid.ColumnSpan="2" Width="338">
+                        <TextBlock x:Name="txtPaso1"
+                    		FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                    		VerticalAlignment="Top" Width="477" Text="2. Llenado de la Tabla"/>
+                    </Border>
+                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="0,0,0,1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Row="1"                                
+                                Background="Transparent" Grid.Column="0">
+                                <StackPanel HorizontalAlignment="Center" Margin="1,8,1,1">
+                                    <TextBlock x:Name="txtLotesBase" Foreground="LightGray"
+                                        Text="Lote Regular e Irregular" FontWeight="DemiBold" 
+                                               />
+                                    <ComboBox x:Name="cmbLotesBase" SelectionChanged="cmbLotesBase_SelectChanged"
+                                                          Width="150" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="1"                                
+                                Background="Transparent" Grid.Column="1">
+                                <StackPanel HorizontalAlignment="Center" Margin="1,8,1,1">
+                                    <TextBlock Text="Lotes Tipo" FontWeight="DemiBold" 
+                                               x:Name="txtLotesTipo" Foreground="LightGray"/>
+                                    <ComboBox  x:Name="cmbLotesTipo"
+                                                           Width="150" SelectionChanged="cmbLotesTipo_SelectChanged"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Grid.Row="2"                                
+                                Background="Transparent" Grid.ColumnSpan="2">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"
+                                    VerticalAlignment="Center" Margin="10,0,0,0">
+                                <TextBlock Text="Lote Actual es: " FontWeight="DemiBold" Foreground="LightGray"
+                                               Visibility="Visible" Margin="0,0,5,0" x:Name="lblLoteActual"/>
+                                <TextBlock Text="Sin Asignar" FontWeight="DemiBold" Foreground="LightGray"
+                                               Visibility="Visible" Margin="0,0,0,0" x:Name="txtTipoLoteActual"/>
+
+                            </StackPanel>
+                            <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="2"  Margin="10,0,0,0"
+                                    Grid.Row="2" Grid.Column="1" Height="25" Width="150" HorizontalAlignment="Left">
+                                <Grid>
+                                    <ProgressBar x:Name="ProgressLote" Width="150" Height="30" Value="0" Foreground="#6cb1e6" MouseDoubleClick="ProgressBar_MouseDoubleClick"
+                                             BorderBrush="Transparent" Background="Transparent" BorderThickness="0">
+                                    </ProgressBar>
+                                    <TextBlock Text="" Foreground="LightGray" FontWeight="DemiBold"
+                                               VerticalAlignment="Center" HorizontalAlignment="Center"
+                                               x:Name="lblProgreso"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                </Grid>
+            </Border>
+
+            <Border BorderBrush="#D8D8D8" CornerRadius="5" Grid.Column="2" x:Name="tb2BordDtInicial"
+                        BorderThickness="1" Background="Transparent" Margin="10,5,10,5"
+                        IsEnabled="False" Grid.Row="0">
                 <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="20"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="105*"/>
+                        <ColumnDefinition Width="217*"/>
+                        <ColumnDefinition Width="137*"/>
+                        <ColumnDefinition Width="61*"/>
+                    </Grid.ColumnDefinitions>
+                    <!--D8D8D8-->
+                    <Border BorderBrush="Black" BorderThickness="0,0,0,1" 
+                                Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                                Background="Transparent" Grid.ColumnSpan="4">
+                        <TextBlock Text="Datos Generales"
+                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                                       VerticalAlignment="Top" x:Name="txtDetalleInicial" Width="1000"/>
+                    </Border>
+                    <!--FRACCIONAMIENTO-->
+                    <TextBlock Text="Fraccionamiento: " Grid.Row="1" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom"  Margin="3,0,0,3" Height="16"/>
+                    <TextBlock x:Name="txtFraccionamiento" Text="Sin Asignar" Grid.Row="1"  Grid.Column="1" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" Height="16"/>
+                    <!--FIN FRACCIONAMIENTO-->
+
+                    <!--MANZANA-->
+                    <TextBlock Text="Manzana: " Grid.Row="2" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" Height="16"/>
+                    <TextBlock Text="Sin Asignar" Grid.Row="2"  Grid.Column="1" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" x:Name="txtManzana" Height="16"/>
+                    <!--FIN MANZANA-->
+                    <!--RUMBO DE FRENTE-->
+                    <TextBlock Text="Rumbo de Frente" Grid.Row="3" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" Height="16"/>
+                    <TextBlock x:Name="txtRumboFrente" Text="Sin Asignar" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" Height="16"/>
+                    <!--FIN RUMBO DE FRENTE-->
+
+                    <!--NO. DE LOTES-->
+                    <TextBlock Text="# de Lotes" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" Height="16"/>
+                    <TextBlock x:Name="txtNoLotes" Text="0" Grid.Row="1" Grid.Column="3"  HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" Height="16"/>
+                    <!--FIN NO. DE LOTES-->
+
+                    <!--NO. DE APS-->
+                    <TextBlock Text="# de Apartamentos " Grid.Row="2" Grid.Column="2" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" Height="16"/>
+                    <TextBlock x:Name="txtNoApartamentos" Text="0" Grid.Row="2" Grid.Column="3"  HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" Height="16"/>
+                    <!--NO. DE APS-->
+
+                    <!--NO. DE EDIFICIOS-->
+                    <TextBlock Text="# de Edificios " Grid.Row="3" Grid.Column="2" HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3" Height="16"/>
+                    <TextBlock x:Name="txtNoEdificios" Text="0" Grid.Row="3" Grid.Column="3"  HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" Margin="3,0,0,3"  Height="16"/>
+                    <!--NO. DE EDIFICIOS-->
+                </Grid>
+            </Border>
+            <!--  <Border BorderBrush="#D8D8D8" CornerRadius="5" Grid.Column="2"
+                        BorderThickness="1" Background="Transparent" Margin="10,5,10,5"
+                        IsEnabled="False" Grid.Row="1">-->
+            <Grid Grid.Row="1"  Margin="10,5,10,5" Grid.Column="2">
+                <ToolBar BorderBrush="LightGray" BorderThickness="1">
+                    <Menu Background="Transparent" VerticalAlignment="Center">
+                        <MenuItem Background="Transparent" BorderBrush="Transparent" VerticalAlignment="Center" 
+                                  Margin="0,0,10,0" BorderThickness="0,0,0,0" Click="btnRevisarLoteActual_Click" 
+                                      x:Name="btnRevisarLoteActual">
+                            <MenuItem.Header>
+                                <DockPanel Background="Transparent">
+                                    <Image Height="20" VerticalAlignment="Center"
+                                           Source="pack://application:,,,/RegimenCondominio;component/Images/ok.png"
+                                           ></Image>
+                                    <TextBlock FontWeight="DemiBold" Text="Revisar" Margin="2" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"></TextBlock>
+                                </DockPanel>
+                            </MenuItem.Header>
+                        </MenuItem>
+                        <MenuItem Background="Transparent" BorderBrush="Transparent" VerticalAlignment="Center"                                   
+                                  Margin="0,0,10,0" BorderThickness="0,0,0,0">
+                            <MenuItem.Header>
+                                <DockPanel Background="Transparent" VerticalAlignment="Center">
+                                    <TextBlock FontWeight="DemiBold" Text="Exportar" Margin="2" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"></TextBlock>
+                                    <Image Height="10" VerticalAlignment="Center"
+                                           Source="pack://application:,,,/RegimenCondominio;component/Images/arrowDown.png"
+                                           ></Image>
+                                </DockPanel>
+                            </MenuItem.Header>
+                            <MenuItem Height="30" Background="Transparent" BorderBrush="Transparent" x:Name="btnExportarAutocad"
+                                      Click="btnExportarAutocad_Click">
+                                <MenuItem.Header>
+                                    <DockPanel Background="Transparent">
+                                        <Image Height="30" VerticalAlignment="Center"
+                                           Source="pack://application:,,,/RegimenCondominio;component/Images/autodeskIcon.png"
+                                           ></Image>
+                                        <Label>Autocad</Label>
+                                    </DockPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Height="30" Background="Transparent" BorderBrush="Transparent"
+                                      x:Name="btnExportarExcel" Click="btnExportarExcel_Click">
+                                <MenuItem.Header>
+                                    <DockPanel Background="Transparent">
+                                        <Image VerticalAlignment="Center" Height="30"
+                                           Source="pack://application:,,,/RegimenCondominio;component/Images/excelNew.png"
+                                           ></Image>
+                                        <Label>Excel</Label>
+                                    </DockPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </MenuItem>
+                        <MenuItem Background="Transparent" BorderBrush="Transparent" VerticalAlignment="Center" 
+                                  Margin="0,0,10,0" BorderThickness="0,0,0,0" Visibility="Collapsed">
+                            <MenuItem.Header>
+                                <DockPanel Background="Transparent" VerticalAlignment="Center">
+                                    <TextBlock FontWeight="DemiBold" Text="Columnas" Margin="2" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"></TextBlock>
+                                    <Image Height="10" VerticalAlignment="Center"
+                                           Source="pack://application:,,,/RegimenCondominio;component/Images/arrowDown.png"
+                                           ></Image>
+                                </DockPanel>
+                            </MenuItem.Header>
+                        </MenuItem>
+                        <MenuItem Background="Transparent" BorderBrush="Transparent"
+                                  VerticalAlignment="Center" Margin="0,0,15,0" BorderThickness="0,0,0,0">
+                            <MenuItem.Header>
+                                <DockPanel>
+                                    <Image VerticalAlignment="Center" Height="20"
+                                                       Source="pack://application:,,,/RegimenCondominio;component/Images/deleteGreen.png" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Limpiar" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="DemiBold"/>
+                                </DockPanel>
+                            </MenuItem.Header>
+                        </MenuItem>
+                        <MenuItem Background="Transparent" BorderBrush="Transparent" 
+                                  VerticalAlignment="Center" Margin="0,0,10,0" BorderThickness="0,0,0,0">
+                            <MenuItem.Header>
+                                <DockPanel>
+                                    <Image VerticalAlignment="Center" Height="20"
+                                                       Source="pack://application:,,,/RegimenCondominio;component/Images/HomeGreen.png" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Ir a Inicio" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="DemiBold"/>
+                                </DockPanel>
+                            </MenuItem.Header>
+                        </MenuItem>
+
+                    </Menu>
+                </ToolBar>
+            </Grid>
+            <!-- </Border>-->
+            <!--
+                <Grid >
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Grid.ColumnSpan="2"
+                           Text="Información General" FontWeight="DemiBold" Foreground="#00897B"/>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="30"/>
@@ -82,56 +390,73 @@
                     </Grid.ColumnDefinitions>
                     <Button Content="Exportar" Grid.Row="1" Grid.Column="1"></Button>
                 </Grid>
-            </Grid>
-        </Border>
-        
-        <Border BorderBrush="LightGray"  
-                VerticalAlignment="Center" Grid.Row="1" BorderThickness="0,5,0,5" Height="400" Margin="0,7,0,11">
+                 -->
+        </Grid>
+
+
+        <!--GRID ROW 1-->
+        <Border BorderBrush="LightGray" BorderThickness="0,5,0,5" Grid.Row="1">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="200"></ColumnDefinition>
+                    <ColumnDefinition Width="350"></ColumnDefinition>
                     <ColumnDefinition Width="*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <Grid>
-                    <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+
+                <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Auto" 
                                   ScrollViewer.VerticalScrollBarVisibility="Hidden"
                                   scroll:ScrollSynchronizer.ScrollGroup="Group1"
-                                  HorizontalAlignment="Left" Grid.Column="1" Grid.Row="1" >
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="30"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                            </Grid.RowDefinitions>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Row="0">
-                                <Border BorderBrush="Black" BorderThickness="1">
-                                    <TextBlock Text="DATOS GENERALES" Width="200"  FontWeight="DemiBold" TextAlignment="Center"
+                                  HorizontalAlignment="Left" Grid.Column="0" Grid.Row="0" >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"></RowDefinition>
+                            <RowDefinition Height="*"></RowDefinition>
+                            <RowDefinition Height="25"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Row="0">
+                            <Border BorderBrush="#A4A4A4" BorderThickness="1">
+                                <TextBlock x:Name="txtDGVDatosLote" Text="DATOS LOTE ACTUAL" Width="350"  FontWeight="DemiBold" TextAlignment="Center"
                                    Background="LightBlue"></TextBlock>
-                                </Border>
-                            </StackPanel>
-                            <DataGrid Name="dtHeader"
+                            </Border>
+                        </StackPanel>
+                        <DataGrid Name="dtHeader" IsHitTestVisible="False" CanUserSortColumns="False"
                                       Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
                               HorizontalGridLinesBrush="LightGray"
                               VerticalGridLinesBrush="Black" GridLinesVisibility="Horizontal" Background="Transparent">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn  Width="100" Binding="{ Binding NoOficial}" 
-                                                 IsReadOnly="True">
-                                        <DataGridTextColumn.Header>
-                                            <TextBlock Text="No. Oficial"></TextBlock>
-                                        </DataGridTextColumn.Header>
-                                    </DataGridTextColumn>
-
-                                    <DataGridTextColumn  Width="100" Binding="{ Binding Apartamento}" 
-                                                 IsReadOnly="True">
-                                        <DataGridTextColumn.Header>
-                                            <TextBlock Text="Apartamento"></TextBlock>
-                                        </DataGridTextColumn.Header>
-                                    </DataGridTextColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
-
-                        </Grid>
-                    </ScrollViewer>
-                </Grid>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn  Width="170" Binding="{ Binding Calle}" 
+                                                 IsReadOnly="True" x:Name="ColCalle">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Calle"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="80" Binding="{ Binding NoOficial}" 
+                                                 IsReadOnly="True" x:Name="ColNoOficial">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="No. Oficial"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="80" Binding="{ Binding NumEdificio}" 
+                                                 IsReadOnly="True" x:Name="ColEdificio" Visibility="Collapsed">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Edificio"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding Apartamento}" 
+                                                 IsReadOnly="True" x:Name="ColApartamento">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="AP"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Row="2">
+                            <Border BorderBrush="LightGray" BorderThickness="1">
+                                <TextBlock Text="Total" Width="350"  FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="LightGray"></TextBlock>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
 
                 <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Visible" scroll:ScrollSynchronizer.ScrollGroup="Group1"
                               Grid.Row="0" HorizontalAlignment="Left" Grid.Column="1">
@@ -139,102 +464,327 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"></RowDefinition>
                             <RowDefinition Height="*"></RowDefinition>
+                            <RowDefinition Height="25"></RowDefinition>
                         </Grid.RowDefinitions>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Row="0">
-                            <Border BorderBrush="Black" BorderThickness="1,1,0,1" Width="700" >
+                            <Border BorderBrush="#A4A4A4" BorderThickness="1,1,0,1" Width="700" x:Name="bordCubierto">
                                 <TextBlock Text="ÁREA TOTAL CUBIERTA" FontWeight="DemiBold" TextAlignment="Center"
                                    Background="LightBlue"></TextBlock>
                             </Border>
-                            <Border BorderBrush="Black" BorderThickness="1" Width="700">
+                            <Border BorderBrush="#A4A4A4" BorderThickness="1" Width="500" x:Name="bordDescubierto">
                                 <TextBlock Text="ÁREA TOTAL DESCUBIERTA" FontWeight="DemiBold" TextAlignment="Center"
                                    Background="LightBlue"></TextBlock>
                             </Border>
+                            <Border BorderBrush="#A4A4A4" BorderThickness="1,1,0,1" Width="200">
+                                <TextBlock Text="" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="Transparent"></TextBlock>
+                            </Border>
+                            <Border BorderBrush="#A4A4A4" BorderThickness="0,1,0,1" Visibility="Collapsed" Width="100" x:Name="bordAreaExcl">
+                                <TextBlock Text="" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="Transparent"></TextBlock>
+                            </Border>
+                            <Border BorderBrush="LightGray" BorderThickness="0,1,1,1" Width="100">
+                                <TextBlock Text="" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="Transparent"></TextBlock>
+                            </Border>
+                            <Border BorderBrush="#A4A4A4" BorderThickness="1" Width="300">
+                                <TextBlock Text="DATOS DEL PREDIO" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="LightBlue"></TextBlock>
+                            </Border>
+                            <Border BorderBrush="#A4A4A4" BorderThickness="1" Width="250">
+                                <TextBlock Text="" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="Transparent"></TextBlock>
+                            </Border>
                         </StackPanel>
-                        <DataGrid Grid.Column="1" Name="dtDetalle"
-                              VerticalAlignment="Stretch" AutoGenerateColumns="False" Grid.Row="1"
-                                HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="Black" 
-                                  HorizontalScrollBarVisibility="Auto"
-                                  GridLinesVisibility="Horizontal" CanUserAddRows="False" Background="Transparent">
+                        <DataGrid Grid.Column="1" Grid.Row="1" Name="dtDetalle" 
+                              VerticalAlignment="Stretch" AutoGenerateColumns="False" CanUserSortColumns="False"
+                                HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" 
+                                  CellEditEnding="dtDetalle_CellEditEnding"                                   
+                                  DataGridCell.Selected ="dtDetalle_Selected"
+                                  SelectionChanged="dtDetalle_SelectionChanged"
+                                  HorizontalScrollBarVisibility="Auto" 
+                                  GridLinesVisibility="All" 
+                                  CanUserAddRows="False" 
+                                  MouseMove="dtDetalle_MouseMove"
+                                  Background="Transparent">
+                            <DataGrid.CommandBindings>
+                                <CommandBinding Command="{x:Static ApplicationCommands.Paste}" CanExecute="CanPaste" Executed="Paste"/>
+                            </DataGrid.CommandBindings>
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Command="{x:Static ApplicationCommands.Paste}" Header=""
+                                              x:Name="MenuItemCol"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
                             <DataGrid.Columns>
-                                <DataGridTextColumn  Width="100" Binding="{ Binding CPlantaBaja}" 
-                                                 IsReadOnly="False">
+                                <DataGridTextColumn  Width="100" Binding="{Binding CPlantaBaja}"
+                                                     x:Name="colCubPB">
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="Planta Baja"></TextBlock>
                                     </DataGridTextColumn.Header>
+                                    
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding CPlantaAlta}">
+                                <DataGridTextColumn  Width="100" Binding="{Binding CPlantaAlta}"
+                                                     x:Name="colCubPA">
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="Planta Alta"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding CLavanderia}">
+                                <DataGridTextColumn  Width="100" Binding="{Binding CLavanderia}"
+                                                     x:Name="colCubLavanderia">
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="Lavandería"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding CEstacionamiento}">
+                                <DataGridTextColumn  Width="100" Binding="{Binding CEstacionamiento}"
+                                                     x:Name="colCubEstac">
                                     <DataGridTextColumn.Header>
-                                        <TextBlock Text="Estacionamiento"></TextBlock>
+                                        <TextBlock Text="Estacionamiento" FontSize="10.4"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding CPasillo}">
+                                <DataGridTextColumn  Width="100" Binding="{Binding CPasillo}"
+                                                     x:Name="colCubPasillo">
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="Pasillo"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding CPatio}">
+                                <DataGridTextColumn  Width="100" Binding="{Binding CPatio}"
+                                                     x:Name="colCubPatio">
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="Patio"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding AreaTotalCubierta}">
+                                <DataGridTextColumn  Width="100" Binding="{Binding AreaTotalCubierta}" IsReadOnly="True">
                                     <DataGridTextColumn.Header>
-                                        <TextBlock Text="Área Cubierta"></TextBlock>
+                                        <TextBlock Text="Total Cubierto"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{ Binding CPlantaBaja}" 
-                                                 IsReadOnly="False">
-                                    <DataGridTextColumn.Header>
-                                        <TextBlock Text="Planta Baja"></TextBlock>
-                                    </DataGridTextColumn.Header>
-                                </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding CPlantaAlta}">
-                                    <DataGridTextColumn.Header>
-                                        <TextBlock Text="Planta Alta"></TextBlock>
-                                    </DataGridTextColumn.Header>
-                                </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding CLavanderia}">
+                                <DataGridTextColumn  Width="100" Binding="{Binding DLavanderia}"
+                                                     x:Name="colDescLav">
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="Lavandería"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding CEstacionamiento}">
+                                <DataGridTextColumn  Width="100" Binding="{Binding DEstacionamiento}"
+                                                     x:Name="colDescEstac">
                                     <DataGridTextColumn.Header>
-                                        <TextBlock Text="Estacionamiento"></TextBlock>
+                                        <TextBlock Text="Estacionamiento" FontSize="10.4"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding CPasillo}">
+                                <DataGridTextColumn  Width="100" Binding="{Binding DPasillo}"
+                                                     x:Name="colDescPasillo">
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="Pasillo"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding CPatio}">
+                                <DataGridTextColumn  Width="100" Binding="{Binding DPatio}"
+                                                     x:Name="colDescPatio">
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="Patio"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="100" Binding="{Binding AreaTotalCubierta}">
+                                <DataGridTextColumn  Width="100" Binding="{Binding AreaTotalDescubierta}" IsReadOnly="True">
                                     <DataGridTextColumn.Header>
-                                        <TextBlock Text="Área Cubierta"></TextBlock>
+                                        <TextBlock Text="Tot. Descub."></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding AreaCubiertaDescubierta}" IsReadOnly="True">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Cub. + Descub."></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding NombreAreaComun}"
+                                                     x:Name="colAreaComun">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Área Común"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding AreaExclusiva}" x:Name="colAreaExclusiva"
+                                                     Visibility="Collapsed">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Área Exclusiva"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding Proindiviso}"
+                                                     x:Name="colProindiviso">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Proindiviso"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding PredioFrente}"
+                                                     x:Name="colPredioFrente">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Frente"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding PredioFondo}"
+                                                     x:Name="colPredioFondo">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Fondo"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding PredioArea}"
+                                                     x:Name="colPredioArea">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Área"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="150" Binding="{Binding AreaConstruccion}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Área Construcción"></TextBlock>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn  Width="100" Binding="{Binding ExpedienteCatastral}">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Exp. Catastral"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
                             </DataGrid.Columns>
                         </DataGrid>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Row="2"
+                                    x:Name="stackTotales">
+                            <!--CPlantaBaja-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" Height="20">
+                                <TextBlock Text=""
+                                           FontWeight="DemiBold" TextAlignment="Center" 
+                                   Background="White" x:Name="txtCTotalPB">
+                                </TextBlock>
+                            </Border>
+                            <!--CPlantaAlta-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" >
+                                <TextBlock Text="{Binding Path=Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtCTotalPA"></TextBlock>
+                            </Border>
+                            
+                            <!--CLavanderia-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" >
+                                <TextBlock Text="{Binding Path=TotalCubLavanderia.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtCTotalLavanderia"></TextBlock>
+                            </Border>
+                            
+                            <!--CEstacionamiento-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" >
+                                <TextBlock Text="{Binding Path=TotalCubEstac.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtCTotalEstacion"></TextBlock>
+                            </Border>
+                            <!--CPasillo-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" >
+                                <TextBlock Text="{Binding Path=TotalCubPasillo.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtCPasillo"></TextBlock>
+                            </Border>
+                            <!--CPatio-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" >
+                                <TextBlock Text="{Binding Path=TotalCubPatio.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtCTotalPatio"></TextBlock>
+                            </Border>
+                            <!--AreaTotalCubierta-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
+                                <TextBlock Text="{Binding Path=TotalAreaCub.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtCTotalAreaCub"></TextBlock>
+                            </Border>
+                            <!--DLavanderia-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" >
+                                <TextBlock Text="{Binding Path=TotalDescLavanderia.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtDTotalLavanderia"></TextBlock>
+                            </Border>
+                            <!--DEstacionamiento-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" >
+                                <TextBlock Text="{Binding Path=TotalDescEstac.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtDTotalEstacion"></TextBlock>
+                            </Border>
+                            <!--DPasillo-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" >
+                                <TextBlock Text="{Binding Path=TotalDescPasillo.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtDTotalPasillo"></TextBlock>
+                            </Border>
+                            <!--DPatio-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
+                                <TextBlock Text="{Binding Path=TotalDescPatio.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtDTotalPatio"></TextBlock>
+                            </Border>
+                            <!--AreaTotalDescubierta-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
+                                <TextBlock Text="{Binding Path=TotalAreaDesc.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtTotalAreaDescub"></TextBlock>
+                            </Border>
+                            <!--AreaCubiertaDescubierta-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
+                                <TextBlock Text="{Binding Path=TotalAreaCubDesc.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtTotalAreaCubDescub"></TextBlock>
+                            </Border>
+                            <!--NombreAreaComun-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
+                                <TextBlock Text="{Binding Path=TotalAreaComun.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtTotalAreaComun"></TextBlock>
+                            </Border>
+                            <!--AreaExclusiva-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" Visibility="Collapsed">
+                                <TextBlock Text="{Binding Path=TotalAreaExclusiva.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtTotalAreaExclusiva"></TextBlock>
+                            </Border>
+                            <!--Proindiviso-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
+                                <TextBlock FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtTotalProindiviso">
+                                    <Run Text="{Binding Path=TotalProindiviso.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}"/>
+                                    <Run Text=" %"/>
+                                </TextBlock>
+                            </Border>
+                            <!--Datos del Predio SIN TOTAL-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
+                                <TextBlock Text="" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtPredioFrente"></TextBlock>
+                            </Border>
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
+                                <TextBlock Text="" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtBdPredio"></TextBlock>
+                            </Border>
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
+                                <TextBlock Text="" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtPredio"></TextBlock>
+                            </Border>
+                            <!--AreaConstruccion-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="150">
+                                <TextBlock Text="0.0" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtTotalAreaConst"></TextBlock>
+                            </Border>
+                            <!--Exp.Catastral-->
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
+                                <TextBlock Text="" FontWeight="DemiBold" TextAlignment="Center"
+                                   Background="White" x:Name="txtTotalExpCatastral"></TextBlock>
+                            </Border>
+                        </StackPanel>
                     </Grid>
                 </ScrollViewer>
             </Grid>
         </Border>
+        <Grid Grid.Row="2">
+           <!--x <ListBox Width="100" Height="30" ItemsSource="{Binding Path=M.InfoTabla.MedidasGlobales}"
+                     x:Name="lboxPrueba">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBox Text="{Binding CLavanderia}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>-->
+            <!--________________________BOTÓN ATRÁS_____________________________-->
+            <Button Grid.Row="3" Content="{StaticResource GoBack}" HorizontalAlignment="Left"
+                Click="btnAtras_Click" x:Name="tb1btnAtras" BorderBrush="Transparent" Focusable="False"
+                BorderThickness="0" Background="Transparent" Margin="10,5,0,10" Width="50"/>
 
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button  VerticalAlignment="Center" HorizontalAlignment="Right"          
+                                 BorderBrush="Transparent" BorderThickness="0" Height="30"
+                                 Focusable="False" Background="#6cb1e6" x:Name="btnEnviar" Content="Crear Documentos"
+                                 Foreground="White" Grid.Column="3"  Margin="10,0,5,0"
+                                 />
+                <Button  VerticalAlignment="Center" HorizontalAlignment="Right"                 
+                                 BorderBrush="Transparent" BorderThickness="0" Height="30"
+                                 Focusable="False" Background="#ef5350" x:Name="btnFinalizar" Content="Finalizar"
+                                 Foreground="White" Grid.Column="3" Margin="10,0,10,0"
+                                 />
+            </StackPanel>
+        </Grid>
     </Grid>
 
 </metro:MetroWindow>

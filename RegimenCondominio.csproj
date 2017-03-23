@@ -100,6 +100,7 @@
     <Compile Include="Controller\Met_Autodesk.cs" />
     <Compile Include="Controller\Met_Colindante.cs" />
     <Compile Include="Controller\Met_General.cs" />
+    <Compile Include="Controller\Met_InfoTabla.cs" />
     <Compile Include="Controller\Met_Manzana.cs" />
     <Compile Include="Controller\OfficeUtility.cs" />
     <Compile Include="Controller\PolylineSegment.cs" />
@@ -352,6 +353,30 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\ok.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\arrowDown.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\autodeskIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\ExcelExport.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\excelNew.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\excelNew.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Binocular.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\table.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\tables.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

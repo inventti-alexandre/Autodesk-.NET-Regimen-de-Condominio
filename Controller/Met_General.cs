@@ -8,11 +8,19 @@ using System.Text.RegularExpressions;
 using System.ComponentModel;
 using Autodesk.AutoCAD.Geometry;
 using cadDB = Autodesk.AutoCAD.DatabaseServices;
+using System.Collections.ObjectModel;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 
 namespace RegimenCondominio.C
 {
     public static class Met_General
     {
+              
+        internal static double ToRadians(this double angleDegrees)
+        {
+            return ((angleDegrees / 180) * Math.PI);
+        }
         internal static string FormatString(this string OracionMayuscula)
         {            
             StringBuilder UnirPalabra = new StringBuilder();
@@ -331,7 +339,55 @@ namespace RegimenCondominio.C
 
         internal static void ClearData()
         {
-            
+            //Datos almacenados en Módulo Inicial
+            M.Inicio.ResultFraccs = null;
+            M.Inicio.ResultTipoVivs = null;
+
+            M.Inicio.Fraccionamiento = "";
+            M.Inicio.Estado = "";
+            M.Inicio.Municipio = "";
+            M.Inicio.Sector = "";
+            M.Inicio.Region = "";
+            M.Inicio.TipoViv = "";
+            M.Inicio.ApartamentosXVivienda = 0;
+
+
+            //Datos almacenados en Módulo Manzana
+            M.Manzana.OrientacionCalculada = new List<string>();
+            M.Manzana.ColindanciaManzana = new List<M.ManzanaData>();
+            M.Manzana.NoManzana = 0;
+            M.Manzana.RumboFrente = "";
+            M.Manzana.EsMacrolote = false;
+
+            //Elimino los Xrecord guardados
+            C.Met_Manzana.EliminaColindancias();
+
+            //Datos almacenados en Módulo Colindancia            
+            M.Colindante.IdTipo = new cadDB.ObjectId();
+            M.Colindante.IdsIrregulares = new cadDB.ObjectIdCollection();
+            M.Colindante.IdMacrolote = new cadDB.ObjectId();
+            M.Colindante.Edificios = new List<M.InEdificios>();
+            M.Colindante.Lotes = new List<M.Lote>();
+            M.Colindante.ListadoErrores = new ObservableCollection<M.Error>();
+            M.Colindante.MainData = new List<M.ColindanciaData>();
+            M.Colindante.OrderedApartments = new List<M.Apartments>();
+            M.Colindante.PtsVertex = new Point3dCollection();
+            M.Colindante.ListCommonArea = new List<M.AreaComun>();
+            M.Colindante.LastPoint = 0;
+
+            //Debo de eliminar la polilínea creada al cargar Módulo Colindante       
+            if (M.Colindante.IdPolManzana.IsValid)
+                M.Colindante.IdPolManzana.GetAndRemove();
+
+            //Eliminar todos los puntos creados
+            Met_Colindante.DeleteAdjacencyObjects();
+
+            //Datos de Módulo de Tabla
+            M.InfoTabla.MedidasGlobales = new ObservableCollection<M.Medidas>();
+            M.InfoTabla.LotesItem = new ObservableCollection<M.Checked<M.LoteItem>>();            
+            M.InfoTabla.AllProperties = new List<M.DataColumns>();
+            M.InfoTabla.CalleFrente = "";
+            M.InfoTabla.RumboInverso = new M.ManzanaData();            
         }
 
         public static string FindInDimensions(this string[,] target, string searchTerm, 
@@ -456,6 +512,58 @@ namespace RegimenCondominio.C
             }
 
             return new M.DescribeLayer();
+        }
+
+        internal static long Search(this List<long> list, long longToLook)
+        {
+            long longFound = new long();
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                longFound = list[i];
+
+                if (longFound == longToLook)
+                    return longFound;
+            }
+
+            return new long();
+        }
+
+        public static ObservableCollection<T> ToObservable<T>(this IEnumerable<T> original)
+        {
+            return new ObservableCollection<T>(original);
+        }
+
+        internal static DataTable ToDataTable(this string[,] multArray)
+        {
+            DataTable _myDataTable = new DataTable();
+
+            int rowLenght = multArray.GetLength(0),
+                colLenght = multArray.GetLength(1);
+
+            // create columns
+            for (int i = 0; i < colLenght; i++)
+            {
+                _myDataTable.Columns.Add(multArray[0, i]);
+            }
+
+            //Creo renglones
+            for (int j = 1; j < rowLenght; j++)
+            {
+                // create a DataRow using .NewRow()
+                DataRow row = _myDataTable.NewRow();
+
+                // iterate over all columns to fill the row
+                for (int i = 0; i < colLenght; i++)
+                {
+                    row[i] = multArray[j, i];
+                }
+
+                // add the current row to the DataTable
+                _myDataTable.Rows.Add(row);
+            }
+
+            return _myDataTable;
         }
     }
     

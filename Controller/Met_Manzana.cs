@@ -6,11 +6,44 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.EditorInput;
 
 namespace RegimenCondominio.C
 {
     public static class Met_Manzana
     {
+
+        internal static void EliminaColindancias()
+        {
+            ObjectIdCollection ids = DManager.IdsByXRecord(M.Constant.XRecordColindancia);
+
+            Document doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
+            //Abrimos la BD y el editor
+
+            Database dwg = doc.Database;
+            Editor ed = doc.Editor;
+            //En la BD se encuentra el transaction manager que se encarga de 
+            //controlar todas las transacciones
+            using (Transaction tr = dwg.TransactionManager.StartTransaction())
+            {
+                using (doc.LockDocument())
+                {
+                    try
+                    {
+                        foreach(ObjectId id in ids)                        
+                            id.GetAndRemove();
+
+                        tr.Commit();
+                    }
+                    catch(Exception ex)
+                    {
+                        tr.Abort();
+                        ex.Message.ToEditor();
+                    }
+                }
+            }
+        }
         /// <summary>
         /// Obtengo la lista de acuerdo a Rumbo de Frente
         /// </summary>

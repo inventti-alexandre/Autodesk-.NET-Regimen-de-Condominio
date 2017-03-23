@@ -18,8 +18,8 @@ namespace RegimenCondominio
         public void IniciaReg()
         {
             //V.ModuloColindante win = new V.ModuloColindante();
-            //V.ModuloInicial win = new V.ModuloInicial();
-            V.ModuloInfoTabla win = new V.ModuloInfoTabla();
+            V.ModuloInicial win = new V.ModuloInicial();
+            //V.ModuloInfoTabla win = new V.ModuloInfoTabla();
             win.Show();
             
         }

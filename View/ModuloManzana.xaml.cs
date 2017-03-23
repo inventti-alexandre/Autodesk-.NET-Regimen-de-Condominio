@@ -44,6 +44,9 @@ namespace RegimenCondominio.V
             //Todas las orientaciones disponibles
             CmbRumboFrente.ItemsSource = Met_Manzana.DespliegoOrientaciones();
 
+            if (!string.IsNullOrWhiteSpace(M.Manzana.RumboFrente))
+                CmbRumboFrente.SelectedItem = M.Manzana.RumboFrente;
+
             //Agrego los tipos de Colindancias
             cmbTipo.ItemsSource = M.Constant.TipoColindancias;
 
@@ -120,8 +123,10 @@ namespace RegimenCondominio.V
                 //En el titulo cambio el color
                 TituloColindancia.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 137, 123));
 
+                string RumboFrente = CmbRumboFrente.SelectedItem.ToString();
+
                 //Si ya había introducido algo en la tabla envío advertencia
-                if (ListPrincipal.Items.Count > 0 && handleSelection)
+                if (ListPrincipal.Items.Count > 0 && handleSelection && RumboFrente != M.Manzana.RumboFrente)
                 {
                     MessageDialogResult result
                         = await this.ShowMessageAsync("Modificación de Rumbo Frente",
@@ -133,11 +138,14 @@ namespace RegimenCondominio.V
                         //Limpio la lista
                         M.Manzana.ColindanciaManzana.Clear();
 
+                        //Limpio las colindancias
+                        C.Met_Manzana.EliminaColindancias();
+
                         //Refresco los items
                         ListPrincipal.Items.Refresh();
 
                         //Asigno nuevamente
-                        AsignaOrientaciones(CmbRumboFrente.SelectedItem.ToString());
+                        AsignaOrientaciones(RumboFrente);
 
                         //Bloqueo el combo de Colindancias nuevamente
                         cmbRumboActual.IsEnabled = false;

@@ -38,10 +38,45 @@ namespace RegimenCondominio.V
 
         private void btnAvanzar_Click(object sender, RoutedEventArgs e)
         {
-            ModuloInfoTabla mI = new ModuloInfoTabla();
-            Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModelessWindow(mI);
-            M.Constant.IsAutoClose = true;
-            this.Close();
+            if (tb1GridColindancia.ItemsSource != null)
+            {
+                CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(this.tb1GridColindancia.ItemsSource);
+
+                M.ColindanciaData mOutData = new M.ColindanciaData();
+                string outValue = "";
+
+                foreach (M.ColindanciaData mData in view)
+                {
+                    if (C.Met_Colindante.FoundEmptyItem(mData, out outValue))
+                    {
+                        mOutData = mData;
+                        break;
+                    }
+                        
+                }
+
+                //Valido valores en blanco
+                if(false)//outValue != ""
+                {
+                    this.ShowMessageAsync("Valor Faltante",
+                        string.Format("Se obtuvo el error {0} en el {1} {2} {3}", outValue,
+                                                                              M.Manzana.EsMacrolote ? "Edificio" : "Lote",
+                                                                              mOutData.Edificio_Lote.ToString(),
+                                                                              mOutData.Apartamento));
+                }
+                else
+                {
+                    ModuloInfoTabla mI = new ModuloInfoTabla();
+                    Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModelessWindow(mI);
+                    M.Constant.IsAutoClose = true;
+                    this.Close();
+                }
+            }
+            else
+                this.ShowMessageAsync("Valor Faltante",
+                        "Se deben de calcular primero los puntos");
+            
+            
         }
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
@@ -331,7 +366,7 @@ namespace RegimenCondominio.V
                     error = "Error de Selección",
                     description = "No se seleccionó Polilínea válida o se canceló",
                     timeError = DateTime.Now.ToString(),
-                    tipoError = M.TipoError.Warning,
+                    tipoError = M.TipoError.Advertencia,
                     longObject = 0,
                     metodo = "ModuloColindante-tb1SelMacrolote_Click"
                 });                
@@ -411,7 +446,7 @@ namespace RegimenCondominio.V
                     error = "Error de Selección",
                     description = "No se seleccionó Id Valido o se canceló",
                     timeError = DateTime.Now.ToString(),
-                    tipoError = M.TipoError.Warning,
+                    tipoError = M.TipoError.Advertencia,
                     longObject = 0,
                     metodo = "ModuloColindante-tb1Sel_Tipo_Click"
                 });
@@ -497,7 +532,7 @@ namespace RegimenCondominio.V
                     error = "Error de Selección",
                     description = "No se seleccionaron Ids o se canceló el proceso",
                     timeError = DateTime.Now.ToString(),
-                    tipoError = M.TipoError.Warning,
+                    tipoError = M.TipoError.Advertencia,
                     longObject = 0,
                     metodo = "ModuloColindante-tb1SelMultiple_Click"
                 });

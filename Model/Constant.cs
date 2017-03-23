@@ -132,6 +132,8 @@ namespace RegimenCondominio.M
 
         private static string layerExcRumbos = "EXCL_RUMBOS_REGIMEN";
 
+        private static string layerExcPlantaAlta = "EXCL_PUNTOS_PA";
+
         private static string layerAreaComun = "AREA_COMUN";
 
         #endregion
@@ -304,11 +306,6 @@ namespace RegimenCondominio.M
             {
                 return layerEstacionamiento;
             }
-
-            set
-            {
-                layerEstacionamiento = value;
-            }
         }
 
         public static string LayerPasillo
@@ -317,11 +314,6 @@ namespace RegimenCondominio.M
             {
                 return layerPasillo;
             }
-
-            set
-            {
-                layerPasillo = value;
-            }
         }
 
         public static string LayerPatio
@@ -329,11 +321,6 @@ namespace RegimenCondominio.M
             get
             {
                 return layerPatio;
-            }
-
-            set
-            {
-                layerPatio = value;
             }
         }
 
@@ -443,11 +430,6 @@ namespace RegimenCondominio.M
             {
                 return layerExcRumbos;
             }
-
-            set
-            {
-                layerExcRumbos = value;
-            }
         }
 
         public static List<string> ListError
@@ -464,10 +446,17 @@ namespace RegimenCondominio.M
             {
                 return isAutoClose;
             }
-
             set
             {
                 isAutoClose = value;
+            }
+        }
+
+        public static string LayerExcPlantaAlta
+        {
+            get
+            {
+                return layerExcPlantaAlta;
             }
         }
     }

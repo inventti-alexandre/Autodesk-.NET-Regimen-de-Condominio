@@ -6,6 +6,7 @@ using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,110 @@ namespace RegimenCondominio.C
 {
     public static class Met_Autodesk
     {
+
+        internal static bool ToAutodeskTable(this string[,] datasource)
+        {
+
+            int[] columnsToVerticalMerge = new int[]
+            {
+                0,//Manzana
+                1,//Lote
+                2//Calle
+            };            
+
+            int[] columnsToRotate = new int[]
+            {
+                2//Calle
+            };
+
+            ObjectId idTable = new ObjectId();
+
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+
+            Database db = HostApplicationServices.WorkingDatabase;
+           
+            Editor ed = doc.Editor;
+
+            Table tableCAD = new Table();
+
+            PromptPointResult pr =
+              ed.GetPoint("\nIngresa Punto de Inserción de la Tabla: ");
+
+            using (Transaction tr = db.TransactionManager.StartTransaction())
+            {
+                using (doc.LockDocument())
+                {
+                    //Obtengo el BlockTable
+                    BlockTable bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+
+                    //Obtengo el Id del ModelSpace
+                    ObjectId msId = bt[BlockTableRecord.ModelSpace];
+
+                    //Abro en modo escritura
+                    BlockTableRecord btr = (BlockTableRecord)tr.GetObject(msId, OpenMode.ForWrite);
+
+                    //Creo una tabla
+                    Table tb = new Table() { TableStyle = db.Tablestyle, Position = pr.Value };
+
+                    int RowsNum = datasource.GetLength(0),
+                        ColumnsNum = datasource.GetLength(1);
+
+                    // row height
+                    double rowheight = 3;
+
+                    // column width
+                    double columnwidth = 10;
+
+                    // insert rows and columns
+                    tb.InsertRows(0, rowheight, RowsNum);
+                    tb.InsertColumns(0, columnwidth, ColumnsNum);
+
+                    double  angleDegrees = 90,
+                            angleRadians = angleDegrees.ToRadians();
+
+                    for (int i = 0; i < RowsNum; i++)
+                    {
+
+                        for (int j = 0; j < ColumnsNum; j++)
+                        {
+                            if (tb.Cells[i, j].Contents.Count > 0)
+                                tb.Cells[i, j].Contents.Clear();
+
+                            //Agrego un nuevo content
+                            tb.Cells[i, j].Contents.Add();
+
+                            //Agrego atributos
+                            tb.Cells[i, j].Contents[0].TextHeight = 1;
+                            tb.Cells[i, j].Contents[0].TextString = datasource[i, j];
+                            tb.Cells[i, j].Alignment = CellAlignment.MiddleCenter;                            
+
+                            //Si esta incluido dentro de las columnas a rotar
+                            if (i > 0 && columnsToRotate.Contains(j))                            
+                                tb.Cells[i, j].Contents[0].Rotation = angleRadians;                            
+                        }
+
+                    }
+
+                    foreach(int colToMerge in columnsToVerticalMerge)
+                    {
+                        CellRange crColumn = CellRange.Create(tb, 1, colToMerge, datasource.GetLength(0) - 1, colToMerge);                            
+                        tb.MergeCells(crColumn);
+                    }
+
+                    tb.Layer = "0";
+
+                    tb.GenerateLayout();
+
+                    idTable =  btr.AppendEntity(tb);
+
+                    tr.AddNewlyCreatedDBObject(tb, true);
+
+                    tr.Commit();
+                }
+            }
+
+            return idTable.IsValid;
+        }        
 
         public static void SetImpliedSelection(this ObjectId idEntity)
         {
@@ -176,52 +281,47 @@ namespace RegimenCondominio.C
                 {
                     try
                     {
-                        if (SegmentsToPolyline(listSegments, out plSegments))
+                        Point3d min = new Point3d(),
+                                max = new Point3d();
+
+                        //Si el Id de la polilínea NO es Válido o fue eliminado del plano
+                        if (!M.Colindante.IdPolManzana.IsValid || M.Colindante.IdPolManzana.IsErased)
                         {
-                            if (plSegments.Id.IsValid)
+                            if (SegmentsToPolyline(listSegments, out plSegments))
                             {
-                                M.Colindante.IdPolManzana = plSegments.Id;
-
-                                plSegments.Focus(50, 10);
-
-                                Point3dCollection pt3d = plSegments.Id.ExtractVertex();
-
-                                TypedValue[] tvs = new TypedValue[2]
+                                if (plSegments.Id.IsValid)
                                 {
-                                new TypedValue((int)DxfCode.LayerName, layerName),
-                                new TypedValue( (int)DxfCode.Start, RXObject.GetClass(typeof(Polyline)).DxfName)
-                                };
-
-                                SelectionFilter sf = new SelectionFilter(tvs);
-
-                                Point3d min = new Point3d(), max = new Point3d();
-
-                                //Obtengo punto mínimo de la polílinea
-                                min = plSegments.GeometricExtents.MinPoint;
-                                max = plSegments.GeometricExtents.MaxPoint;
-
-                                idsInside = ObjectsInside(min, max, sf);
-
-                                //if (!plSegments.IsWriteEnabled)
-                                //    plSegments.UpgradeOpen();
-
-                                //plSegments.Erase(true);                            
-
-                                tr.Commit();
-                            }
-                            else
-                            {
-                                M.Colindante.ListadoErrores.Add(new M.Error()
+                                    M.Colindante.IdPolManzana = plSegments.Id;
+                                    plSegments.Focus(50, 10);
+                                    //Obtengo punto mínimo de la polílinea
+                                    min = plSegments.GeometricExtents.MinPoint;
+                                    max = plSegments.GeometricExtents.MaxPoint;
+                                    idsInside = ObjectsInside(min, max, typeof(Polyline).Filter(layerName));
+                                }
+                                else
                                 {
-                                    error = "Creación de Polilínea",
-                                    description = "No se creó la polilínea de Manzana correctamente",
-                                    longObject = plSegments.Id.Handle.Value,
-                                    metodo = "Met_Autodesk - GetPolylinesInSegments",
-                                    timeError = DateTime.Now.ToString(),
-                                    tipoError = M.TipoError.Error
-                                });
+                                    M.Colindante.ListadoErrores.Add(new M.Error()
+                                    {
+                                        error = "Creación de Polilínea",
+                                        description = "No se creó la polilínea de Manzana correctamente",
+                                        longObject = plSegments.Id.Handle.Value,
+                                        metodo = "Met_Autodesk - GetPolylinesInSegments",
+                                        timeError = DateTime.Now.ToString(),
+                                        tipoError = M.TipoError.Error
+                                    });
+                                }
                             }
                         }
+                        else
+                        {
+                            Polyline pl = M.Colindante.IdPolManzana.OpenEntity() as Polyline;
+                            pl.Focus(50, 10);
+                            min = pl.GeometricExtents.MinPoint;
+                            max = pl.GeometricExtents.MaxPoint;
+                            idsInside = ObjectsInside(min, max, typeof(Polyline).Filter(layerName));
+                        }                                             
+
+                        tr.Commit();
                     }
                     catch (Autodesk.AutoCAD.Runtime.Exception ex)
                     {
@@ -1236,7 +1336,7 @@ namespace RegimenCondominio.C
             return new Point3d(((ptA.X + ptB.X) / 2), ((ptA.Y + ptB.Y) / 2), 0);
         }
 
-        internal static bool ToDBPoint(this Point3d ptToAdd, int numPoint)
+        internal static bool ToDBPoint(this Point3d ptToAdd, int numPoint, string layerName)
         {
             Document doc = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;
@@ -1255,7 +1355,7 @@ namespace RegimenCondominio.C
 
                         DBPoint newPoint = new DBPoint(ptToAdd);
 
-                        newPoint.Layer = M.Constant.LayerExcDBPoints;                        
+                        newPoint.Layer = layerName;                        
 
                         ObjectId idPoint = btr.AppendEntity(newPoint);
 
@@ -1269,7 +1369,7 @@ namespace RegimenCondominio.C
                             Position = ptToAdd,
                             TextString = numPoint.ToString(),
                             Height = M.Colindante.DbTextSize,
-                            Layer = M.Constant.LayerExcDBText
+                            Layer = layerName
                         };
 
                         btr.AppendEntity(txt);
@@ -1495,7 +1595,7 @@ namespace RegimenCondominio.C
             return area;
         }
 
-        internal static bool CreateLayer(string layerName)
+        internal static bool CreateLayer(string layerName, Color color, bool isOff = false)
         {
             // Get the current document and database
             Document doc = Application.DocumentManager.MdiActiveDocument;
@@ -1520,11 +1620,13 @@ namespace RegimenCondominio.C
                             using (LayerTableRecord acLyrTblRec = new LayerTableRecord())
                             {
                                 // Assign the layer the ACI color 3 and a name
-                                acLyrTblRec.Color = Color.FromColorIndex(ColorMethod.ByAci, 3);
+                                acLyrTblRec.Color = color;
                                 acLyrTblRec.Name = layerName;
 
                                 // Upgrade the Layer table for write
                                 layerTable.UpgradeOpen();
+
+                                acLyrTblRec.IsOff = isOff;
 
                                 // Append the new layer to the Layer table and the transaction
                                 idLayerCreated = layerTable.Add(acLyrTblRec);

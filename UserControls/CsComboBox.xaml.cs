@@ -72,6 +72,18 @@ namespace RegimenCondominio.UserControls
             set { this.ComboPrinc.ItemsSource = value; }
         }
 
+        public string DisplayMemberPath
+        {
+            get { return this.ComboPrinc.DisplayMemberPath; }
+            set { this.ComboPrinc.DisplayMemberPath = value; }
+        }
+
+        public string ValueMemberPath
+        {
+            get { return this.ComboPrinc.SelectedValuePath; }
+            set { this.ComboPrinc.SelectedValuePath = value; }
+        }
+
         public int SelectedIndex
         {
             get { return this.ComboPrinc.SelectedIndex; }
@@ -85,7 +97,7 @@ namespace RegimenCondominio.UserControls
 
         static void OnMessage_Changed(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            (sender as CsComboBox).msgTmp.Text = e.NewValue as String;
+            (sender as CsComboBox).msgTmp.Text = e.NewValue as string;
         }
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

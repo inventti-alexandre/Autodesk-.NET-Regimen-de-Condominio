@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Autodesk.AutoCAD.Colors;
 
 namespace RegimenCondominio.C
 {
@@ -231,13 +232,13 @@ namespace RegimenCondominio.C
                                                 }
                                                 else
                                                 {
-                                                    numPointA = ConsecutivePoint;
+                                                    if (HasTopFloorPoint(ptA, ConsecutivePoint, out numPointA))
+                                                        ConsecutivePoint++;
+                                                    else
+                                                        startPoint = numPointA;
 
-                                                    ConsecutivePoint++;
-
-                                                    numPointB = ConsecutivePoint;
-
-                                                    ConsecutivePoint++;                                                   
+                                                    if (HasTopFloorPoint(ptB, ConsecutivePoint, out numPointB))
+                                                        ConsecutivePoint++;
                                                 }
                                             }
                                             else//Si no es el primer punto sólo asignó el Punto A como el último B, calculo el Punto B
@@ -253,8 +254,8 @@ namespace RegimenCondominio.C
                                                     }
                                                     else
                                                     {
-                                                        numPointB = ConsecutivePoint;
-                                                        ConsecutivePoint++;
+                                                        if (HasTopFloorPoint(ptB, ConsecutivePoint, out numPointB))
+                                                            ConsecutivePoint++;
                                                     }
                                                 }
                                                 else//En dado caso que si es el último punto cierro la polilínea con el punto Inicial
@@ -330,7 +331,7 @@ namespace RegimenCondominio.C
                                         timeError = DateTime.Now.ToString(),
                                         longObject = plApartmento.Id.Handle.Value,
                                         metodo = "Met_Colindante - CreatePointsMacroset",
-                                        tipoError = M.TipoError.Info
+                                        tipoError = M.TipoError.Informativo
                                     });
                                 }
 
@@ -573,6 +574,55 @@ namespace RegimenCondominio.C
                 isCorrect = false;
             }
             return isCorrect;
+        }
+
+        internal static bool FoundEmptyItem(M.ColindanciaData mdata, out string emptyValue)
+        {
+            emptyValue = "";
+
+            if (string.IsNullOrWhiteSpace(mdata.Apartamento))
+            {
+                emptyValue = "Apartamento en blanco";
+                return true;
+            }
+            else if (string.IsNullOrWhiteSpace(mdata.Seccion))
+            {
+                emptyValue = "Sección en blanco";
+                return true;
+            }
+            else if (string.IsNullOrWhiteSpace(mdata.PuntoA.ToString()))
+            {
+                emptyValue = "Punto A en blanco";
+                return true;
+            }
+            else if (string.IsNullOrWhiteSpace(mdata.PuntoB.ToString()))
+            {
+                emptyValue = "Punto B en blanco";
+                return true;
+            }
+            else if (mdata.Distancia <= 0)
+            {
+                emptyValue = "Distancia menor o igual a 0";
+                return true;
+            }
+            else if (string.IsNullOrWhiteSpace(mdata.Colindancia))
+            {
+                emptyValue = "Colindancia en blanco";
+                return true;
+            }
+            else if (string.IsNullOrWhiteSpace(mdata.NoOficial))
+            {
+                emptyValue = "Número Oficial en blanco";
+                return true;
+            }
+            else if (string.IsNullOrWhiteSpace(mdata.Rumbo))
+            {
+                emptyValue = "Rumbo en blanco";
+                return true;
+            }
+            else
+                return false;
+
         }
 
         internal static void GetCommonArea(ObjectId idLote)
@@ -840,13 +890,13 @@ namespace RegimenCondominio.C
                                                 }
                                                 else
                                                 {
-                                                    numPointA = ConsecutivePoint;
+                                                    if (HasTopFloorPoint(ptA, ConsecutivePoint, out numPointA))
+                                                        ConsecutivePoint++;
+                                                    else
+                                                        startPoint = numPointA;
 
-                                                    ConsecutivePoint++;
-
-                                                    numPointB = ConsecutivePoint;
-
-                                                    ConsecutivePoint++;                                                    
+                                                    if (HasTopFloorPoint(ptB, ConsecutivePoint, out numPointB))
+                                                        ConsecutivePoint++;                                                                                                       
                                                 }
                                             }
                                             else//Si no es el primer punto sólo asignó el Punto A como el último B, calculo el Punto B
@@ -862,8 +912,8 @@ namespace RegimenCondominio.C
                                                     }
                                                     else
                                                     {
-                                                        numPointB = ConsecutivePoint;
-                                                        ConsecutivePoint++;
+                                                        if (HasTopFloorPoint(ptB, ConsecutivePoint, out numPointB))
+                                                            ConsecutivePoint++;
                                                     }
                                                 }
                                                 else//En dado caso que si es el último punto cierro la polilínea con el punto Inicial
@@ -943,7 +993,7 @@ namespace RegimenCondominio.C
                                         timeError = DateTime.Now.ToString(),
                                         longObject = plApartmento.Id.Handle.Value,
                                         metodo = "Met_Colindante - CreatePointsMacroset",
-                                        tipoError = M.TipoError.Info
+                                        tipoError = M.TipoError.Informativo
                                     });
                                 }
 
@@ -1024,10 +1074,8 @@ namespace RegimenCondominio.C
 
                     string[,] translatorAps = new string[lApsEdificioRegular.Count, 2];
 
-                    for (int l = 0; l < lApsEdificioRegular.Count; l++)
-                    {
-                        translatorAps[l, 0] = lApsEdificioRegular[l].TextAp;
-                    }
+                    for (int i = 0; i < lApsEdificioRegular.Count; i++)
+                        translatorAps[i, 0] = lApsEdificioRegular[i].TextAp;
 
                     for (int i = 0; i < M.Colindante.Edificios.Count; i++)
                     {
@@ -1060,16 +1108,10 @@ namespace RegimenCondominio.C
                                 ConsecutivePoint = 0,
                                 startPoint = 0;
                             //-------------------------------------------------------
-
-
-
+                            
                             //---------------------------------------------------------------
                             //Obtengo los Apartametnos del Edificio
-                            lApsEdificioActual = GetApartments(mEdificio);
-
-                            //Asigno la traducción del apartamento
-                            for (int l = 0; l < lApsEdificioRegular.Count; l++)
-                                translatorAps[l, 1] = lApsEdificioActual[l].TextAp;
+                            lApsEdificioActual = GetApartments(mEdificio);                            
 
                             //Obtengo el número de Edificio
                             numEdificio = mEdificio.numEdificio;
@@ -1079,6 +1121,23 @@ namespace RegimenCondominio.C
 
                             if (idEdificio.IsValid)
                             {
+
+                                ObjectId[] idsToIgnore = new ObjectId[lApsEdificioActual.Count+1];
+
+                                //Asigno la traducción del apartamento
+                                for (int l = 0; l < lApsEdificioRegular.Count; l++)
+                                {
+                                    M.Apartments mApartment = lApsEdificioActual[l];
+
+                                    translatorAps[l, 1] = mApartment.TextAp;
+
+                                    //Obtengo ids de Apartamento y los asigno
+                                    idsToIgnore[l] = new Handle(mApartment.longPl).toObjectId();
+                                }
+
+                                //Asigno el ID de Edificio
+                                idsToIgnore[(idsToIgnore.Count() - 1)] = idEdificio;
+
                                 //Obtengo Polilínea
                                 plEdificio = idEdificio.OpenEntity() as Polyline;
 
@@ -1093,14 +1152,18 @@ namespace RegimenCondominio.C
                                     #region Segmentos Repetidos por Edificio Regular
                                     foreach (M.ColindanciaData mColindancia in lRepeatedData)
                                     {
-                                        string ApartmentTranslated = (translatorAps.FindInDimensions(mColindancia.Apartamento.GetAfterSpace(), 0, 1) ?? "").ToString();
+                                        string  ApartamentoTraducido = "",
+                                                Colindancia = "";
+
+                                        ApartamentoTraducido = CorrectApartment(mColindancia.Apartamento, translatorAps);
+                                        Colindancia = CorrectApartment(mColindancia.Colindancia, translatorAps);                                        
 
                                         M.Colindante.MainData.Add(new M.ColindanciaData()
                                         {
                                             Edificio_Lote = numEdificio,
                                             idVivienda = mEdificio._long,
-                                            Apartamento = "Apartamento  " + ApartmentTranslated,
-                                            Colindancia = mColindancia.Colindancia,
+                                            Apartamento = ApartamentoTraducido,
+                                            Colindancia = Colindancia,
                                             CoordenadaA = mColindancia.CoordenadaA,
                                             CoordenadaB = mColindancia.CoordenadaB,
                                             Distancia = mColindancia.Distancia,
@@ -1144,10 +1207,10 @@ namespace RegimenCondominio.C
                                         M.SegmentInfo data = FindSegmentData(listSegments, ptA, ptB);
 
                                         //Obtengo el punto medio
-                                        ptMedio = data.MiddlePoint;
+                                        ptMedio = data.MiddlePoint;                                       
 
                                         //Encuentro colindancia de acuerdo al punto medio                            
-                                        strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, idEdificio);
+                                        strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, idsToIgnore);
 
                                         //Encuentro Rumbo si no estaba en la colindancia
                                         if (strRumbo == "")
@@ -1198,8 +1261,9 @@ namespace RegimenCondominio.C
 
                                     foreach (M.ColindanciaData itemToCalculate in lToCalculate)
                                     {
-                                        string RumboActual = itemToCalculate.Rumbo,
-                                                ApartmentTranslated = (translatorAps.FindInDimensions(itemToCalculate.Apartamento.GetAfterSpace(), 0, 1) ?? "").ToString();
+                                        string ApartamentoTraducido = "";                                                
+
+                                        ApartamentoTraducido = CorrectApartment(itemToCalculate.Apartamento, translatorAps);                                        
 
                                         M.ColindanciaData currentItem = new M.ColindanciaData();
 
@@ -1227,7 +1291,7 @@ namespace RegimenCondominio.C
                                             {
                                                 itemToCalculate.CoordenadaB = currentItem.CoordenadaB;
                                                 itemToCalculate.PuntoB = currentItem.PuntoB;
-                                            }
+                                            }                                            
 
                                             M.Colindante.MainData.Add(new M.ColindanciaData()
                                             {
@@ -1246,7 +1310,7 @@ namespace RegimenCondominio.C
                                                 //Calculados
                                                 PuntoA = itemToCalculate.PuntoA,
                                                 PuntoB = itemToCalculate.PuntoB,
-                                                Apartamento = "Apartamento  " + ApartmentTranslated,
+                                                Apartamento = ApartamentoTraducido,
                                                 CoordenadaA = itemToCalculate.CoordenadaA,
                                                 CoordenadaB = itemToCalculate.CoordenadaB,
                                                 Colindancia = currentItem.Colindancia,
@@ -1339,7 +1403,7 @@ namespace RegimenCondominio.C
                                             Edificio_Lote = mLote.numLote,
                                             idVivienda = mLote._long,
                                             NoOficial = mLote.numOficial,
-                                            Apartamento = "Apartamento  " + mColindancia.Apartamento,
+                                            Apartamento = mColindancia.Apartamento,
                                             Colindancia = mColindancia.Colindancia,
                                             CoordenadaA = mColindancia.CoordenadaA,
                                             CoordenadaB = mColindancia.CoordenadaB,
@@ -1439,7 +1503,7 @@ namespace RegimenCondominio.C
                                                 esArco = itemToCalculate.esArco,
                                                 PuntoA = itemToCalculate.PuntoA,
                                                 PuntoB = itemToCalculate.PuntoB,
-                                                Apartamento = "Apartamento  " + itemToCalculate.Apartamento,
+                                                Apartamento = itemToCalculate.Apartamento,
                                                 CoordenadaA = itemToCalculate.CoordenadaA,
                                                 CoordenadaB = itemToCalculate.CoordenadaB,
                                                 //Calculados
@@ -1492,6 +1556,47 @@ namespace RegimenCondominio.C
             }
 
             return isCorrect;
+        }
+
+        private static string CorrectApartment(string seccion, string[,] translatorAps)
+        {
+            string ApartamentoCorregido = "";
+
+            if (seccion.Contains("Apartamento"))
+            {
+                //Separo por Espacios la palabra
+                string[] arrayPalabras = seccion.Split(' ');
+
+                //Obtengo la posición de la letra que debe de reemplazar
+                int indexAp = Array.IndexOf(arrayPalabras, "Apartamento");
+
+                //Valido que al incrementar uno, todavía tenga un valor
+                if ((indexAp + 1) < arrayPalabras.Count())
+                {
+                    //Obtengo la palabra que siga después del apartamento que debe de ser la letra
+                    string letraValidar = arrayPalabras[indexAp + 1],
+                            letraCambiar = "";
+
+                    //Reviso si esa letra existe en el arreglo de traducción
+                    letraCambiar = translatorAps.FindInDimensions(letraValidar, 0, 1);
+
+                    //Reviso que haya encontrado alguna
+                    if (letraCambiar != "")
+                    {
+                        //Reemplazo la letra
+                        arrayPalabras[indexAp + 1] = letraCambiar;
+
+                        //Vuelvo a unir todo
+                        ApartamentoCorregido = string.Join(" ", arrayPalabras);
+                    }
+                }
+
+            }
+            else
+                ApartamentoCorregido = seccion;
+
+
+            return ApartamentoCorregido;
         }
 
         private static List<M.Apartments> GetApartments(M.InEdificios edificio)
@@ -1761,10 +1866,10 @@ namespace RegimenCondominio.C
                                 ObjectId idPtFound = new ObjectId();
 
                                 //Reviso a que coordenada pertenece
-                                if (!ptActual.ExistsPoint(out idPtFound))
+                                if (!ptActual.ExistsPoint(M.Constant.LayerExcDBPoints,out idPtFound))
                                 {
                                     ////Punto A
-                                    ptActual.ToDBPoint(index);
+                                    ptActual.ToDBPoint(index, M.Constant.LayerExcDBPoints);
 
                                     //Actualizo información de número de esquinas de los Edificios Insertados
                                     ReplaceCorners(ptActual, index);
@@ -2825,7 +2930,7 @@ namespace RegimenCondominio.C
                             timeError = DateTime.Now.ToString(),
                             longObject = idSeccion.Handle.Value,
                             metodo = "Met_Colindante-FindDirection",
-                            tipoError = M.TipoError.Warning
+                            tipoError = M.TipoError.Advertencia
                         });
                     }
                 }
@@ -2839,7 +2944,7 @@ namespace RegimenCondominio.C
                         timeError = DateTime.Now.ToString(),
                         longObject = idSeccion.Handle.Value,
                         metodo = "Met_Colindante-FindDirection",
-                        tipoError = M.TipoError.Warning
+                        tipoError = M.TipoError.Advertencia
                     });
                 }
 
@@ -2867,7 +2972,8 @@ namespace RegimenCondominio.C
 
         internal static void DeleteAdjacencyObjects()
         {
-            Met_Autodesk.DeleteObjects(M.Constant.LayerExcDBText, M.Constant.LayerExcDBPoints);            
+            Met_Autodesk.DeleteObjects(M.Constant.LayerExcDBText, M.Constant.LayerExcDBPoints,
+                M.Constant.LayerExcPlantaAlta);            
         }
 
         private static ObjectId SearchRumbo(Point3d startPoint, Point3d endPoint, double angle)
@@ -3046,6 +3152,44 @@ namespace RegimenCondominio.C
             return listPolygons;
 
         }
+
+        internal static bool HasTopFloorPoint(Point3d pt, int numPoint, out int finalNum)
+        {
+            ObjectId idptFound = new ObjectId();
+
+            finalNum = new int();
+
+            bool siInserta = false;
+
+            //Si NO existe el Punto
+            if (!pt.ExistsPoint(M.Constant.LayerExcPlantaAlta, out idptFound))
+            {
+                pt.ToDBPoint(numPoint, M.Constant.LayerExcPlantaAlta);
+                finalNum = numPoint;
+                siInserta = true;
+            }
+            else//SI YA EXISTE EL PUNTO
+            {
+                DBPoint pointFound = idptFound.OpenEntity() as DBPoint;
+
+                //VALIDO QUE EL PUNTO REALMENTE ESTE EN PLANTA ALTA                
+                ObjectId idXRecord = new ObjectId();
+
+                string[] data = new string[1];
+
+                if (pointFound.ExtensionDictionary.IsValid)
+                    idXRecord = DManager.GetXRecord(pointFound.ExtensionDictionary, M.Constant.XRecordPoints);
+
+                if (idXRecord.IsValid)
+                    data = DManager.GetData(idXRecord);
+
+                finalNum = int.Parse(data[0]);
+
+            }
+                
+
+            return siInserta;
+        }
         /// <summary>
         /// Calcula el número del punto Asignado o a Asignar
         /// </summary>
@@ -3062,7 +3206,7 @@ namespace RegimenCondominio.C
             bool siInserta = false;
 
             //En dado caso que no exista se inserta el punto
-            if (!pt.ExistsPoint(out idptFound))
+            if (!pt.ExistsPoint(M.Constant.LayerExcDBPoints, out idptFound))
             {
                 //Si es Macrolote
                 if(M.Manzana.EsMacrolote)
@@ -3070,7 +3214,7 @@ namespace RegimenCondominio.C
                     //Reviso que no este dentro de las esquinas/vertices de Polilínea actual 
                     if (M.Colindante.PtsVertex.OfType<Point3d>().Where(x => x.isEqualPosition(pt)).Count() == 0)
                     {
-                        pt.ToDBPoint(numPoint);
+                        pt.ToDBPoint(numPoint, M.Constant.LayerExcDBPoints);
                         finalNum = numPoint;
                         siInserta = true;
                     }
@@ -3082,7 +3226,7 @@ namespace RegimenCondominio.C
                 //Si no es Macrolote inserto diractamente
                 else
                 {
-                    pt.ToDBPoint(numPoint);
+                    pt.ToDBPoint(numPoint, M.Constant.LayerExcDBPoints);
                     finalNum = numPoint;
                     siInserta = true;
                 }                
@@ -3108,7 +3252,7 @@ namespace RegimenCondominio.C
             return siInserta;
         }
 
-        internal static bool ExistsPoint(this Point3d point3d, out ObjectId idPointFound)
+        internal static bool ExistsPoint(this Point3d point3d, string layerFilter, out ObjectId idPointFound)
         {
             Document doc = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;
@@ -3118,7 +3262,7 @@ namespace RegimenCondominio.C
 
             idPointFound = new ObjectId();
 
-            PromptSelectionResult psr = ed.SelectAll(typeof(DBPoint).Filter(M.Constant.LayerExcDBPoints));
+            PromptSelectionResult psr = ed.SelectAll(typeof(DBPoint).Filter(layerFilter));
 
             if (psr.Status == PromptStatus.OK)
             {
@@ -3141,6 +3285,7 @@ namespace RegimenCondominio.C
             return idPointFound.IsValid;
 
         }
+        
 
         internal static int CreateAdjacencyLayers()
         {
@@ -3151,13 +3296,17 @@ namespace RegimenCondominio.C
             layerstoCreate.Add(M.Constant.LayerExcRegimen);
             layerstoCreate.Add(M.Constant.LayerExcDBPoints);
             layerstoCreate.Add(M.Constant.LayerExcDBText);
-            Met_Autodesk.CreateLayer(M.Constant.LayerExcRumbos);
+            
+            layerstoCreate.Add(M.Constant.LayerExcRumbos);
 
+            Color cGlobal = Color.FromColorIndex(ColorMethod.ByAci, 3);
             foreach (string layer in layerstoCreate)
-            {
-                if(Met_Autodesk.CreateLayer(layer))                
+            {                
+                if(Met_Autodesk.CreateLayer(layer, cGlobal))                
                     count++;                
             }
+
+            Met_Autodesk.CreateLayer(M.Constant.LayerExcPlantaAlta, Color.FromRgb(255,0,0));
 
             return count;
         }
