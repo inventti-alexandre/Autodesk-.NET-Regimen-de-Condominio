@@ -584,10 +584,11 @@ namespace RegimenCondominio.C
             return initialList;
         }
 
-        internal static int GetChecklistItems()
+        internal static void GetChecklistItems(out List<long> BaseItems, out List<long> NotBaseItems)
         {
-            int cantLotesBase = 0;
-                               
+            BaseItems = new List<long>();
+            NotBaseItems = new List<long>();
+                                           
             foreach (M.Lote mLote in M.Colindante.Lotes.OrderBy(x => x.numLote))
             {
                 bool esIrregular = false,
@@ -610,7 +611,11 @@ namespace RegimenCondominio.C
                 if (esIrregular || loteTipo == mLote._long)
                 {
                     esLoteBase = true;
-                    cantLotesBase++;
+                    BaseItems.Add(mLote._long);
+                }
+                else
+                {
+
                 }
 
                 M.InfoTabla.LotesItem.Add(new M.Checked<M.LoteItem>()
@@ -626,9 +631,7 @@ namespace RegimenCondominio.C
                     }
                 });
 
-            }
-
-            return cantLotesBase;
+            }            
         }
 
         internal static Dictionary<string, double> CalculatePropertyTotals(CollectionView view)
@@ -889,6 +892,74 @@ namespace RegimenCondominio.C
             }
 
             return siAplica;
+        }
+
+        internal static bool HasEmptyFields(long longActual, out string msgs)
+        {
+            msgs = "";
+            
+            bool hasEmptyFields = false;
+
+            List<Tuple<string, string>> propApartments = new List<Tuple<string, string>>();
+
+            foreach(M.Medidas mItemActual in M.InfoTabla.MedidasGlobales)
+            {
+                if(mItemActual.LongLote == longActual)
+                {
+                    foreach(M.DataColumns dtC in M.InfoTabla.AllProperties)
+                    {
+                        if (dtC.esVisible)
+                        {
+                            PropertyInfo prop = typeof(M.Medidas).GetProperty(dtC.PropertyName);
+
+                            if(prop != null)
+                            {
+                                object objProp = prop.GetValue(mItemActual);
+
+                                if (objProp == null)
+                                {
+                                    propApartments.Add(new Tuple<string, string>(dtC.Descripcion, mItemActual.Apartamento));
+                                    //msgs.Add(string.Format("Falta valor en {0} Apartamento {1}", dtC.Descripcion,mItemActual.Apartamento));
+                                    hasEmptyFields = true;
+                                }
+                                //Solamente voy a revisar los string que son los objetos a los que tienen acceso
+                                else if(objProp is string)
+                                {
+                                    string sValue = (string)objProp;                                    
+
+                                    if(string.IsNullOrWhiteSpace(sValue))
+                                    {
+                                        propApartments.Add(new Tuple<string, string>(dtC.Descripcion, mItemActual.Apartamento));
+                                        //msgs.Add(string.Format("Falta valor en {0} Apartamento {1}", dtC.Descripcion,mItemActual.Apartamento));
+                                        hasEmptyFields = true;
+                                    }                                    
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(hasEmptyFields)
+            {
+                string actualAp = "";
+
+                msgs =  "Faltan datos de Apartamento(s): ";
+
+                foreach(Tuple<string, string> propApartment in propApartments)
+                {
+                    //Si es un nuevo apartamento doy salto de línea
+                    if (actualAp != propApartment.Item2)
+                    {
+                        actualAp = propApartment.Item2;
+                        msgs = msgs + "\n " + propApartment.Item2 + ": " + propApartment.Item1;
+                    }
+                    else
+                        msgs = msgs + ", " + propApartment.Item1; 
+                }
+            }
+
+            return hasEmptyFields;
         }
     }
 }

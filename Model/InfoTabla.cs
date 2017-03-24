@@ -24,6 +24,8 @@ namespace RegimenCondominio.M
 
         private static string calleFrente = "";
 
+        private static Dictionary<long, bool> lotesCapturados = new Dictionary<long, bool>();
+
         private static Dictionary<string, string> diccionarioRumboInverso = new Dictionary<string, string>()
         {
             {"Norte", "Sur" },
@@ -161,6 +163,19 @@ namespace RegimenCondominio.M
             set
             {
                 totalCubPB = value;
+            }
+        }
+
+        public static Dictionary<long, bool> LotesCapturados
+        {
+            get
+            {
+                return lotesCapturados;
+            }
+
+            set
+            {
+                lotesCapturados = value;
             }
         }
     }

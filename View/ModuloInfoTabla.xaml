@@ -187,10 +187,10 @@
                             <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="2"  Margin="10,0,0,0"
                                     Grid.Row="2" Grid.Column="1" Height="25" Width="150" HorizontalAlignment="Left">
                                 <Grid>
-                                    <ProgressBar x:Name="ProgressLote" Width="150" Height="30" Value="0" Foreground="#6cb1e6" MouseDoubleClick="ProgressBar_MouseDoubleClick"
+                                    <metro:MetroProgressBar x:Name="ProgressLote" Width="150" Height="30" Value="0" Foreground="#bbdefb" MouseDoubleClick="ProgressBar_MouseDoubleClick"
                                              BorderBrush="Transparent" Background="Transparent" BorderThickness="0">
-                                    </ProgressBar>
-                                    <TextBlock Text="" Foreground="LightGray" FontWeight="DemiBold"
+                                    </metro:MetroProgressBar>
+                                    <TextBlock Text="" Foreground="Black" FontWeight="DemiBold"
                                                VerticalAlignment="Center" HorizontalAlignment="Center"
                                                x:Name="lblProgreso"/>
                                 </Grid>
@@ -278,7 +278,7 @@
                                       x:Name="btnRevisarLoteActual">
                             <MenuItem.Header>
                                 <DockPanel Background="Transparent">
-                                    <Image Height="20" VerticalAlignment="Center"
+                                    <Image Height="20" VerticalAlignment="Center" Margin="0,0,3,0"
                                            Source="pack://application:,,,/RegimenCondominio;component/Images/ok.png"
                                            ></Image>
                                     <TextBlock FontWeight="DemiBold" Text="Revisar" Margin="2" HorizontalAlignment="Center"
@@ -498,6 +498,7 @@
                         </StackPanel>
                         <DataGrid Grid.Column="1" Grid.Row="1" Name="dtDetalle" 
                               VerticalAlignment="Stretch" AutoGenerateColumns="False" CanUserSortColumns="False"
+                                  CanUserResizeColumns="False"
                                 HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" 
                                   CellEditEnding="dtDetalle_CellEditEnding"                                   
                                   DataGridCell.Selected ="dtDetalle_Selected"
@@ -590,7 +591,7 @@
                                 </DataGridTextColumn>
                                 <DataGridTextColumn  Width="100" Binding="{Binding AreaCubiertaDescubierta}" IsReadOnly="True">
                                     <DataGridTextColumn.Header>
-                                        <TextBlock Text="Cub. + Descub."></TextBlock>
+                                        <TextBlock Text="Cub. + Desc."></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
                                 <DataGridTextColumn  Width="100" Binding="{Binding NombreAreaComun}"
@@ -629,7 +630,8 @@
                                         <TextBlock Text="Área"></TextBlock>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn  Width="150" Binding="{Binding AreaConstruccion}">
+                                <DataGridTextColumn  Width="150" Binding="{Binding AreaConstruccion}"
+                                                     x:Name="colAreaCons">
                                     <DataGridTextColumn.Header>
                                         <TextBlock Text="Área Construcción"></TextBlock>
                                     </DataGridTextColumn.Header>

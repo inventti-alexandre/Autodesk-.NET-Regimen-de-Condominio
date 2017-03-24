@@ -52,9 +52,7 @@ namespace RegimenCondominio.V
                 M.InfoTabla.MedidasGlobales.Add(new M.Medidas() { NumLote = (i + 1) , LongLote = i});
 
             //for (int i = 0; i < 3; i++)
-            //    M.Colindante.IdsIrregulares.Add(new Handle(M.Colindante.Lotes[i]._long).toObjectId());
-
-            int c = 0;
+            //    M.Colindante.IdsIrregulares.Add(new Handle(M.Colindante.Lotes[i]._long).toObjectId());            
 
             #region Manzana
             M.Manzana.RumboFrente = "Norte";
@@ -131,10 +129,12 @@ namespace RegimenCondominio.V
 
         #region Cada Carga de la Ventana
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
-        {            
+        {
+            List<long> lotesBase, lotesTipo;            
             //Factories();            
-
+            
             #region Determinar Columnas a Ocultar
+            
             //Obtengo todas las Propiedades Ligadas a su columna
             M.InfoTabla.AllProperties = Met_InfoTabla.DescribeColumns();
 
@@ -149,10 +149,7 @@ namespace RegimenCondominio.V
                                                 .FirstOrDefault().textColindancia ?? "");                        
 
             //Obtengo todos los lotes del checklist
-            int cantLotesBase = C.Met_InfoTabla.GetChecklistItems();
-
-            //Lo asigno a la ProgressBar
-            lblProgreso.Text = string.Format("0/{0} Completado", cantLotesBase);
+            C.Met_InfoTabla.GetChecklistItems(out lotesBase, out lotesTipo);                       
 
             //Obtengo la información de Header (Tabla Estática)
             C.Met_InfoTabla.GetHeaderTable(M.Manzana.EsMacrolote);            
@@ -174,8 +171,77 @@ namespace RegimenCondominio.V
                     txtRumboInverso.Text = M.InfoTabla.RumboInverso.rumboActual;
                 }
             }
+
+            #region Asigno ProgresssBar
+
+            //Si ya se había ingresado anteriormente
+            if (M.InfoTabla.LotesCapturados.Count > 0)
+            {
+                //Si todos los lotes que se habían capturado son los mismos que los que se obtuvieron     
+                if (lotesBase.All(M.InfoTabla.LotesCapturados.Keys.Contains) && lotesBase.Count == M.InfoTabla.LotesCapturados.Count)
+                {
+                    //Si la cantidad de Lotes es la Misma que se había obtenido                    
+                    int cont = 0;
+
+                    foreach (KeyValuePair<long, bool> keyItem in M.InfoTabla.LotesCapturados)
+                    {
+                        if (keyItem.Value)
+                            cont++;
+                    }
+
+                    //Lo asigno a la ProgressBar
+                    lblProgreso.Text = string.Format("{0}/{1} Completado", cont, lotesBase.Count);
+
+                    ChangeProgressBar(cont, lotesBase.Count);
+                }
+                else //Si algo cambio
+                {
+                    int cont = 0;
+                    string msgOut;
+
+                    foreach (long lote in lotesBase)
+                    {
+                        if (!Met_InfoTabla.HasEmptyFields(lote, out msgOut))
+                            cont++;
+                    }
+                    //Lo asigno a la ProgressBar
+                    lblProgreso.Text = string.Format("{0}/{1} Completado", cont, lotesBase.Count);
+
+                    ChangeProgressBar(cont, lotesBase.Count);
+                }
+            }
+            else //Si es la primera vez lo asigno de manera directa
+            {
+                foreach (long lote in lotesBase)
+                    M.InfoTabla.LotesCapturados.Add(lote, false);
+
+                //Lo asigno a la ProgressBar
+                lblProgreso.Text = string.Format("0/{0} Completado", lotesBase.Count);
+            }
+
+            #endregion
         }
-        
+
+        private void ChangeProgressBar(int completed, int total)
+        {
+            
+
+            if(completed > total)
+            {
+                ProgressLote.Value = 100;
+            }
+            else
+            {
+                double progressDivision = (100 / total),
+                       progress = 0;
+
+                progressDivision = progressDivision.Trunc(2);
+                progress = progressDivision * completed;
+
+                ProgressLote.Value = progress;
+            }
+        }
+
         private void HideDetailColumns()
         {
             //Obtengo las Columnas a Ocultar
@@ -529,7 +595,10 @@ namespace RegimenCondominio.V
                     dtHeader.ItemsSource = M.InfoTabla.MedidasGlobales;   
                 }
 
-                FilterDataGrids();                
+                FilterDataGrids();
+
+                ChangeToReadOnly(false);
+                btnRevisarLoteActual.IsEnabled = true;
             }
         }
 
@@ -552,7 +621,10 @@ namespace RegimenCondominio.V
                     dtHeader.ItemsSource = M.InfoTabla.MedidasGlobales;
                 }
 
-                FilterDataGrids();                
+                FilterDataGrids();
+
+                ChangeToReadOnly(true);
+                btnRevisarLoteActual.IsEnabled = false;
             }
         }
 
@@ -707,7 +779,7 @@ namespace RegimenCondominio.V
         }
 
 
-        private void FormatColumns(bool isReadOnly)
+        private void ChangeToReadOnly(bool isReadOnly)
         {
             colCubPB.IsReadOnly = isReadOnly;
             colCubPA.IsReadOnly = isReadOnly;
@@ -725,7 +797,7 @@ namespace RegimenCondominio.V
             colPredioFrente.IsReadOnly = isReadOnly;
             colPredioFondo.IsReadOnly = isReadOnly;
             colPredioArea.IsReadOnly = isReadOnly;
-            colAreaCons.IsReadOnly = isReadOnly;
+            colAreaCons.IsReadOnly = isReadOnly;            
         }
 
         //Voy modificando los totales
@@ -1105,12 +1177,30 @@ namespace RegimenCondominio.V
 
         private void btnRevisarLoteActual_Click(object sender, RoutedEventArgs e)
         {
+            string msgOut;
 
-        }
+            if(Met_InfoTabla.HasEmptyFields(LongActual, out msgOut))
+            {                
+                this.ShowMessageAsync("Error en Lote", msgOut);
+            }
+            else
+            {
+                //if (M.InfoTabla.CantLotesRealizados <= M.InfoTabla.LotesItem.Where(x => x.Item.EsLoteBase).Count())
+                //{
+                //    M.InfoTabla.CantLotesRealizados++;
+                //}
+                int cont = 0;
 
-        private void btnRevisarTodosLotes_Click(object sender, RoutedEventArgs e)
-        {
+                foreach(KeyValuePair<long, bool> keyItem in M.InfoTabla.LotesCapturados)
+                {
+                    if (keyItem.Key == LongActual || keyItem.Value)
+                        cont++;
+                }                
 
+                ChangeProgressBar(cont, M.InfoTabla.LotesCapturados.Count);
+
+                MessageBox.Show("Lote Correcto");
+            }
         }
 
         private void dtDetalle_MouseMove(object sender, MouseEventArgs e)
