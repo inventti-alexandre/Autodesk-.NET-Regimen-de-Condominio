@@ -73,7 +73,7 @@ namespace RegimenCondominio.V
             });
             #endregion
 
-            M.Inicio.Fraccionamiento = "Rinconada de Lago de Guadalupe";
+            M.Inicio.Fraccionamiento.fraccionamiento = "Rinconada de Lago de Guadalupe";
 
             #region MAIN_dATA
             //Factory para Macrolotes
@@ -199,10 +199,19 @@ namespace RegimenCondominio.V
                     int cont = 0;
                     string msgOut;
 
+                    M.InfoTabla.LotesCapturados.Clear();
+
                     foreach (long lote in lotesBase)
                     {
-                        if (!Met_InfoTabla.HasEmptyFields(lote, out msgOut))
+                        if (Met_InfoTabla.HasEmptyFields(lote, out msgOut))
+                        {
+                            M.InfoTabla.LotesCapturados.Add(lote, false);
+                        }
+                        else
+                        {
+                            M.InfoTabla.LotesCapturados.Add(lote, true);
                             cont++;
+                        }
                     }
                     //Lo asigno a la ProgressBar
                     lblProgreso.Text = string.Format("{0}/{1} Completado", cont, lotesBase.Count);
@@ -225,20 +234,22 @@ namespace RegimenCondominio.V
         private void ChangeProgressBar(int completed, int total)
         {
             
-
             if(completed > total)
             {
                 ProgressLote.Value = 100;
             }
             else
             {
-                double progressDivision = (100 / total),
-                       progress = 0;
+                if (total > 0)
+                {
+                    double progressDivision = (100 / total),
+                           progress = 0;
 
-                progressDivision = progressDivision.Trunc(2);
-                progress = progressDivision * completed;
+                    progressDivision = progressDivision.Trunc(2);
+                    progress = progressDivision * completed;
 
-                ProgressLote.Value = progress;
+                    ProgressLote.Value = progress;
+                }
             }
         }
 
@@ -419,7 +430,7 @@ namespace RegimenCondominio.V
         private void GeneralSource()
         {
             //Datos Generales
-            txtFraccionamiento.Text = M.Inicio.Fraccionamiento;
+            txtFraccionamiento.Text = M.Inicio.Fraccionamiento.fraccionamiento;
             txtManzana.Text = M.Manzana.NoManzana.ToString();
             txtRumboFrente.Text = M.Manzana.RumboFrente;
 
@@ -809,88 +820,90 @@ namespace RegimenCondominio.V
                 int columnIndex = e.Column.DisplayIndex;
 
                 //Obtengo el datagrid de donde fue in
-                DataGridRow row = e.Row;                
+                DataGridRow row = e.Row;
 
                 //Obtengo el item
                 M.Medidas mItemEditado = row.DataContext as M.Medidas;
-                
-                //Valor introducido y suma de la Columna
-                double  numIntroducido = 0, 
-                        suma = 0;                
 
-                //Obtengo el Textbox de donde fue editado
-                TextBox txt = e.EditingElement as TextBox;
+                //Obtengo la columna que debe de ser modificada
+                M.DetailColumns coldt = (M.DetailColumns)Enum.ToObject(typeof(M.DetailColumns), columnIndex);               
                 
-                string input = string.IsNullOrWhiteSpace(txt.Text) ? "0" : txt.Text;
-
-                //Reviso que sea realmente un valor númerico
-                if (double.TryParse(input, out numIntroducido))
+                if (coldt != M.DetailColumns.ExpedienteCatastral)
                 {
-                    //Obtengo la columna que debe de ser modificada
-                    M.DetailColumns coldt = (M.DetailColumns)Enum.ToObject(typeof(M.DetailColumns), columnIndex);                    
+                    //Valor introducido y suma de la Columna
+                    double numIntroducido = 0,
+                            suma = 0;
 
                     //Obtengo la propiedad ligada a la columna
                     PropertyInfo prop = typeof(M.Medidas).GetProperty(coldt.ToString());
 
-                    //Agrego a la suma lo que edito
-                    suma += numIntroducido;
+                    //Obtengo el Textbox de donde fue editado
+                    TextBox txt = e.EditingElement as TextBox;
 
-                    //Obtengo los demás valores de la misma columna menos el de si mismo.
-                    foreach(M.Medidas mItemMedidasG in M.InfoTabla.MedidasGlobales)
-                    {
-                        if(mItemMedidasG.LongLote == LongActual && mItemMedidasG.Apartamento != mItemEditado.Apartamento)
+                    string input = string.IsNullOrWhiteSpace(txt.Text) ? "0" : txt.Text;
+
+                    //Reviso que sea realmente un valor númerico
+                    if (double.TryParse(input, out numIntroducido))
+                    {                        
+                        //Agrego a la suma lo que edito
+                        suma += numIntroducido;
+
+                        //Obtengo los demás valores de la misma columna menos el de si mismo.
+                        foreach (M.Medidas mItemMedidasG in M.InfoTabla.MedidasGlobales)
                         {
-                            object valueMedidas = prop.GetValue(mItemMedidasG);
-
-                            if (valueMedidas != null)
+                            if (mItemMedidasG.LongLote == LongActual && mItemMedidasG.Apartamento != mItemEditado.Apartamento)
                             {
-                                double doubMedidas = double.Parse(valueMedidas.ToString());
-                                //Tomo la propiedad de todos los lotes menos el que edité
-                                suma += doubMedidas;
+                                object valueMedidas = prop.GetValue(mItemMedidasG);
+
+                                if (valueMedidas != null)
+                                {
+                                    double doubMedidas = double.Parse(valueMedidas.ToString());
+                                    //Tomo la propiedad de todos los lotes menos el que edité
+                                    suma += doubMedidas;
+                                }
                             }
-                        }                                                    
-                    }
-
-                    //Actualizo los totales que se modifican de manera automática
-                    UpdateHorizontalTotals(mItemEditado, coldt, numIntroducido);
-                    
-                    //Obtengo la propiedad que se modifico
-                    PropertyDescriptorCollection propCollection = TypeDescriptor.GetProperties(typeof(M.TotalesMedidas));
-
-                    //Modifico el Total que se requiere
-                    foreach (PropertyDescriptor propActual in propCollection)
-                    {
-                        M.Totales itemTotalActual = (M.Totales)propActual.GetValue(M.InfoTabla.TotalesTabla);
-
-                        if (itemTotalActual != null && itemTotalActual.Columna == coldt)
-                        {
-                            //Modifico el valor al total correcto
-                            propActual.SetValue(M.InfoTabla.TotalesTabla, new M.Totales()
-                            {
-                                Columna = itemTotalActual.Columna,
-                                Total = suma
-                            });
-
-                            //Modifico el textbox correspondiente 
-                            ((TextBlock)(stackTotales.Children[columnIndex] as Border).Child).Text = suma.ToString();
-
-                            break;
                         }
+
+                        //Actualizo los totales que se modifican de manera automática
+                        UpdateHorizontalTotals(mItemEditado, coldt, numIntroducido);
+
+                        //Obtengo la propiedad que se modifico
+                        PropertyDescriptorCollection propCollection = TypeDescriptor.GetProperties(typeof(M.TotalesMedidas));
+
+                        //Modifico el Total que se requiere
+                        foreach (PropertyDescriptor propActual in propCollection)
+                        {
+                            M.Totales itemTotalActual = (M.Totales)propActual.GetValue(M.InfoTabla.TotalesTabla);
+
+                            if (itemTotalActual != null && itemTotalActual.Columna == coldt)
+                            {
+                                //Modifico el valor al total correcto
+                                propActual.SetValue(M.InfoTabla.TotalesTabla, new M.Totales()
+                                {
+                                    Columna = itemTotalActual.Columna,
+                                    Total = suma
+                                });
+
+                                //Modifico el textbox correspondiente 
+                                ((TextBlock)(stackTotales.Children[columnIndex] as Border).Child).Text = suma.ToString();
+
+                                break;
+                            }
+                        }
+
+                        //Si no es Macrolote (Envío los valores a todos los Lotes Regulares)
+                        if (!M.Manzana.EsMacrolote && LongActual == M.Colindante.IdTipo.Handle.Value)
+                            Met_InfoTabla.DuplicateEditedValues(mItemEditado, numIntroducido, prop);
+
+                    }
+                    else
+                    {
+                        if (txt.Text != "")
+                            (e.EditingElement as TextBox).Text = "";
                     }
 
-                    //Si no es Macrolote (Envío los valores a todos los Lotes Regulares)
-                    if (!M.Manzana.EsMacrolote && LongActual == M.Colindante.IdTipo.Handle.Value)
-                        Met_InfoTabla.DuplicateEditedValues(mItemEditado, numIntroducido, prop);                         
-
                 }
-                else
-                {
-                    if (txt.Text != "")
-                        (e.EditingElement as TextBox).Text = "";
-                }
-                              
             }
-
 
         }
 
@@ -1184,11 +1197,7 @@ namespace RegimenCondominio.V
                 this.ShowMessageAsync("Error en Lote", msgOut);
             }
             else
-            {
-                //if (M.InfoTabla.CantLotesRealizados <= M.InfoTabla.LotesItem.Where(x => x.Item.EsLoteBase).Count())
-                //{
-                //    M.InfoTabla.CantLotesRealizados++;
-                //}
+            {                
                 int cont = 0;
 
                 foreach(KeyValuePair<long, bool> keyItem in M.InfoTabla.LotesCapturados)
@@ -1207,7 +1216,8 @@ namespace RegimenCondominio.V
         {            
             ColumnOver = GetColumn(dtDetalle, e.GetPosition(dtDetalle));
 
-            MenuItemCol.Header = "Pegar en Columna " +((TextBlock) dtDetalle.Columns[ColumnOver].Header).Text;
+            if (ColumnOver >= 0 && ColumnOver <= (int)M.DetailColumns.ExpedienteCatastral)
+                MenuItemCol.Header = "Pegar en Columna " + ((TextBlock)dtDetalle.Columns[ColumnOver].Header).Text;
             
         }
         private int GetColumn(DataGrid dt, Point position)
@@ -1246,6 +1256,76 @@ namespace RegimenCondominio.V
 
             return columnIndex;
             //row = -1; total = 0; foreach (RowDefinition rowDef in @this.RowDefinitions) { if (position.Y < total) { break; } row++; total += rowDef.ActualHeight; }
+        }
+
+        private void btnEnviar_Click(object sender, RoutedEventArgs e)
+        {
+            int cont=0;
+            string msj;
+
+            foreach(KeyValuePair<long, bool> mLoteBase in M.InfoTabla.LotesCapturados)
+            {
+                if (Met_InfoTabla.HasEmptyFields(mLoteBase.Key, out msj))
+                {
+                    int numLote = M.Colindante.Lotes.Search(mLoteBase.Key).numLote;
+                    this.ShowMessageAsync("Datos faltantes del Lote " + numLote, msj);
+                    break;
+                }
+                else
+                    cont++;
+            }
+
+            if(cont == M.InfoTabla.LotesCapturados.Count)
+            {
+                this.ShowMessageAsync("Lotes Correctos", "No se encontró problema en los lotes");
+                new SqlTransaction(null, ObtenerTipoViv, ResultadoTipoViv).Run();
+            }
+        }        
+
+        private void ResultadoTipoViv(object input)
+        {
+            char separator = '|';
+
+            List<string> resultRows = (List<string>) (input ?? new List<string>());
+
+            if (resultRows.Count > 0)
+            {
+                M.InfoTabla.ResultadoBloques = new List<M.Bloques>();
+
+                foreach (string row in resultRows)
+                {
+                    string[] cells = row.Split(separator);                    
+
+                    if (cells != null && cells.Count() > 0)
+                    {
+                        M.InfoTabla.ResultadoBloques.Add(new M.Bloques()
+                        {
+                            Descripcion = cells[0],
+                            Id_Tipo_Bloque = int.Parse(cells[1]),
+                            Nom_Tipo_BLoque = cells[2],
+                            Orden = int.Parse(cells[3])
+                        });
+                    }
+                }
+
+                HashSet<string> variables = C.Met_InfoTabla.GetVariables(M.InfoTabla.ResultadoBloques);
+
+                Met_InfoTabla.ListLongs =  new List<long>() { LongActual };
+
+                new SqlTransaction(variables, Met_InfoTabla.CategorizeVariables, Met_InfoTabla.FinishedCategorize).Run();
+
+            }//Termina las celdas            
+        }
+
+        private object ObtenerTipoViv(SQL_Connector conn, object input, BackgroundWorker bg)
+        {
+            List<string> result;
+
+            string query = string.Format(Config.DB.QueryDescMachote, M.Inicio.EncMachote.IdMachote);
+
+            conn.Select(query, out result, '|');
+
+            return result;
         }
     }
 }

@@ -56,7 +56,7 @@ namespace RegimenCondominio.V
                 }
 
                 //Valido valores en blanco
-                if(false)//outValue != ""
+                if(outValue != "")//outValue != ""
                 {
                     this.ShowMessageAsync("Valor Faltante",
                         string.Format("Se obtuvo el error {0} en el {1} {2} {3}", outValue,
@@ -263,12 +263,12 @@ namespace RegimenCondominio.V
             tb1cmbDecimales.Items.Add("5");
 
             //Datos Iniciales
-            tb2txtFracc.Text = M.Inicio.Fraccionamiento;
+            tb2txtFracc.Text = M.Inicio.Fraccionamiento.fraccionamiento;
             tb2txtEstado.Text = M.Inicio.Estado;
             tb2txtMunicipio.Text = M.Inicio.Municipio;
             tb2txtSector.Text = M.Inicio.Sector;
             tb2txtRegion.Text = M.Inicio.Region;
-            tb2txtTipoVivienda.Text = M.Inicio.TipoViv;
+            tb2txtTipoVivienda.Text = M.Inicio.EncMachote.Encabezado;
 
             ListPrincipal.ItemsSource = M.Manzana.ColindanciaManzana;
             tb2GridErrores.ItemsSource = M.Colindante.ListadoErrores;
@@ -562,6 +562,7 @@ namespace RegimenCondominio.V
                 if(Met_Colindante.CreatePointsMacroset(M.Colindante.IdTipo, "Edificio Tipo"))
                 {
                     cont++;
+
                     bool siGeneroTodo = true;
 
                     foreach (ObjectId idIrregular in M.Colindante.IdsIrregulares)
@@ -580,7 +581,7 @@ namespace RegimenCondominio.V
 
                     if(siGeneroTodo)
                     {
-                        if (Met_Colindante.GenerateCornerPoints())
+                        if (Met_Colindante.GenerateBuildingCornerPoints())
                         {                            
                             //Genero Descripción de Área Común
                             if (Met_Colindante.GenerateMacroCommonArea())
@@ -588,7 +589,17 @@ namespace RegimenCondominio.V
                                 //Genero los Edificios restantes que son regulares
                                 if (Met_Colindante.GenerateAllSets(M.Manzana.EsMacrolote))
                                 {
-                                    AssignMainData();
+                                    if(Met_Colindante.ReadApartmentPoints())
+                                    {
+                                        AssignMainData();
+                                    }
+                                    else
+                                    {
+                                        RollBackPoints();
+
+                                        this.ShowMessageAsync("Error al Crear Puntos",
+                                                "No se crearon los puntos de manera correcta");
+                                    }
                                 }
                                 else
                                 {
@@ -678,8 +689,8 @@ namespace RegimenCondominio.V
 
             this.WindowState = WindowState.Normal;
 
-            this.ShowMessageAsync("Tiempo tomado", "Minutos: " + stWatch.Elapsed.TotalMinutes.Trunc(3) 
-                + "\nSegundos: " + stWatch.Elapsed.TotalSeconds.Trunc(3) +string.Format("con  {0} Viviendas", cont));    
+            //this.ShowMessageAsync("Tiempo tomado", "Minutos: " + stWatch.Elapsed.TotalMinutes.Trunc(3) 
+            //    + "\nSegundos: " + stWatch.Elapsed.TotalSeconds.Trunc(3) +string.Format("con  {0} Viviendas", cont));    
 
         }
 

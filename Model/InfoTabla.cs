@@ -9,22 +9,8 @@ namespace RegimenCondominio.M
 {
      public static class InfoTabla
     {
-        private static ObservableCollection<M.Medidas> _medidasGlobales = new ObservableCollection<M.Medidas>();
 
-        private static ObservableCollection<M.Checked<LoteItem>> lotesItem 
-                                                        = new ObservableCollection<M.Checked<LoteItem>>();
-
-        private static TotalesMedidas totalesTabla = new TotalesMedidas();
-
-        private static Totales totalCubPB = new Totales() { Columna = DetailColumns.CPlantaBaja};
-
-        private static List<M.DataColumns> allProperties = new List<DataColumns>();
-
-        private static ManzanaData rumboInverso = new ManzanaData();
-
-        private static string calleFrente = "";
-
-        private static Dictionary<long, bool> lotesCapturados = new Dictionary<long, bool>();
+        #region Catalogos
 
         private static Dictionary<string, string> diccionarioRumboInverso = new Dictionary<string, string>()
         {
@@ -38,9 +24,32 @@ namespace RegimenCondominio.M
             {"Noroeste", "Sureste" }
         };
 
+        #endregion
+
+
+        private static ObservableCollection<M.Medidas> _medidasGlobales = new ObservableCollection<M.Medidas>();
+
+        private static ObservableCollection<M.Checked<LoteItem>> lotesItem 
+                                                        = new ObservableCollection<M.Checked<LoteItem>>();
+
+        private static TotalesMedidas totalesTabla = new TotalesMedidas();        
+
+        private static List<DataColumns> allProperties = new List<DataColumns>();
+
+        private static ManzanaData rumboInverso = new ManzanaData();
+
+        private static string calleFrente = "";
+
+        private static Dictionary<long, bool> lotesCapturados = new Dictionary<long, bool>();               
+
         private static Dictionary<string, string> descripcionPropiedades = new Dictionary<string, string>();
 
         private static Dictionary<string, bool> visibilidadPropiedades = new Dictionary<string, bool>();
+
+        private static List<Bloques> resultadoBloques = new List<Bloques>();
+
+        private static List<Variables> resultadoVariables = new List<Variables>();
+
         public static ObservableCollection<M.Medidas> MedidasGlobales
         {
             get
@@ -153,19 +162,6 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static Totales TotalCubPB
-        {
-            get
-            {
-                return totalCubPB;
-            }
-
-            set
-            {
-                totalCubPB = value;
-            }
-        }
-
         public static Dictionary<long, bool> LotesCapturados
         {
             get
@@ -176,6 +172,32 @@ namespace RegimenCondominio.M
             set
             {
                 lotesCapturados = value;
+            }
+        }
+
+        public static List<Bloques> ResultadoBloques
+        {
+            get
+            {
+                return resultadoBloques;
+            }
+
+            set
+            {
+                resultadoBloques = value;
+            }
+        }
+
+        public static List<Variables> ResultadoVariables
+        {
+            get
+            {
+                return resultadoVariables;
+            }
+
+            set
+            {
+                resultadoVariables = value;
             }
         }
     }

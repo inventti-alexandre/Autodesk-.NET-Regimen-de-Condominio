@@ -89,7 +89,7 @@ namespace RegimenCondominio.C
 
                             //Agrego atributos
                             tb.Cells[i, j].Contents[0].TextHeight = 1;
-                            tb.Cells[i, j].Contents[0].TextString = datasource[i, j];
+                            tb.Cells[i, j].Contents[0].TextString = (datasource[i, j] ?? "");
                             tb.Cells[i, j].Alignment = CellAlignment.MiddleCenter;                            
 
                             //Si esta incluido dentro de las columnas a rotar

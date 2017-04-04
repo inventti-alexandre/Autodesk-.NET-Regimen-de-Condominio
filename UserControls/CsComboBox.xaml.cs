@@ -62,7 +62,10 @@ namespace RegimenCondominio.UserControls
         {
             MessageProperty = DependencyProperty.Register("MessageCombo", typeof(string), typeof(CsComboBox),
                 new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.AffectsRender, 
-                OnMessage_Changed));                       
+                OnMessage_Changed));       
+                                       
+
+
         }
 
         //Expongo Propiedad
@@ -78,10 +81,16 @@ namespace RegimenCondominio.UserControls
             set { this.ComboPrinc.DisplayMemberPath = value; }
         }
 
-        public string ValueMemberPath
+        public string SelectedValuePath
         {
             get { return this.ComboPrinc.SelectedValuePath; }
             set { this.ComboPrinc.SelectedValuePath = value; }
+        }
+
+        public object SelectedValue
+        {
+            get { return this.ComboPrinc.SelectedValue; }
+            set { this.ComboPrinc.SelectedValue = value; }
         }
 
         public int SelectedIndex

@@ -148,6 +148,7 @@
                    Opacity="0" Grid.RowSpan="2"/>
         <cscontrol:CsComboBox  Grid.Column="1" Grid.Row="1" MessageCombo="Fraccionamiento"
                              x:Name="FraccionamientoCombo" Margin="23,4,10,2" Height="36" 
+                               SelectedValuePath="Id_Fracc" DisplayMemberPath="fraccionamiento"
                                SelectChanged="FraccionamientoCombo_SelectChanged" />
 
         <Button Grid.Column="2" Grid.Row="1" x:Name="btnRefresh" Content="{StaticResource RefreshM}"
@@ -190,12 +191,13 @@
                              HorizontalAlignment="Center" Height="36"
                              x:Name="RegionBox" Margin="153,4,10,2" TextChanged="RegionBox_TextChanged" />
 
-        <!--*************************************Tipo de Vivienda*************************************-->
-        <TextBlock Grid.Column="1" Text="Tipo de Vivienda" FontSize="14" FontWeight="DemiBold"
+        <!--*************************************Encabezado de Machote*************************************-->
+        <TextBlock Grid.Column="1" Text="Machote" FontSize="14" FontWeight="DemiBold"
                    x:Name="lblTipoViv" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
-                    Grid.Row="8" Opacity="0" Margin="26,0,113,39" Grid.RowSpan="2" />
-        <cscontrol:CsComboBox MessageCombo="Tipo de Vivienda" Grid.Column="1" Grid.Row="9"  Width="211"
+                    Grid.Row="8" Opacity="0" Margin="26,0,165,38" Grid.RowSpan="2" />
+        <cscontrol:CsComboBox MessageCombo="Machote" Grid.Column="1" Grid.Row="9"  Width="211"
                               HorizontalAlignment="Center" Height="36" x:Name="tipoVivCombo" 
+                              SelectedValuePath="IdMachote" DisplayMemberPath="Encabezado"
                               Margin="26,3,10,3" SelectChanged="tipoVivCombo_SelectChanged"                             
                              />
         <metro:ProgressRing Foreground="#6cb1e6" 

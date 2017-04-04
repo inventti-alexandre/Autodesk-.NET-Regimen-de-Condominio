@@ -9,6 +9,8 @@ using System.Reflection;
 using System.ComponentModel;
 using System.Data;
 using System.Windows.Data;
+using RegimenCondominio.M;
+using System.Text.RegularExpressions;
 
 namespace RegimenCondominio.C
 {
@@ -588,50 +590,54 @@ namespace RegimenCondominio.C
         {
             BaseItems = new List<long>();
             NotBaseItems = new List<long>();
-                                           
-            foreach (M.Lote mLote in M.Colindante.Lotes.OrderBy(x => x.numLote))
+
+            if (M.Manzana.EsMacrolote)
             {
-                bool esIrregular = false,
-                     esLoteBase = false;
+                if (M.Colindante.IdMacrolote.IsValid)
+                    BaseItems.Add(M.Colindante.IdMacrolote.Handle.Value);
+            }
+            else {
 
-                string TipoLote = "";
-
-                long loteTipo = new long();
-
-                //Si esta dentro de los Irregulares
-                esIrregular = M.Colindante.IdsIrregulares.Contains(new Handle(mLote._long).toObjectId());
-
-                //Asigno el Tipo de Lote
-                TipoLote = esIrregular ? "Irregular" : "Regular";
-
-                //Busco el Lote Tipo
-                loteTipo = M.Colindante.IdTipo.Handle.Value;
-
-                //Si es Irregular o es Regular es tomado como Lote Tipo
-                if (esIrregular || loteTipo == mLote._long)
+                foreach (M.Lote mLote in M.Colindante.Lotes.OrderBy(x => x.numLote))
                 {
-                    esLoteBase = true;
-                    BaseItems.Add(mLote._long);
-                }
-                else
-                {
+                    bool esIrregular = false,
+                         esLoteBase = false;
 
-                }
+                    string TipoLote = "";
 
-                M.InfoTabla.LotesItem.Add(new M.Checked<M.LoteItem>()
-                {
-                    IsChecked = false,
+                    long loteTipo = new long();
 
-                    Item = new M.LoteItem()
+                    //Si esta dentro de los Irregulares
+                    esIrregular = M.Colindante.IdsIrregulares.Contains(new Handle(mLote._long).toObjectId());
+
+                    //Asigno el Tipo de Lote
+                    TipoLote = esIrregular ? "Irregular" : "Regular";
+
+                    //Busco el Lote Tipo
+                    loteTipo = M.Colindante.IdTipo.Handle.Value;
+
+                    //Si es Irregular o es Regular es tomado como Lote Tipo
+                    if (esIrregular || loteTipo == mLote._long)
                     {
-                        Name = "Lote " + mLote.numLote,
-                        TipoLote = TipoLote,
-                        EsLoteBase = esLoteBase,
-                        Long = mLote._long
+                        esLoteBase = true;
+                        BaseItems.Add(mLote._long);
                     }
-                });
 
-            }            
+                    M.InfoTabla.LotesItem.Add(new M.Checked<M.LoteItem>()
+                    {
+                        IsChecked = false,
+
+                        Item = new M.LoteItem()
+                        {
+                            Name = "Lote " + mLote.numLote,
+                            TipoLote = TipoLote,
+                            EsLoteBase = esLoteBase,
+                            Long = mLote._long
+                        }
+                    });
+
+                }
+            }        
         }
 
         internal static Dictionary<string, double> CalculatePropertyTotals(CollectionView view)
@@ -961,5 +967,384 @@ namespace RegimenCondominio.C
 
             return hasEmptyFields;
         }
+
+        internal static HashSet<string> GetVariables(List<M.Bloques> resultadoBloques)
+        {
+            HashSet<string> variables = new HashSet<string>();
+
+            foreach (M.Bloques bloque in M.InfoTabla.ResultadoBloques.OrderBy(x => x.Orden))
+            {
+                string descripcion = bloque.Descripcion;
+
+                MatchCollection matches = Regex.Matches(descripcion, M.Constant.RegexBrackets);
+
+                foreach (Match match in matches)
+                    variables.Add(match.Groups[0].Value);
+            }
+
+            return variables;
+        }
+
+        internal static object CategorizeVariables(SQL_Connector conn, object input, BackgroundWorker bg)
+        {
+            HashSet<string> inputVars = new HashSet<string>();
+            List<string> resultRows;
+
+            if (input != null)
+                inputVars = (HashSet<string>)input;
+
+            List<string> vars = new List<string>();
+
+            foreach (string var in inputVars)
+                vars.Add("'" + var.Replace("[", "").Replace("]", "") + "'");
+
+            string inClause = string.Join(",", vars),
+                   query = string.Format(Config.DB.QueryVariables, inClause);
+
+            conn.Select(query,out resultRows, '|');
+
+            return resultRows; //resultRows;            
+        }
+
+        internal static bool GenerateTemplate(List<long> lotes, List<Bloques> bloques, List<Variables> variables)
+        {
+            foreach(long loteActual in lotes)
+            {
+                List<M.Variables> varsGlobales = new List<Variables>();
+                List<Tuple<M.Variables, string>> varsAps = new List<Tuple<Variables, string>>();
+                HashSet<string> ApsLote = new HashSet<string>();
+
+                List<M.Bloques> bloquesCalc = new List<Bloques>();
+
+                //Obtengo todas las variables Globales
+                foreach(Variables varActual in variables)
+                {
+                    if (varActual.Nom_Tipo_Bloque.ToUpper() == "GLOBAL")
+                    {
+                        if (!varActual.EsCalculado)
+                        {
+                            string valorVar = GetGlobalVariable(varActual.NombreCorto, loteActual);
+
+                            varsGlobales.Add(new M.Variables()
+                            {
+                                Conv_Letra = varActual.Conv_Letra,
+                                EsCalculado = varActual.EsCalculado,
+                                NombreCorto = varActual.NombreCorto,
+                                NombreVariable = varActual.NombreVariable,
+                                Nom_Tipo_Bloque = varActual.Nom_Tipo_Bloque,
+                                Valor = valorVar
+                            });
+                                                        
+                        }
+                        else
+                            varsGlobales.Add(varActual);
+                    }
+                    else if(varActual.Nom_Tipo_Bloque.ToUpper() == "APARTAMENTO")
+                    {
+                       foreach(M.Medidas mMedidas in M.InfoTabla.MedidasGlobales)
+                        {
+                            if(mMedidas.LongLote == loteActual)
+                            {
+                                string valorAp = GetApartmentVariable(varActual.NombreCorto, loteActual, mMedidas);
+
+                                Variables varAPActual = new Variables() {
+                                    Conv_Letra = varActual.Conv_Letra,
+                                    EsCalculado = varActual.EsCalculado,
+                                    NombreCorto = varActual.NombreCorto,
+                                    Valor = valorAp,
+                                    NombreVariable = varActual.NombreVariable,
+                                    Nom_Tipo_Bloque = varActual.Nom_Tipo_Bloque
+                                };
+
+                                varsAps.Add(new Tuple<Variables, string>(varAPActual, mMedidas.Apartamento));
+
+                                ApsLote.Add(mMedidas.Apartamento);
+                            }
+                        }
+                    }
+                }
+
+
+                foreach(M.Bloques bloque in bloques.OrderBy(x => x.Orden))
+                {
+                    string descripcion = bloque.Descripcion;
+
+                    if (bloque.Nom_Tipo_BLoque.ToUpper() == "GLOBAL")
+                    {
+                        foreach (M.Variables varGlobal in varsGlobales)
+                        {
+                            string valor = varGlobal.Valor == Environment.NewLine ? varGlobal.Valor : "[" + varGlobal.Valor + "]";
+                            descripcion = descripcion.Replace("[" + varGlobal.NombreCorto + "]", valor);
+                        }
+
+                        bloquesCalc.Add(new Bloques()
+                        {
+                            Descripcion = descripcion,
+                            Id_Tipo_Bloque = bloque.Id_Tipo_Bloque,
+                            Nom_Tipo_BLoque = bloque.Nom_Tipo_BLoque,
+                            Orden = bloque.Orden
+                        });
+                    }
+                    else
+                    {
+                        foreach (string Apartment in ApsLote)
+                        {
+                            string descApartment = descripcion;
+
+                            foreach (Tuple<M.Variables, string> itemVars in varsAps)
+                            {
+                                if (itemVars.Item2 == Apartment)
+                                    descApartment = descApartment.Replace("[" + itemVars.Item1.NombreCorto + "]", "[" + itemVars.Item1.Valor + "]");
+                            }
+
+                            foreach (M.Variables varGlobal in varsGlobales)
+                            {
+                                string valor = varGlobal.Valor == Environment.NewLine ? varGlobal.Valor : "[" + varGlobal.Valor + "]";
+                                descApartment = descApartment.Replace("[" + varGlobal.NombreCorto + "]", valor);
+                            }
+
+                            bloquesCalc.Add(new Bloques()
+                            {
+                                Descripcion = descApartment,
+                                Id_Tipo_Bloque = bloque.Id_Tipo_Bloque,
+                                Nom_Tipo_BLoque = bloque.Nom_Tipo_BLoque,
+                                Orden = bloque.Orden
+                            });
+                        }
+                    }
+                }
+
+                OfficeUtility.ToWord(bloquesCalc, "MachotePrueba");                
+            }
+
+            return true;
+        }
+
+        public static List<long> ListLongs;
+
+        internal static void FinishedCategorize(object input)
+        {
+           if(input != null)
+            {
+                List<string> resultRows = (List<string>)input;
+
+                M.InfoTabla.ResultadoVariables = new List<M.Variables>();
+
+                foreach(string row in resultRows)
+                {
+                    string[] cell = row.Split('|');
+
+                    M.InfoTabla.ResultadoVariables.Add(new M.Variables()
+                    {
+                        NombreCorto = cell[0],//NOM_CORTO
+                        NombreVariable = cell[1],//NOM_VAR
+                        Valor = cell[2],//VALOR
+                        EsCalculado = cell[3] == "1" ? true : false, //ES_CALCULADO
+                        Conv_Letra = cell[4] == "1" ? true : false,//CONV_LETRA
+                        Nom_Tipo_Bloque = cell[5] //NOM_TIPO_BLOQUE
+                    });
+                }
+
+                GenerateTemplate(ListLongs, M.InfoTabla.ResultadoBloques, M.InfoTabla.ResultadoVariables);
+            }
+        }
+
+
+        #region Catalogo de Apartamentos y Globales
+
+        private static string GetGlobalVariable(string input, long lote)
+        {
+            string valor = "";
+
+            //case "":
+            //  break;
+
+            switch (input)
+            {
+                case "NumLote": //Número del Lote
+                    M.Lote loteActual = M.Colindante.Lotes.Search(lote);
+                    if (loteActual != null)
+                        valor = loteActual.numLote.ToString();
+                    break;
+                case "Fraccionamiento": //Fraccionamiento
+                    valor = M.Inicio.Fraccionamiento.fraccionamiento;
+                    break;
+                case "Sector":
+                    valor = M.Inicio.Sector;
+                    break;
+                case "Municipio":
+                    valor = M.Inicio.Municipio;
+                    break;
+                case "Estado":
+                    valor = M.Inicio.Fraccionamiento.Estado;
+                    break;
+                case "ColindanciasManzana":
+                    
+                    List<string> colindancias = new List<string>();
+
+                    int c = 1;
+
+                    foreach(M.ManzanaData mManzana in M.Manzana.ColindanciaManzana)
+                    {
+
+                        if(c == 1)                        
+                            colindancias.Add(string.Format("Al {0} con {1}", mManzana.rumboActual, mManzana.textColindancia));                        
+                        else                        
+                            colindancias.Add(string.Format("al {0} con {1}", mManzana.rumboActual, mManzana.textColindancia));                                                   
+
+                        c++;
+                    }
+
+                    valor = string.Join(", ", colindancias);
+                    break;
+                case "NomAreaComun":
+                    break;
+                case "SeccionAreaComun":
+                    break;
+                case "SaltoLinea":
+                    valor = Environment.NewLine;
+                    break;
+                default:
+                    valor = "";
+                    break;                   
+            }
+            return valor;
+        }
+
+        private static string GetApartmentVariable(string input, long lote, M.Medidas mMedidas)
+        {
+            string valor = "";
+
+            switch (input)
+            {
+                case "NumEdificio":
+                    valor = mMedidas.NumEdificio.ToString();
+                    break;
+                case "LetraAp":
+                    valor = mMedidas.Apartamento;
+                    break;
+                case "CalleFrente":
+                    valor = mMedidas.Calle;
+                    break;
+                case "NumOficial":
+                    valor = mMedidas.NoOficial;
+                    break;
+                case "NumOficialLetra":
+                    valor = mMedidas.NoOficial + "-" + mMedidas.Apartamento;
+                    break;
+                case "AreaCubPB":
+                    valor = mMedidas.CPlantaBaja;
+                    break;
+                case "AreaCubPA":
+                    valor = mMedidas.CPlantaAlta;
+                    break;
+                case "AreaApartamento":
+
+                    double AreaPB = 0, AreaPA = 0;
+
+                    double.TryParse(mMedidas.CPlantaBaja, out AreaPB);
+                    double.TryParse(mMedidas.CPlantaAlta, out AreaPA);
+
+                    valor = (AreaPB + AreaPA).ToString();
+                    break;
+                case "AreaCubEstac":
+                    valor = mMedidas.CEstacionamiento;
+                    break;
+                case "AreaCubPasillo":
+                    valor = mMedidas.CPasillo;
+                    break;
+                case "AreaCubLav":
+                    valor = mMedidas.CLavanderia;
+                    break;
+                case "AreaCubPatio":
+                    valor = mMedidas.CPatio;
+                    break;
+                case "AreaCubTotal":
+                    valor = mMedidas.AreaTotalCubierta;
+                    break;
+                case "AreaDescEstac":
+                    valor = mMedidas.DEstacionamiento;
+                    break;
+                case "AreaDescPasillo":
+                    valor = mMedidas.DPasillo;
+                    break;
+                case "AreaDescLav":
+                    valor = mMedidas.DLavanderia;
+                    break;
+                case "AreaDescPatio":
+                    valor = mMedidas.DPatio;
+                    break;
+                case "AreaDescTotal":
+                    valor = mMedidas.AreaTotalDescubierta;
+                    break;
+                case "AreaEstac":
+                    double EstCub = 0, EstDesc = 0;
+
+                    double.TryParse(mMedidas.CEstacionamiento, out EstCub);
+                    double.TryParse(mMedidas.DEstacionamiento, out EstDesc);
+
+                    valor = (EstCub + EstDesc).ToString();
+                    break;
+                case "AreaPasillo":
+                    double PasilloCub = 0, PasilloDesc = 0;
+
+                    double.TryParse(mMedidas.CPasillo, out PasilloCub);
+                    double.TryParse(mMedidas.DPasillo, out PasilloDesc);
+
+                    valor = (PasilloCub + PasilloDesc).ToString();
+                    break;
+                case "AreaLavanderia":
+                    double lavCub = 0, lavDesc = 0;
+
+                    double.TryParse(mMedidas.CLavanderia, out lavCub);
+                    double.TryParse(mMedidas.DLavanderia, out lavDesc);
+
+                    valor = (lavCub + lavDesc).ToString();
+
+                    break;
+                case "AreaPatio":
+                    double patioCub = 0, patioDesc = 0;
+
+                    double.TryParse(mMedidas.CPatio, out patioCub);
+                    double.TryParse(mMedidas.DPatio, out patioDesc);
+
+                    valor = (patioCub + patioDesc).ToString();
+
+                    break;
+                case "TotalCubDesc":
+                    valor = mMedidas.AreaCubiertaDescubierta;
+                    break;
+                case "M2AreaComun":
+                    valor = mMedidas.NombreAreaComun;
+                    break;
+                case "AreaExclusiva":
+                    valor = mMedidas.AreaExclusiva;
+                    break;
+                case "Proinvidiviso":
+                    valor = mMedidas.Proindiviso;
+                    break;
+                case "PredioFrente":
+                    valor = mMedidas.PredioFrente;
+                    break;
+                case "PredioFondo":
+                    valor = mMedidas.PredioFondo;
+                    break;
+                case "PredioArea":
+                    valor = mMedidas.PredioArea;
+                    break;
+                case "AreaConst":
+                    valor = mMedidas.AreaConstruccion;
+                    break;
+                case "ExpCatastral":
+                    valor = mMedidas.ExpedienteCatastral;
+                    break;
+                default:
+                    break;
+
+            }
+            return valor;
+        }
+
+        #endregion
     }
 }

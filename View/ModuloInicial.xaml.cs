@@ -69,27 +69,17 @@ namespace RegimenCondominio.V
 
         private void FraccionamientoCombo_SelectChanged(object sender, SelectionChangedEventArgs e)
         {
-            if ((FraccionamientoCombo.SelectedItem ?? string.Empty).ToString() != string.Empty)
+            if (FraccionamientoCombo.SelectedItem != null)
             {
                 (this.Resources["expandFracc"] as
-                    System.Windows.Media.Animation.Storyboard).Begin();                            
-                                
-                //Asigno Municipio
+                    System.Windows.Media.Animation.Storyboard).Begin();
 
-                if(FraccionamientoCombo.SelectedItem != null)
-                {
-                    EstadoBox.Text =
-                    M.Inicio.ResultFraccs.
-                    Where(i => i.fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
-                    Select(j => j.estado).FirstOrDefault().ToString().FormatString();
+                //Obtengo el Fraccionamiento seleccionado
+                M.Fraccionamiento mItemSelected = (M.Fraccionamiento) FraccionamientoCombo.SelectedItem;
 
+                EstadoBox.Text = mItemSelected.Estado;
 
-                    municipioBox.Text =
-                        M.Inicio.ResultFraccs.
-                        Where(i => i.fraccionamiento == FraccionamientoCombo.SelectedItem.ToString().ToUpper()).
-                        Select(j => j.municipio).FirstOrDefault().ToString().FormatString();
-                }
-                
+                municipioBox.Text = mItemSelected.Municipio;
             }
             else
                 (this.Resources["hideFracc"] as
@@ -159,25 +149,25 @@ namespace RegimenCondominio.V
         private void btnSiguiente_Click(object sender, RoutedEventArgs e)
         {
             //Reviso que no haya valores nulos, espacios en blanco o 
-            if (
-                !string.IsNullOrWhiteSpace((FraccionamientoCombo.SelectedItem ?? "").ToString()) //Fraccionamiento
+            if (FraccionamientoCombo.SelectedItem != null //Fraccionamiento
                 && !string.IsNullOrWhiteSpace((EstadoBox.Text ?? "").ToString())//Estado
                 && !string.IsNullOrWhiteSpace((municipioBox.Text ?? "").ToString())//Municipio
                 && !string.IsNullOrWhiteSpace((RegionBox.Text ?? "").ToString()) //Region
                 && !string.IsNullOrWhiteSpace((sectorBox.Text ?? "").ToString())//Sector
-                && !string.IsNullOrWhiteSpace((tipoVivCombo.SelectedItem ?? "").ToString()) //FraccionamientoCombo
-              )
+                && tipoVivCombo.SelectedItem != null) //FraccionamientoCombo              
             {
                 //Asigno Valores seleccionados
-                M.Inicio.Fraccionamiento = FraccionamientoCombo.SelectedItem.ToString();
+                M.Inicio.Fraccionamiento = (M.Fraccionamiento) FraccionamientoCombo.SelectedItem;
                 M.Inicio.Estado = EstadoBox.Text;
                 M.Inicio.Municipio = municipioBox.Text;
                 M.Inicio.Region = RegionBox.Text;
                 M.Inicio.Sector = sectorBox.Text;
-                M.Inicio.TipoViv = tipoVivCombo.SelectedItem.ToString();
-                M.Inicio.ApartamentosXVivienda = M.Inicio.ResultTipoVivs.Where(x => x.Encabezado == M.Inicio.TipoViv.ToUpper())
-                                                    .FirstOrDefault().Cant_Viviendas;
-                               
+
+                //Calculo Tipo de Vivienda
+                M.EncabezadoMachote mItemMachote = 
+
+                M.Inicio.EncMachote = (M.EncabezadoMachote)(M.EncabezadoMachote)tipoVivCombo.SelectedItem;
+                              
                 ModuloManzana M_Manzana = new ModuloManzana();
                 M_Manzana.Show();
                 M.Constant.IsAutoClose = true;
@@ -197,24 +187,20 @@ namespace RegimenCondominio.V
             Usuariotxt.Text = M.Constant.Usuario;
 
             //Si ya se había ejecutado anteriormente, sólo carga la información
-            if (M.Inicio.ResultFraccs != null && M.Inicio.ResultTipoVivs != null)
+            if (M.Inicio.ResultFraccs != null && M.Inicio.ResultTipoVivs != null
+                && M.Inicio.ResultFraccs.Count > 0 && M.Inicio.ResultTipoVivs.Count > 0)
             {
-                //Si la lista contiene fraccionamientos
-                if (M.Inicio.ResultFraccs.Count > 0)
-                    FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs.
-                                            Select(x => x.fraccionamiento.FormatString()).ToList();
+                //Si la lista contiene fraccionamientos                
+                FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs;
 
-                //Si la lista contiene Tipo de Viviendas
-                if (M.Inicio.ResultTipoVivs.Count > 0)
-                    tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
-                                            Select(x => x.Encabezado.FormatString()).ToList();
+                //Si la lista contiene Tipo de Viviendas                
+                tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs;
 
                 //Habilito los controles
                 ShowControls();
 
                 //Si ya cuenta con datos los selecciono en la Pantalla--------------------------------
-                FraccionamientoCombo.SelectedItem = !string.IsNullOrWhiteSpace(M.Inicio.Fraccionamiento)
-                                                            ? M.Inicio.Fraccionamiento : null;
+                FraccionamientoCombo.SelectedItem = M.Inicio.Fraccionamiento != null ? M.Inicio.Fraccionamiento: null;
 
                 //Si ya cuenta con datos los selecciono en la Pantalla--------------------------------
                 RegionBox.Text = !string.IsNullOrWhiteSpace(M.Inicio.Region)
@@ -223,8 +209,7 @@ namespace RegimenCondominio.V
                 sectorBox.Text = !string.IsNullOrWhiteSpace(M.Inicio.Sector)
                                     ? M.Inicio.Sector : "";
 
-                tipoVivCombo.SelectedItem = !string.IsNullOrWhiteSpace(M.Inicio.TipoViv)
-                                                            ? M.Inicio.TipoViv : null;
+                tipoVivCombo.SelectedItem = M.Inicio.EncMachote != null ? M.Inicio.EncMachote : null;
                 //------------------------------------------------------------------------------------
 
             }
@@ -318,9 +303,10 @@ namespace RegimenCondominio.V
 
                         M.Inicio.ResultFraccs.Add(new M.Fraccionamiento
                         {
-                            fraccionamiento = cell[0],//NOMBRE_FRACC
-                            estado = cell[1],//ESTADO
-                            municipio = cell[2]//MUNICIPIO
+                            Id_Fracc = cell[0],
+                            fraccionamiento = cell[1],//NOMBRE_FRACC
+                            Estado = cell[2],//ESTADO
+                            Municipio = cell[3]//MUNICIPIO
 
                         });                      
                     }                   
@@ -349,13 +335,11 @@ namespace RegimenCondominio.V
 
             //Si la lista contiene fraccionamientos
             if (M.Inicio.ResultFraccs.Count > 0)
-                FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs.
-                                        Select(x => x.fraccionamiento.FormatString()).ToList();
+                FraccionamientoCombo.ItemsSource = M.Inicio.ResultFraccs;
 
             //Si la lista contiene Tipo de Viviendas
             if (M.Inicio.ResultTipoVivs.Count > 0)
-                tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs.
-                                        Select(x => x.Encabezado.FormatString()).ToList();
+                tipoVivCombo.ItemsSource = M.Inicio.ResultTipoVivs;
 
             //Desbloqueo controles
             ShowControls();              
@@ -370,7 +354,7 @@ namespace RegimenCondominio.V
         /// <returns></returns>
         private object LoadDataTask(C.SQL_Connector conn, object input, BackgroundWorker bg)
         {            
-            return conn.SelectTables(string.Format(Config.DB.QueryInicio, Environment.UserName.ToUpper()));                             
+            return conn.SelectTables(string.Format(Config.DB.QuerysInicio, Environment.UserName.ToUpper()));                             
         }
 
         #endregion

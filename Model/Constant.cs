@@ -89,6 +89,8 @@ namespace RegimenCondominio.M
             "Otro..."
         };
 
+        private static string regexBrackets = @"\[([^]]*)\]";
+
         #region Layers
 
         private static string layerNoOficial = "NUM_OFICIAL";
@@ -136,29 +138,7 @@ namespace RegimenCondominio.M
 
         private static string layerAreaComun = "AREA_COMUN";
 
-        #endregion
-        
-        /// <summary>
-        /// Filtro de la Manzana
-        /// </summary>
-        public static SelectionFilter ManzanaFilter
-        {
-            get
-            {
-                //RXClass nos sirve para obtener el nombre del DXF en AutoCAD
-                //El Start nos sirve para definir el tipo de entidad a filtrar
-                return new SelectionFilter(
-                    new TypedValue[]
-                                    {
-                                        new TypedValue((int)DxfCode.Operator,"<and"),
-                                        new TypedValue((int)DxfCode.Operator,"<or"),
-                                        new TypedValue((int)DxfCode.Start, RXClass.GetClass(typeof(DBText)).DxfName),
-                                        new TypedValue((int)DxfCode.Operator,"or>"),
-                                        new TypedValue((int)DxfCode.LayerName, LayerManzana),
-                                        new TypedValue((int)DxfCode.Operator,"and>")
-                                    });
-            }
-        }
+        #endregion                
 
         /// <summary>
         /// Palabras no tomadas en Cuenta en FormatString()
@@ -457,6 +437,14 @@ namespace RegimenCondominio.M
             get
             {
                 return layerExcPlantaAlta;
+            }
+        }
+
+        public static string RegexBrackets
+        {
+            get
+            {
+                return regexBrackets;
             }
         }
     }

@@ -17,7 +17,7 @@ namespace RegimenCondominio.M
         #region DatosIniciales
 
         //Fraccionamiento seleccionado en Módulo Inicio
-        private static string fraccionamiento;
+        private static M.Fraccionamiento fraccionamiento;
 
         //estado seleccionado en Módulo Inicio
         private static string estado;
@@ -28,9 +28,7 @@ namespace RegimenCondominio.M
 
         private static string sector;
 
-        private static string tipoViv;
-
-        private static int apartamentosXVivienda = new int();
+        private static M.EncabezadoMachote encMachote;
 
         #endregion
 
@@ -61,7 +59,7 @@ namespace RegimenCondominio.M
         }
 
 
-        public static string Fraccionamiento
+        public static M.Fraccionamiento Fraccionamiento
         {
             get
             {
@@ -126,29 +124,16 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static string TipoViv
+        public static M.EncabezadoMachote EncMachote
         {
             get
             {
-                return tipoViv;
+                return encMachote;
             }
 
             set
             {
-                tipoViv = value;
-            }
-        }
-
-        public static int ApartamentosXVivienda
-        {
-            get
-            {
-                return apartamentosXVivienda;
-            }
-
-            set
-            {
-                apartamentosXVivienda = value;
+                encMachote = value;
             }
         }
     }

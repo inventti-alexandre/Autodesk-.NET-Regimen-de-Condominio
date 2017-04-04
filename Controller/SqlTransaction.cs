@@ -74,8 +74,8 @@ namespace RegimenCondominio.C
                 }
                 catch (Exception exc)
                 {
-                    MessageBox.Show(exc.ToString());
-                    //Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(exc.Message);
+                    //MessageBox.Show(exc.ToString());
+                    exc.Message.ToEditor();                    
                 }
             }
         }

@@ -319,6 +319,28 @@
                                     </DockPanel>
                                 </MenuItem.Header>
                             </MenuItem>
+                            <MenuItem Height="30" Background="Transparent" BorderBrush="Transparent"
+                                      x:Name="btnExportarDocActual" Click="btnExportarExcel_Click">
+                                <MenuItem.Header>
+                                    <DockPanel Background="Transparent">
+                                        <Image VerticalAlignment="Center" Height="30"
+                                           Source="pack://application:,,,/RegimenCondominio;component/Images/word2016.png"
+                                           ></Image>
+                                        <Label>Doc. Actual</Label>
+                                    </DockPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Height="30" Background="Transparent" BorderBrush="Transparent"
+                                      x:Name="btnExportarTodosDoc" Click="btnExportarExcel_Click">
+                                <MenuItem.Header>
+                                    <DockPanel Background="Transparent">
+                                        <Image VerticalAlignment="Center" Height="30"
+                                           Source="pack://application:,,,/RegimenCondominio;component/Images/word2016.png"
+                                           ></Image>
+                                        <Label>Todos</Label>
+                                    </DockPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
                         </MenuItem>
                         <MenuItem Background="Transparent" BorderBrush="Transparent" VerticalAlignment="Center" 
                                   Margin="0,0,10,0" BorderThickness="0,0,0,0" Visibility="Collapsed">
@@ -774,10 +796,10 @@
                 Click="btnAtras_Click" x:Name="tb1btnAtras" BorderBrush="Transparent" Focusable="False"
                 BorderThickness="0" Background="Transparent" Margin="10,5,0,10" Width="50"/>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button  VerticalAlignment="Center" HorizontalAlignment="Right"          
-                                 BorderBrush="Transparent" BorderThickness="0" Height="30"
-                                 Focusable="False" Background="#6cb1e6" x:Name="btnEnviar" Content="Crear Documentos"
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Height="40">
+                <Button  VerticalAlignment="Center" HorizontalAlignment="Right" Click="btnEnviar_Click"   
+                                 BorderBrush="Transparent" BorderThickness="0" Height="30" Width="100"
+                                 Focusable="False" Background="#00897B" x:Name="btnEnviarBD" Content="Enviar"
                                  Foreground="White" Grid.Column="3"  Margin="10,0,5,0"
                                  />
                 <Button  VerticalAlignment="Center" HorizontalAlignment="Right"                 

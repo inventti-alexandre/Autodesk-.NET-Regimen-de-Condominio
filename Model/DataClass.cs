@@ -14,9 +14,10 @@ namespace RegimenCondominio.M
 
     public class Fraccionamiento
     {
+        public string Id_Fracc { get; set; }
         public string fraccionamiento { get; set; }
-        public string estado { get; set; }
-        public string municipio { get; set; }
+        public string Estado { get; set; }
+        public string Municipio { get; set; }
     }    
 
     public class AreaComun
@@ -48,6 +49,32 @@ namespace RegimenCondominio.M
         public string Encabezado { get; set; }
 
         public int Cant_Viviendas { get; set; }        
+    }
+
+    public class Bloques
+    {
+        public string Descripcion { get; set; }
+
+        public int Id_Tipo_Bloque { get; set; }
+
+        public string Nom_Tipo_BLoque { get; set; }
+
+        public int Orden { get; set; }
+    }
+
+    public class Variables
+    {
+        public string NombreCorto { get; set; }
+
+        public string NombreVariable { get; set; }
+
+        public string Valor { get; set; }
+
+        public bool EsCalculado { get; set; }
+
+        public bool Conv_Letra { get; set; }
+
+        public string Nom_Tipo_Bloque { get; set; }
     }
 
     public class DataColumns
@@ -184,8 +211,6 @@ namespace RegimenCondominio.M
 
         public string metodo { get; set; }
     }
-
-
 
     public class DescribeLayer
     {

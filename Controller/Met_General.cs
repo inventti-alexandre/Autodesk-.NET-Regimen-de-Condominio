@@ -343,13 +343,12 @@ namespace RegimenCondominio.C
             M.Inicio.ResultFraccs = null;
             M.Inicio.ResultTipoVivs = null;
 
-            M.Inicio.Fraccionamiento = "";
+            M.Inicio.Fraccionamiento = new M.Fraccionamiento();
             M.Inicio.Estado = "";
             M.Inicio.Municipio = "";
             M.Inicio.Sector = "";
             M.Inicio.Region = "";
-            M.Inicio.TipoViv = "";
-            M.Inicio.ApartamentosXVivienda = 0;
+            M.Inicio.EncMachote = new M.EncabezadoMachote();           
 
 
             //Datos almacenados en Módulo Manzana

@@ -84,7 +84,7 @@ namespace RegimenCondominio.C
                                                         typeof(Polyline).Filter(M.Constant.LayerApartamento));            
 
             //Reviso que haya más de 1 apartamento y que los apartamentos del edificio correspondan a la cantidad introducida
-            if (idsApartments.Count == M.Inicio.ApartamentosXVivienda)
+            if (idsApartments.Count == M.Inicio.EncMachote.Cant_Viviendas)
             {
                 //Reviso que tengan las letras correspondientes dependiendo de la cantidad de apartamentos
                 if (CheckAndOrderApartment(idsApartments))
@@ -564,7 +564,7 @@ namespace RegimenCondominio.C
                 {
                     error = "Cantidad de Apartamentos",
                     description = string.Format("El Lote tiene {0} apartamentos y deben de ser {1}", 
-                                    idsApartments.Count, M.Inicio.ApartamentosXVivienda),
+                                    idsApartments.Count, M.Inicio.EncMachote.Cant_Viviendas),
                     timeError = DateTime.Now.ToString(),
                     longObject = idLote.Handle.Value,
                     metodo = "Met_Colindante-CreatePointsSet",
@@ -573,6 +573,177 @@ namespace RegimenCondominio.C
 
                 isCorrect = false;
             }
+            return isCorrect;
+        }
+
+        internal static bool ReadApartmentPoints()
+        {
+            bool isCorrect = false;
+
+            try
+            {
+                foreach (M.InEdificios edificio in M.Colindante.Edificios)
+                {
+                    foreach (long longAp in edificio.Apartments)
+                    {
+                        M.Apartments ap = M.Colindante.OrderedApartments.Search(longAp);
+
+                        if (ap != null)
+                        {
+                            string letraAp = ap.TextAp;
+
+                            ObjectId idAp = new Handle(longAp).toObjectId();
+
+                            if (idAp.IsValid)
+                            {
+                                //Inicializa variables-----------------------------------
+                                double distance = 0;
+
+                                Point3d ptMedio = new Point3d();
+
+                                bool isArc = false;
+
+                                string strColindancia = "",
+                                        strRumbo = "",
+                                        noOficial = "";
+
+                                List<M.SegmentInfo> listSegments = new List<M.SegmentInfo>();
+                                List<string> layersColindancia = new List<string>();
+                                //----------------------------------------------------------
+
+                                Polyline plAp = idAp.OpenEntity() as Polyline;
+
+                                long lMacrolote = M.Colindante.IdMacrolote.Handle.Value;
+
+                                M.Lote Macrolote = M.Colindante.Lotes.Search(lMacrolote);
+
+                                if (Macrolote != null)
+                                    noOficial = Macrolote.numOficial;
+
+                                //Obtengo todos los arcos y sus puntos medios
+                                listSegments = GetInfoSegments(plAp);
+
+                                List<Point3d> ptsApartamento = plAp.ClockwisePoints();
+
+                                int startPoint = 0,
+                                    numPtA = 0,
+                                    numPtB = 0;
+
+                                //Por cada vertice del Edificio
+                                for (int k = 0; k < ptsApartamento.Count; k++)
+                                {
+                                    Point3d ptA = new Point3d(),
+                                            ptB = new Point3d();
+
+                                    ObjectId idPtFoundA = new ObjectId(),
+                                             idPtFoundB = new ObjectId();
+
+                                    ////Punto A
+                                    ptA = ptsApartamento[k];
+
+                                    //Asigno Punto B
+                                    //Si no es el último punto le asigno 1 más, en dado caso que si, asigno Index 0.
+                                    if (k + 1 < ptsApartamento.Count)
+                                        ptB = ptsApartamento[k + 1];
+                                    else
+                                        ptB = ptsApartamento[0];
+
+                                    //Reviso a que coordenada pertenece
+                                    if (ptA.ExistsPoint(M.Constant.LayerExcDBPoints, out idPtFoundA))
+                                    {
+                                        DBPoint dbPointA = idPtFoundA.OpenEntity() as DBPoint;
+
+                                        ObjectId idXRecord = new ObjectId();
+
+                                        string[] dataA = new string[1];
+
+                                        if (dbPointA.ExtensionDictionary.IsValid)
+                                            idXRecord = DManager.GetXRecord(dbPointA.ExtensionDictionary, M.Constant.XRecordPoints);
+
+                                        if (idXRecord.IsValid)
+                                            dataA = DManager.GetData(idXRecord);
+
+                                        numPtA = int.Parse(dataA[0]);
+
+                                        if (k == 0)
+                                            startPoint = numPtA;
+                                    }
+
+                                    if (ptB.ExistsPoint(M.Constant.LayerExcDBPoints, out idPtFoundB))
+                                    {
+                                        DBPoint dbPointB = idPtFoundB.OpenEntity() as DBPoint;
+
+                                        ObjectId idXRecord = new ObjectId();
+
+                                        string[] dataB = new string[1];
+
+                                        if (dbPointB.ExtensionDictionary.IsValid)
+                                            idXRecord = DManager.GetXRecord(dbPointB.ExtensionDictionary, M.Constant.XRecordPoints);
+
+                                        if (idXRecord.IsValid)
+                                            dataB = DManager.GetData(idXRecord);
+
+                                        numPtB = int.Parse(dataB[0]);
+                                    }
+
+                                    //Dependiendo del tipo de segmento
+                                    M.SegmentInfo data = FindSegmentData(listSegments, ptA, ptB);
+
+                                    //Obtengo distancia total del arco
+                                    distance = data.Distance.Trunc(M.Colindante.Decimals);
+
+                                    //Obtengo el punto medio
+                                    ptMedio = data.MiddlePoint;
+
+                                    isArc = data.isArc;
+
+                                    strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia, new Handle(edificio._long).toObjectId(), idAp);
+
+                                    if (strRumbo == "")
+                                        strRumbo = FindDirection(ptMedio, new Point3dCollection(ptsApartamento.ToArray()), idAp);
+
+                                    M.Colindante.MainData.Add(new M.ColindanciaData()
+                                    {
+                                        Edificio_Lote = edificio.numEdificio,
+                                        Apartamento = "Apartamento " + letraAp,
+                                        Colindancia = strColindancia,
+                                        CoordenadaA = ptA,
+                                        CoordenadaB = ptB,
+                                        idVivienda = edificio._long,
+                                        Seccion = "Área Exclusiva",
+                                        LayerSeccion = M.Constant.LayerApartamento,
+                                        PuntoA = numPtA,
+                                        PuntoB = numPtB,
+                                        NoOficial = noOficial,
+                                        Distancia = distance,
+                                        esArco = isArc,
+                                        esEsquinaA = false,
+                                        esEsquinaB = false,
+                                        LayersColindancia = layersColindancia,
+                                        Rumbo = strRumbo
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                isCorrect = true;
+
+            } catch (Exception ex) {
+                ex.Message.ToEditor();
+                isCorrect = false;
+                M.Colindante.ListadoErrores.Add(new M.Error()
+                {
+                    error = "Error en Área Exclusiva",
+                    description = "Se generó un Error al Obtener Área Exclusiva",
+                    longObject = 0,
+                    metodo = "ReadApartmentPoints - Met_Colindante",
+                    timeError = DateTime.Now.ToString(),
+                    tipoError = M.TipoError.Error
+                });
+            }
+
             return isCorrect;
         }
 
@@ -750,7 +921,7 @@ namespace RegimenCondominio.C
                             typeof(Polyline).Filter(M.Constant.LayerApartamento));            
 
             //Reviso que haya más de 1 apartamento y que los apartamentos del edificio correspondan a la cantidad introducida
-            if (idsApartaments.Count > 0 && idsApartaments.Count == M.Inicio.ApartamentosXVivienda)
+            if (idsApartaments.Count > 0 && idsApartaments.Count == M.Inicio.EncMachote.Cant_Viviendas)
             {
                 //Reviso que tengan las letras correspondientes dependiendo de la cantidad de apartamentos
                 try
@@ -1038,7 +1209,7 @@ namespace RegimenCondominio.C
                 {
                     error = "Cantidad de Apartamentos",
                     description = string.Format("El edificio tiene {0} apartamentos y deben de ser {1}"
-                                                , idsApartaments.Count, M.Inicio.ApartamentosXVivienda),
+                                                , idsApartaments.Count, M.Inicio.EncMachote.Cant_Viviendas),
                     timeError = DateTime.Now.ToString(),
                     longObject = idEdificio.Handle.Value,
                     metodo = "Met_Colindante - CreatePointsMacroset",
@@ -1067,8 +1238,7 @@ namespace RegimenCondominio.C
                 if (EsMacrolote)
                 {
 
-                    M.InEdificios edificioRegular = M.Colindante.Edificios
-                        .Where(x => x._long == M.Colindante.IdTipo.Handle.Value).FirstOrDefault();
+                    M.InEdificios edificioRegular = M.Colindante.Edificios.Search(M.Colindante.IdTipo.Handle.Value);                        
 
                     List<M.Apartments> lApsEdificioRegular = GetApartments(edificioRegular);
 
@@ -1621,7 +1791,7 @@ namespace RegimenCondominio.C
                     }
                 }
 
-                if (listApartments.Count == M.Inicio.ApartamentosXVivienda)
+                if (listApartments.Count == M.Inicio.EncMachote.Cant_Viviendas)
                     break;
             }
 
@@ -1821,7 +1991,7 @@ namespace RegimenCondominio.C
             return isCorrect;
         }
 
-        internal static bool GenerateCornerPoints()
+        internal static bool GenerateBuildingCornerPoints()
         {
             //Los edificios que ya había realizado
             List<long> edificiosEvaluados = new List<long>();
@@ -2278,7 +2448,7 @@ namespace RegimenCondominio.C
                     ObjectIdCollection cantAps = Met_Autodesk.ObjectsInside(min, max,
                                                                 typeof(Polyline).Filter(M.Constant.LayerApartamento));
 
-                    int cantCorrectaAps = idsEdificios.Count * M.Inicio.ApartamentosXVivienda;
+                    int cantCorrectaAps = idsEdificios.Count * M.Inicio.EncMachote.Cant_Viviendas;
 
                     //Reviso que las polilíneas del apartamento sean las correctas
                     if (cantAps.Count == cantCorrectaAps)
@@ -2319,13 +2489,13 @@ namespace RegimenCondominio.C
                                 //Reviso que sólo sea un texto Edificio
                                 numEdificio = isOneText(textosEnEdificio, idEdificio, apartments);
 
-                                if (apsInEdificio.Count != M.Inicio.ApartamentosXVivienda)
+                                if (apsInEdificio.Count != M.Inicio.EncMachote.Cant_Viviendas)
                                 {
                                     M.Colindante.ListadoErrores.Add(new M.Error()
                                     {
                                         error = "Menor Cant. de Apartamentos",
                                         description = string.Format("En el Edificio {0} se detectaron {1} y deben ser {2} Apartamentos (Polilíneas)",
-                                                                    idEdificio, apsInEdificio.Count, M.Inicio.ApartamentosXVivienda),
+                                                                    idEdificio, apsInEdificio.Count, M.Inicio.EncMachote.Cant_Viviendas),
                                         longObject = idEdificio.Handle.Value,
                                         timeError = DateTime.Now.ToString(),
                                         tipoError = M.TipoError.Error,
