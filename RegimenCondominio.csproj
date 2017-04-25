@@ -26,8 +26,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
     <UseVSHostingProcess>true</UseVSHostingProcess>
+    <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -106,14 +107,14 @@
     <Compile Include="Controller\Met_General.cs" />
     <Compile Include="Controller\Met_InfoTabla.cs" />
     <Compile Include="Controller\Met_Manzana.cs" />
-    <Compile Include="Controller\OfficeUtility.cs" />
+    <Compile Include="Controller\Office.cs" />
     <Compile Include="Controller\PolylineSegment.cs" />
     <Compile Include="Controller\PolylineSegmentCollection.cs" />
     <Compile Include="Controller\SqlTransaction.cs" />
     <Compile Include="Controller\SQL_Connector.cs" />
     <Compile Include="Model\Colindante.cs" />
     <Compile Include="Model\Constant.cs" />
-    <Compile Include="Model\DataClass.cs" />
+    <Compile Include="Model\Interface.cs" />
     <Compile Include="Model\InfoTabla.cs" />
     <Compile Include="Model\Inicio.cs" />
     <Compile Include="Model\Manzana.cs" />
@@ -381,6 +382,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\tables.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\word2016.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\word.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

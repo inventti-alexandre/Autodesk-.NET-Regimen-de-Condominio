@@ -515,7 +515,7 @@ namespace RegimenCondominio.C
 
                                 if(dbDict.Contains(recordName))
                                 {                                    
-                                        objCol.Add(id);
+                                        objCol.Add(ent.ExtensionDictionary);
                                 }                                
                             }
                         }

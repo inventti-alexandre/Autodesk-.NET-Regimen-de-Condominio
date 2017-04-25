@@ -31,12 +31,19 @@ namespace RegimenCondominio.V
             InitializeComponent();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            ModuloInicial M_Inicial = new ModuloInicial();
-            M_Inicial.Show();
-            M.Constant.IsAutoClose = true;
-            this.Close();
+            MessageDialogResult mdr = await this.ShowMessageAsync("Ir a Inicio", "Se perderán los datos, ¿Desea ir a Inicio?", 
+                                        MessageDialogStyle.AffirmativeAndNegative, M.Constant.DialogMetroSettings);
+
+            if (mdr == MessageDialogResult.Affirmative)
+            {
+                C.Met_General.ClearData(false);
+                ModuloInicial M_Inicial = new ModuloInicial();
+                M_Inicial.Show();
+                M.Constant.IsAutoClose = true;
+                this.Close();
+            }
         }
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
@@ -44,8 +51,8 @@ namespace RegimenCondominio.V
             //Todas las orientaciones disponibles
             CmbRumboFrente.ItemsSource = Met_Manzana.DespliegoOrientaciones();
 
-            if (!string.IsNullOrWhiteSpace(M.Manzana.RumboFrente))
-                CmbRumboFrente.SelectedItem = M.Manzana.RumboFrente;
+            if (!string.IsNullOrWhiteSpace(M.Manzana.RumboFrente.rumboActual))
+                CmbRumboFrente.SelectedItem = M.Manzana.RumboFrente.rumboActual;
 
             //Agrego los tipos de Colindancias
             cmbTipo.ItemsSource = M.Constant.TipoColindancias;
@@ -126,7 +133,7 @@ namespace RegimenCondominio.V
                 string RumboFrente = CmbRumboFrente.SelectedItem.ToString();
 
                 //Si ya había introducido algo en la tabla envío advertencia
-                if (ListPrincipal.Items.Count > 0 && handleSelection && RumboFrente != M.Manzana.RumboFrente)
+                if (ListPrincipal.Items.Count > 0 && handleSelection && RumboFrente != M.Manzana.RumboFrente.rumboActual)
                 {
                     MessageDialogResult result
                         = await this.ShowMessageAsync("Modificación de Rumbo Frente",
@@ -312,6 +319,8 @@ namespace RegimenCondominio.V
         private void btnAvanzar_Click(object sender, RoutedEventArgs e)
         {
             int outNoManzana = 0;
+            bool siRumboFrente = false;
+
             //Reviso que no sea nulo los valores seleccionados
             if (!string.IsNullOrWhiteSpace((cmbManzana.SelectedItem ?? "").ToString()) &&
                 !string.IsNullOrWhiteSpace((CmbRumboFrente.SelectedItem ?? "").ToString()))
@@ -324,12 +333,28 @@ namespace RegimenCondominio.V
                     {
                         //Una vez se validaron los datos los encapsulo
                         M.Manzana.NoManzana = outNoManzana;
-                        M.Manzana.RumboFrente = CmbRumboFrente.SelectedItem.ToString();
-                        M.Constant.IsAutoClose = true;
-                        this.Close();
-                        ModuloColindante M_Colindante = new ModuloColindante();
-                        M_Colindante.Show();
                         
+                        //Encuentro rumbo de frente y lo asigno
+                        foreach(M.ManzanaData mManzana in M.Manzana.ColindanciaManzana)
+                        {
+                            if(mManzana.rumboActual == CmbRumboFrente.SelectedItem.ToString())
+                            {
+                                M.Manzana.RumboFrente = mManzana;
+                                siRumboFrente = true;
+                                break;
+                            }
+                        }
+
+                        if (siRumboFrente)
+                        {
+                            M.Constant.IsAutoClose = true;
+                            this.Close();
+                            ModuloColindante M_Colindante = new ModuloColindante();
+                            M_Colindante.Show();
+                        }
+                        else
+                            this.ShowMessageAsync("Sin Rumbo de Frente", "No se encontró Rumbo de Frente");
+
                     }
                     else
                         this.ShowMessageAsync("Error en No. de Manzana", "La manzana debe de ser un número entero");
@@ -376,7 +401,10 @@ namespace RegimenCondominio.V
                 if (dg == MessageBoxResult.No)
                     e.Cancel = true;
                 else
+                {
                     C.Met_General.ClearData();
+                    M.Inicio.IsOpen = false;
+                }
             }
             else
                 M.Constant.IsAutoClose = false;

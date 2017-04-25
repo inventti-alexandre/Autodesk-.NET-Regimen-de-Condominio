@@ -21,6 +21,79 @@ namespace RegimenCondominio.C
         {
             return ((angleDegrees / 180) * Math.PI);
         }
+
+        internal static string ToOrdinalNumber(this int number)
+        {
+            string[] Unidad = { "", "primero", "segundo", "tercero",
+            "cuarto", "quinto", "sexto", "septimo", "octavo",
+            "noveno" };
+
+            string[] Decena = { "", "decimo", "vigesimo", "trigesimo",
+            "cuadragesimo", "quincuagesimo", "sexagesimo",
+            "septuagesimo", "octogesimo", "nonagesimo" };
+
+            string[] Centena = {"", "centesimo", "ducentesimo",
+            "tricentesimo", " cuadringentesimo", " quingentesimo",
+            " sexcentesimo", " septingentesimo", " octingentesimo",
+            " noningentesimo"};
+
+            string ordinal = "";
+
+            int u = number % 10;
+
+            int d = (number / 10) % 10;
+
+            int c = number / 100;
+
+            if (number >= 100 && number < 1000)
+            {
+                 ordinal = Centena[c] + " " + Decena[d] + " " + Unidad[u];
+            }
+            else if(number < 100)
+            {
+                if (number >= 10)
+                {
+                    ordinal = Decena[d] + " " + Unidad[u];
+                }
+                else
+                {
+                    ordinal = Unidad[number];
+                }
+            }
+
+            return ordinal;
+        }
+
+        internal static int GetDecimals(this decimal number)
+        {
+            decimal truncated = Math.Truncate(number),
+                    value = number - truncated;
+
+            int enteroDecimal = int.Parse(value.ToString().Replace(".", ""));
+
+            if (value > 0)
+            {
+                string strDecimal = value.ToString();
+
+                if (strDecimal.Contains("."))
+                {
+                    string decimals = strDecimal.Substring(strDecimal.LastIndexOf('.') + 1);
+
+                    enteroDecimal = decimals.Length;
+
+                    //Si tiene un cero a la derecha no tiene valor ya que es decimal
+                    if (decimals[decimals.Length - 1] == '0')
+                        enteroDecimal = enteroDecimal - 1;
+                }
+                else
+                    enteroDecimal = 0;
+            }
+            else
+                enteroDecimal = 0;
+
+            return enteroDecimal;
+        }
+
         internal static string FormatString(this string OracionMayuscula)
         {            
             StringBuilder UnirPalabra = new StringBuilder();
@@ -251,7 +324,7 @@ namespace RegimenCondominio.C
             return Math.Floor(num * Math.Pow(10, decimals)) / Math.Pow(10, decimals);
         }
 
-        public static string NumberToWord(this string num)
+        public static string NumberToWord(string num)
         {
             string res, dec = "";
             Int64 entero;
@@ -266,13 +339,51 @@ namespace RegimenCondominio.C
                 return "";
             }
             entero = Convert.ToInt64(Math.Truncate(nro));
+
             decimales = Convert.ToInt32(Math.Round((nro - entero) * 100, 2));
+
             if (decimales > 0)
             {
                 dec = " CON " + decimales.ToString() + "/100";
             }
             res = toText(Convert.ToDouble(entero)) + dec;
             return res;
+        }
+
+        public static void EnLetra(this decimal num, out string strEntero, out string strDecimales)
+        {
+            string valorResta = "";
+
+            int entero,
+                decimales;
+
+            strEntero = "";
+            strDecimales = "";            
+
+            //Obtengo el entero
+            entero = Convert.ToInt32(Math.Truncate(num));
+
+            //Obtengo el valor de la resta y remuevo el punto
+            valorResta = (num - entero).ToString().Replace(".", "");
+
+            //Si no es solo un cero y si tiene un cero a la derecha, al ser decimal no debe de ser tomado en cuenta
+            if (valorResta != "0" && valorResta[valorResta.Length - 1] == '0')
+                valorResta = valorResta.Substring(0, valorResta.Length - 1);
+
+            //Guardo los decimales
+            decimales = Convert.ToInt32(valorResta);
+
+            if (decimales > 0)
+                strDecimales = toText(Convert.ToDouble(decimales)).ToLower();
+
+            strEntero = toText(Convert.ToDouble(entero)).ToLower();
+        }
+
+        public static decimal Trunc(this decimal number, int digits)
+        {
+            decimal stepper = (decimal)(Math.Pow(10.0, (double)digits));
+            int temp = (int)(stepper * number);
+            return (decimal)temp / stepper;
         }
 
         private static string toText(double value)
@@ -337,56 +448,83 @@ namespace RegimenCondominio.C
             return Num2Text;
         }
 
-        internal static void ClearData()
+        internal static void ClearData(bool clearM1 = true, bool clearM2 = true, bool clearM3 = true, bool clearM4 = true)
         {
-            //Datos almacenados en Módulo Inicial
-            M.Inicio.ResultFraccs = null;
-            M.Inicio.ResultTipoVivs = null;
+            try
+            {
+                //Datos almacenados en Módulo Inicial
+                if (clearM1)
+                {
+                    M.Inicio.ResultFraccs = null;
+                    M.Inicio.ResultTipoVivs = null;
+                    M.Inicio.Fraccionamiento = new M.Fraccionamiento();
+                    M.Inicio.Estado = "";
+                    M.Inicio.Municipio = "";
+                    M.Inicio.Sector = "";
+                    M.Inicio.Region = "";
+                    M.Inicio.EncMachote = new M.EncabezadoMachote();
 
-            M.Inicio.Fraccionamiento = new M.Fraccionamiento();
-            M.Inicio.Estado = "";
-            M.Inicio.Municipio = "";
-            M.Inicio.Sector = "";
-            M.Inicio.Region = "";
-            M.Inicio.EncMachote = new M.EncabezadoMachote();           
+                }
 
+                //Datos almacenados en el Módulo Manzana
+                if (clearM2)
+                {
+                    //Datos almacenados en Módulo Manzana
+                    M.Manzana.OrientacionCalculada = new List<string>();
+                    M.Manzana.ColindanciaManzana = new List<M.ManzanaData>();
+                    M.Manzana.NoManzana = 0;
+                    M.Manzana.RumboFrente = new M.ManzanaData();
+                    M.Manzana.EsMacrolote = false;
 
-            //Datos almacenados en Módulo Manzana
-            M.Manzana.OrientacionCalculada = new List<string>();
-            M.Manzana.ColindanciaManzana = new List<M.ManzanaData>();
-            M.Manzana.NoManzana = 0;
-            M.Manzana.RumboFrente = "";
-            M.Manzana.EsMacrolote = false;
+                    //Elimino los Xrecord guardados
+                    C.Met_Manzana.EliminaColindancias();
+                }
 
-            //Elimino los Xrecord guardados
-            C.Met_Manzana.EliminaColindancias();
+                //Datos almacenados en Módulo Colindancia 
+                if (clearM3)
+                {
+                    M.Colindante.IdTipo = new cadDB.ObjectId();
+                    M.Colindante.IdsIrregulares = new cadDB.ObjectIdCollection();
+                    M.Colindante.Edificios = new List<M.InEdificios>();
+                    M.Colindante.IdMacrolote = new cadDB.ObjectId();
+                    M.Colindante.Lotes = new List<M.Lote>();
+                    M.Colindante.ListadoErrores = new ObservableCollection<M.Error>();
+                    M.Colindante.MainData = new List<M.ColindanciaData>();
+                    M.Colindante.OrderedApartments = new List<M.Apartments>();
+                    M.Colindante.PtsVertex = new Point3dCollection();
+                    M.Colindante.ListCommonArea = new List<M.AreaComun>();
+                    M.Colindante.LastPoint = 0;
+                    M.Colindante.NomAreaComun = "";
 
-            //Datos almacenados en Módulo Colindancia            
-            M.Colindante.IdTipo = new cadDB.ObjectId();
-            M.Colindante.IdsIrregulares = new cadDB.ObjectIdCollection();
-            M.Colindante.IdMacrolote = new cadDB.ObjectId();
-            M.Colindante.Edificios = new List<M.InEdificios>();
-            M.Colindante.Lotes = new List<M.Lote>();
-            M.Colindante.ListadoErrores = new ObservableCollection<M.Error>();
-            M.Colindante.MainData = new List<M.ColindanciaData>();
-            M.Colindante.OrderedApartments = new List<M.Apartments>();
-            M.Colindante.PtsVertex = new Point3dCollection();
-            M.Colindante.ListCommonArea = new List<M.AreaComun>();
-            M.Colindante.LastPoint = 0;
+                    //Debo de eliminar la polilínea creada al cargar Módulo Colindante       
+                    if (M.Colindante.IdPolManzana.IsValid)
+                        M.Colindante.IdPolManzana.GetAndRemove();
 
-            //Debo de eliminar la polilínea creada al cargar Módulo Colindante       
-            if (M.Colindante.IdPolManzana.IsValid)
-                M.Colindante.IdPolManzana.GetAndRemove();
+                    //Eliminar todos los puntos creados
+                    Met_Colindante.DeleteAdjacencyObjects();
+                }
 
-            //Eliminar todos los puntos creados
-            Met_Colindante.DeleteAdjacencyObjects();
-
-            //Datos de Módulo de Tabla
-            M.InfoTabla.MedidasGlobales = new ObservableCollection<M.Medidas>();
-            M.InfoTabla.LotesItem = new ObservableCollection<M.Checked<M.LoteItem>>();            
-            M.InfoTabla.AllProperties = new List<M.DataColumns>();
-            M.InfoTabla.CalleFrente = "";
-            M.InfoTabla.RumboInverso = new M.ManzanaData();            
+                //Datos de Módulo de Tabla
+                if (clearM4)
+                {
+                    M.InfoTabla.MedidasGlobales = new ObservableCollection<M.Medidas>();
+                    M.InfoTabla.LotesSelected = new ObservableCollection<M.Checked<M.LoteItem>>();
+                    M.InfoTabla.AllProperties = new List<M.DataColumns>();
+                    M.InfoTabla.RumboInverso = new M.ManzanaData();
+                    M.InfoTabla.TotalesTabla = new M.TotalesMedidas();
+                    M.InfoTabla.LotesBase = new Dictionary<long, bool>();
+                    M.InfoTabla.ResultadoBloques = new List<M.Bloques>();
+                    M.InfoTabla.ResultadoVariables = new List<M.Variables>();
+                }
+            }
+            catch(Autodesk.AutoCAD.Runtime.Exception ex)
+            {
+                ("AUTODESK: " + ex.Message).ToEditor();
+            }
+            catch(Exception ex)
+            {
+                ex.Message.ToEditor();
+            }
         }
 
         public static string FindInDimensions(this string[,] target, string searchTerm, 
@@ -477,7 +615,7 @@ namespace RegimenCondominio.C
             {
                 areaComun = list[i];
 
-                if (areaComun._longAreaComun == objToLook)
+                if (areaComun.LongAreaComun == objToLook)
                     return areaComun;
             }
 

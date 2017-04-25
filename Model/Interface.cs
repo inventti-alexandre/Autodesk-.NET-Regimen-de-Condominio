@@ -22,11 +22,13 @@ namespace RegimenCondominio.M
 
     public class AreaComun
     {
-        public long _longLote { get; set; }
+        public long LongLote { get; set; }
 
-        public long _longAreaComun { get; set; }
+        public long LongAreaComun { get; set; }
 
-        public string nombreAreaComun { get; set; }
+        public string NombreAreaComun { get; set; }
+
+        public double AreaPl { get; set; }
     }
     public class ManzanaData
     {
@@ -53,11 +55,13 @@ namespace RegimenCondominio.M
 
     public class Bloques
     {
+        public int IdBloque { get; set; }
+
         public string Descripcion { get; set; }
 
-        public int Id_Tipo_Bloque { get; set; }
+        public int IdTipoBloque { get; set; }
 
-        public string Nom_Tipo_BLoque { get; set; }
+        public string NomTipoBLoque { get; set; }
 
         public int Orden { get; set; }
     }
@@ -72,9 +76,15 @@ namespace RegimenCondominio.M
 
         public bool EsCalculado { get; set; }
 
-        public bool Conv_Letra { get; set; }
+        public bool ConvLetra { get; set; }
 
-        public string Nom_Tipo_Bloque { get; set; }
+        public string NomTipoBloque { get; set; }
+
+        public string NomCortoUnidad { get; set; }
+
+        public string RepUnidad { get; set; }
+
+        public string DescUnidad { get; set; }
     }
 
     public class DataColumns
@@ -715,10 +725,10 @@ namespace RegimenCondominio.M
 
     public class Totales : INotifyPropertyChanged
     {       
-        private double total;
+        private decimal total;
         private DetailColumns columna;
 
-        public double Total
+        public decimal Total
         {
             get
             {

@@ -349,17 +349,36 @@ namespace RegimenCondominio.C
                         if (isCorrect)
                         {
                             //Ordeno Área Común
-                            M.Colindante.ListCommonArea.Sort((s1, s2) => s1.nombreAreaComun.CompareTo(s2.nombreAreaComun));
+                            M.Colindante.ListCommonArea.Sort((s1, s2) => s1.NombreAreaComun.CompareTo(s2.NombreAreaComun));
 
                             #region Por cada Área Común
+
                             //Nombre de Área Común
                             for (int i = 0; i < M.Colindante.ListCommonArea.Count; i++)
                             {
                                 M.AreaComun areaActual = M.Colindante.ListCommonArea[i];
 
-                                if (areaActual._longLote == idLote.Handle.Value)
+                                if(i == 0)
                                 {
-                                    ObjectId idArea = new Handle(areaActual._longAreaComun).toObjectId();
+                                    string  areaComun = areaActual.NombreAreaComun,
+                                            strnumAreaComun = areaComun.Split(' ').LastOrDefault();
+
+                                    int numAreaComun;
+
+                                    if(int.TryParse(strnumAreaComun, out numAreaComun))
+                                    {
+                                        int idxLastSpace = areaComun.LastIndexOf(' ');
+
+                                        if (idxLastSpace > 0)
+                                            M.Colindante.NomAreaComun = areaComun.Substring(0, idxLastSpace);
+                                        else
+                                            M.Colindante.NomAreaComun = areaComun;
+                                    }                                                                        
+                                }
+
+                                if (areaActual.LongLote == idLote.Handle.Value)
+                                {
+                                    ObjectId idArea = new Handle(areaActual.LongAreaComun).toObjectId();
 
                                     if (idArea.IsValid)
                                     {
@@ -434,7 +453,7 @@ namespace RegimenCondominio.C
                                                 //Encuentro colindancia de acuerdo al punto medio
                                                 //Si no es planta alta se busca la adyacencia
                                                 strColindancia = FindAdjacency(ptMedio, out strRumbo, out layersColindancia,
-                                                                               new Handle(areaActual._longAreaComun).toObjectId());
+                                                                               new Handle(areaActual.LongAreaComun).toObjectId());
 
                                                 //Encuentro Rumbo si no estaba en la colindancia
                                                 if (strRumbo == "")
@@ -478,7 +497,7 @@ namespace RegimenCondominio.C
                                                 M.Colindante.MainData.Add(new M.ColindanciaData()
                                                 {
                                                     idVivienda = idLote.Handle.Value,
-                                                    Seccion = areaActual.nombreAreaComun.FormatString(),
+                                                    Seccion = areaActual.NombreAreaComun.FormatString(),
                                                     LayerSeccion = M.Constant.LayerAreaComun,
                                                     Rumbo = strRumbo,
                                                     Edificio_Lote = numLote,
@@ -796,15 +815,25 @@ namespace RegimenCondominio.C
 
         }
 
-        internal static void GetCommonArea(ObjectId idLote)
+        /// <summary>
+        /// Obtener el Área Común dentro de un Lote
+        /// </summary>
+        /// <param name="idLote"></param>
+        /// <returns>Verdadero si encuentra nombre de Área Común</returns>
+        internal static bool GetCommonArea(ObjectId idLote, out string msg)
         {            
             //Inicializo variables globales----------------------------------
             Point3d min = new Point3d(),
                     max = new Point3d();
 
+            //Polilínea del Lote
             Polyline plLote = new Polyline();
 
-            ObjectIdCollection idsCommonArea = new ObjectIdCollection();            
+            ObjectIdCollection idsAreaComun = new ObjectIdCollection();
+
+            msg = "";
+
+            bool sinError = true;        
             //----------------------------------------------------------------
 
             plLote = idLote.OpenEntity() as Polyline;
@@ -812,34 +841,80 @@ namespace RegimenCondominio.C
             min = plLote.GeometricExtents.MinPoint;
             max = plLote.GeometricExtents.MaxPoint;
 
-            idsCommonArea = Met_Autodesk.ObjectsInside(min, max, typeof(Polyline).Filter(M.Constant.LayerAreaComun));
+            idsAreaComun = Met_Autodesk.ObjectsInside(min, max, 
+                                typeof(Polyline).Filter(M.Constant.LayerAreaComun));
 
-            foreach (ObjectId id in idsCommonArea)
+            if (idsAreaComun.Count > 0)
             {
-                Polyline plCA = id.OpenEntity() as Polyline;
-
-                Point3d minAreaComun = new Point3d(),
-                        maxAreaComun = new Point3d();
-
-                minAreaComun = plCA.GeometricExtents.MinPoint;
-                maxAreaComun = plCA.GeometricExtents.MaxPoint;
-
-                ObjectId idText = Met_Autodesk.ObjectsInside(minAreaComun, maxAreaComun, typeof(DBText).Filter(M.Constant.LayerAreaComun))
-                    .OfType<ObjectId>().FirstOrDefault();
-
-                string nomArea = idText.IsValid ? (idText.OpenEntity() as DBText).TextString : Translate(M.Constant.LayerAreaComun);
-                
-                //Si ya existía este elemento ligado a un área común lo elimino    
-                M.Colindante.ListCommonArea.RemoveAll(x => x._longAreaComun == id.Handle.Value);
-                
-                //Agrego el elemento a Listado
-                M.Colindante.ListCommonArea.Add(new M.AreaComun()
+                foreach (ObjectId id in idsAreaComun)
                 {
-                    _longLote = idLote.Handle.Value,
-                    _longAreaComun = id.Handle.Value,
-                    nombreAreaComun = nomArea
-                });
+                    Polyline plAC = id.OpenEntity() as Polyline;
+
+                    Point3d minAreaComun = new Point3d(),
+                            maxAreaComun = new Point3d();
+
+                    minAreaComun = plAC.GeometricExtents.MinPoint;
+                    maxAreaComun = plAC.GeometricExtents.MaxPoint;
+
+                    ObjectId idText = Met_Autodesk.ObjectsInside(minAreaComun, maxAreaComun,
+                                            typeof(DBText).Filter(M.Constant.LayerAreaComun))
+                                            .OfType<ObjectId>().FirstOrDefault();
+                   
+                    string nomArea = "";
+
+                    //Si ya existía este elemento ligado a un área común lo elimino    
+                    M.Colindante.ListCommonArea.RemoveAll(x => x.LongAreaComun == id.Handle.Value);
+
+                    if (idText.IsValid)
+                    {
+                        nomArea = (idText.OpenEntity() as DBText).TextString;
+                    }
+                    else
+                    {
+                        nomArea = Translate(M.Constant.LayerAreaComun);
+
+                        msg = "No se encontró Nombre de Área Común, se escribirá \"Área Común\" por default";
+
+                        M.Colindante.ListadoErrores.Add(new M.Error()
+                        {
+                            error = "Sin Nombre",
+                            description = msg,
+                            longObject = id.Handle.Value,
+                            metodo = "GetCommonArea - Met_Colindante",
+                            timeError = DateTime.Now.ToString(),
+                            tipoError = M.TipoError.Advertencia
+                        });
+
+                        sinError = false;
+                    }
+                    //Agrego el elemento a Listado
+                    M.Colindante.ListCommonArea.Add(new M.AreaComun()
+                    {
+                        LongLote = idLote.Handle.Value,
+                        LongAreaComun = id.Handle.Value,
+                        NombreAreaComun = nomArea,
+                        AreaPl = plAC.Area.Trunc(M.Colindante.Decimals)
+                    });
+                }
             }
+            else
+            {
+                msg = "No se encontraron áreas comúnes";
+
+                M.Colindante.ListadoErrores.Add(new M.Error()
+                {
+                    error = "Sin Área Común",
+                    description = msg,
+                    longObject = idLote.Handle.Value,
+                    metodo = "GetCommonArea - Met_Colindante",
+                    timeError = DateTime.Now.ToString(),
+                    tipoError = M.TipoError.Error
+                });
+
+                sinError = false;
+            }
+
+            return sinError;
         }
 
         public static bool CreatePointsMacroset(ObjectId idEdificio, string provieneDe)
@@ -1842,7 +1917,9 @@ namespace RegimenCondominio.C
                         numPointA = 0, 
                         numPointB = 0;
 
-                    long lActual = M.Colindante.ListCommonArea[i]._longAreaComun;
+                    M.AreaComun mAreaComun = M.Colindante.ListCommonArea[i];
+
+                    long lActual = mAreaComun.LongAreaComun;
 
                     ObjectId idCommonArea = new Handle(lActual).toObjectId();
 
@@ -1933,7 +2010,7 @@ namespace RegimenCondominio.C
                                 M.Colindante.MainData.Add(new M.ColindanciaData()
                                 {
                                     idVivienda = lActual,
-                                    Seccion = Translate(pl.Layer),
+                                    Seccion = mAreaComun.NombreAreaComun,
                                     LayerSeccion = pl.Layer,
                                     Rumbo = strRumbo,
                                     Edificio_Lote = 0,
@@ -2782,7 +2859,7 @@ namespace RegimenCondominio.C
                                         M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);                                                        
 
                                         if (areaComun != null && areaComun != new M.AreaComun())
-                                            seccionColindancia = areaComun.nombreAreaComun;
+                                            seccionColindancia = areaComun.NombreAreaComun;
                                         else
                                             seccionColindancia = Translate(idSeccion.OpenEntity().Layer);
 
@@ -2828,7 +2905,7 @@ namespace RegimenCondominio.C
                                             M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);                                                            
 
                                             if (areaComun != null && areaComun != new M.AreaComun())
-                                                seccionColindancia = areaComun.nombreAreaComun;
+                                                seccionColindancia = areaComun.NombreAreaComun;
                                             else
                                                 seccionColindancia = Translate(idSeccion.OpenEntity().Layer);
 
@@ -2856,7 +2933,7 @@ namespace RegimenCondominio.C
                                             M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);
 
                                             if(areaComun != null && areaComun != new M.AreaComun())                                            
-                                                seccionColindancia = areaComun.nombreAreaComun;                                            
+                                                seccionColindancia = areaComun.NombreAreaComun;                                            
                                             else
                                                 seccionColindancia = Translate(idSeccion.OpenEntity().Layer);
 
@@ -2906,7 +2983,7 @@ namespace RegimenCondominio.C
                                         M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);                                                        
 
                                         if (areaComun != null && areaComun != new M.AreaComun())
-                                            seccionColindancia = (areaComun.nombreAreaComun ?? "").FormatString();
+                                            seccionColindancia = (areaComun.NombreAreaComun ?? "").FormatString();
                                         else
                                             seccionColindancia = Translate(idSeccion.OpenEntity().Layer);
 
@@ -2934,7 +3011,7 @@ namespace RegimenCondominio.C
                                         M.AreaComun areaComun = M.Colindante.ListCommonArea.Search(idSeccion.Handle.Value);                                                        
 
                                         if (areaComun != null && areaComun != new M.AreaComun())
-                                            seccionColindancia = (areaComun.nombreAreaComun ?? "").FormatString();
+                                            seccionColindancia = (areaComun.NombreAreaComun ?? "").FormatString();
                                         else
                                             seccionColindancia = Translate(idSeccion.OpenEntity().Layer);
 

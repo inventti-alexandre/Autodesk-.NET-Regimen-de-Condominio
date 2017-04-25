@@ -15,10 +15,9 @@ namespace RegimenCondominio.M
         private static List<ManzanaData> colindanciaManzana = new List<ManzanaData>();
 
         //Número de Manzana
-        private static int noManzana = new int();
+        private static int noManzana = new int();        
 
-        //Rumbo de Frente
-        private static string rumboFrente = string.Empty;
+        private static ManzanaData rumboFrente = new ManzanaData();
 
         private static bool esMacrolote = false;
 
@@ -61,19 +60,6 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static string RumboFrente
-        {
-            get
-            {
-                return rumboFrente;
-            }
-
-            set
-            {
-                rumboFrente = value;
-            }
-        }
-
         public static bool EsMacrolote
         {
             get
@@ -84,6 +70,19 @@ namespace RegimenCondominio.M
             set
             {
                 esMacrolote = value;
+            }
+        }
+
+        public static ManzanaData RumboFrente
+        {
+            get
+            {
+                return rumboFrente;
+            }
+
+            set
+            {
+                rumboFrente = value;
             }
         }
     }

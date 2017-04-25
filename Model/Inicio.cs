@@ -32,6 +32,8 @@ namespace RegimenCondominio.M
 
         #endregion
 
+        private static bool isOpen = new bool();
+
         public static List<Fraccionamiento> ResultFraccs
         {
             get
@@ -134,6 +136,19 @@ namespace RegimenCondominio.M
             set
             {
                 encMachote = value;
+            }
+        }
+
+        public static bool IsOpen
+        {
+            get
+            {
+                return isOpen;
+            }
+
+            set
+            {
+                isOpen = value;
             }
         }
     }

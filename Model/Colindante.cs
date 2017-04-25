@@ -54,23 +54,11 @@ namespace RegimenCondominio.M
 
         private static List<M.AreaComun> listCommonArea = new List<M.AreaComun>();
 
+        private static string nomAreaComun = "";
+
         private static double toleranceError = 0.02;
 
-        private static double dbTextSize = 0.05;
-
-        public static List<string> sourceComboError
-        {
-            get
-            {
-                Error db = new Error();
-                List<string> properties = new List<string>();
-
-                foreach (PropertyInfo prop in db.GetType().GetProperties())
-                    properties.Add(prop.Name);
-
-                return properties;
-            }
-        }
+        private static double dbTextSize = 0.05;        
 
         /// <summary>
         /// Id de selección de Lote Tipo
@@ -152,22 +140,6 @@ namespace RegimenCondominio.M
             }
         }
 
-        /// <summary>
-        /// Información Principal en Cálculo de Puntos
-        /// </summary>
-        public static List<ColindanciaData> MainData
-        {
-            get
-            {
-                return mainData;
-            }
-
-            set
-            {
-                mainData = value;
-            }
-        }
-
         public static List<Lote> Lotes
         {
             get
@@ -193,6 +165,22 @@ namespace RegimenCondominio.M
                 listadoErrores = value;
             }
         }
+
+        /// <summary>
+        /// Información Principal en Cálculo de Puntos
+        /// </summary>
+        public static List<ColindanciaData> MainData
+        {
+            get
+            {
+                return mainData;
+            }
+
+            set
+            {
+                mainData = value;
+            }
+        }                
 
         public static ObjectId IdPolManzana
         {
@@ -324,6 +312,19 @@ namespace RegimenCondominio.M
             set
             {
                 dbTextSize = value;
+            }
+        }
+
+        public static string NomAreaComun
+        {
+            get
+            {
+                return nomAreaComun;
+            }
+
+            set
+            {
+                nomAreaComun = value;
             }
         }
     }

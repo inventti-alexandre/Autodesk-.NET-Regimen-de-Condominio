@@ -29,18 +29,16 @@ namespace RegimenCondominio.M
 
         private static ObservableCollection<M.Medidas> _medidasGlobales = new ObservableCollection<M.Medidas>();
 
-        private static ObservableCollection<M.Checked<LoteItem>> lotesItem 
+        private static ObservableCollection<M.Checked<LoteItem>> lotesSelected
                                                         = new ObservableCollection<M.Checked<LoteItem>>();
 
         private static TotalesMedidas totalesTabla = new TotalesMedidas();        
 
         private static List<DataColumns> allProperties = new List<DataColumns>();
 
-        private static ManzanaData rumboInverso = new ManzanaData();
+        private static ManzanaData rumboInverso = new ManzanaData();       
 
-        private static string calleFrente = "";
-
-        private static Dictionary<long, bool> lotesCapturados = new Dictionary<long, bool>();               
+        private static Dictionary<long, bool> lotesBase = new Dictionary<long, bool>();               
 
         private static Dictionary<string, string> descripcionPropiedades = new Dictionary<string, string>();
 
@@ -49,6 +47,8 @@ namespace RegimenCondominio.M
         private static List<Bloques> resultadoBloques = new List<Bloques>();
 
         private static List<Variables> resultadoVariables = new List<Variables>();
+
+        private static List<Bloques> bloquesCalculados = new List<Bloques>();
 
         public static ObservableCollection<M.Medidas> MedidasGlobales
         {
@@ -71,16 +71,16 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static ObservableCollection<M.Checked<LoteItem>> LotesItem
+        public static ObservableCollection<M.Checked<LoteItem>> LotesSelected
         {
             get
             {
-                return lotesItem;
+                return lotesSelected;
             }
 
             set
             {
-                lotesItem = value;
+                lotesSelected = value;
             }
         }
 
@@ -97,18 +97,7 @@ namespace RegimenCondominio.M
             }
         }       
 
-        public static string CalleFrente
-        {
-            get
-            {
-                return calleFrente;
-            }
-
-            set
-            {
-                calleFrente = value;
-            }
-        }        
+               
 
         public static List<DataColumns> AllProperties
         {
@@ -162,16 +151,16 @@ namespace RegimenCondominio.M
             }
         }
 
-        public static Dictionary<long, bool> LotesCapturados
+        public static Dictionary<long, bool> LotesBase
         {
             get
             {
-                return lotesCapturados;
+                return lotesBase;
             }
 
             set
             {
-                lotesCapturados = value;
+                lotesBase = value;
             }
         }
 
@@ -198,6 +187,19 @@ namespace RegimenCondominio.M
             set
             {
                 resultadoVariables = value;
+            }
+        }
+
+        public static List<Bloques> BloquesCalculados
+        {
+            get
+            {
+                return bloquesCalculados;
+            }
+
+            set
+            {
+                bloquesCalculados = value;
             }
         }
     }

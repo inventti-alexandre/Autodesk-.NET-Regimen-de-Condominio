@@ -174,9 +174,8 @@
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
                                     VerticalAlignment="Center" Margin="10,0,0,0">
                                 <TextBlock Text="Lote Actual es: " FontWeight="DemiBold" Foreground="LightGray"
                                                Visibility="Visible" Margin="0,0,5,0" x:Name="lblLoteActual"/>
@@ -184,17 +183,6 @@
                                                Visibility="Visible" Margin="0,0,0,0" x:Name="txtTipoLoteActual"/>
 
                             </StackPanel>
-                            <Border BorderBrush="LightGray" BorderThickness="1" CornerRadius="2"  Margin="10,0,0,0"
-                                    Grid.Row="2" Grid.Column="1" Height="25" Width="150" HorizontalAlignment="Left">
-                                <Grid>
-                                    <metro:MetroProgressBar x:Name="ProgressLote" Width="150" Height="30" Value="0" Foreground="#bbdefb" MouseDoubleClick="ProgressBar_MouseDoubleClick"
-                                             BorderBrush="Transparent" Background="Transparent" BorderThickness="0">
-                                    </metro:MetroProgressBar>
-                                    <TextBlock Text="" Foreground="Black" FontWeight="DemiBold"
-                                               VerticalAlignment="Center" HorizontalAlignment="Center"
-                                               x:Name="lblProgreso"/>
-                                </Grid>
-                            </Border>
                         </Grid>
                     </Border>
 
@@ -320,18 +308,18 @@
                                 </MenuItem.Header>
                             </MenuItem>
                             <MenuItem Height="30" Background="Transparent" BorderBrush="Transparent"
-                                      x:Name="btnExportarDocActual" Click="btnExportarExcel_Click">
+                                      x:Name="btnExportarDocActual" Click="btnExportarDocActual_Click">
                                 <MenuItem.Header>
                                     <DockPanel Background="Transparent">
                                         <Image VerticalAlignment="Center" Height="30"
                                            Source="pack://application:,,,/RegimenCondominio;component/Images/word2016.png"
                                            ></Image>
-                                        <Label>Doc. Actual</Label>
+                                        <Label>Lote Actual</Label>
                                     </DockPanel>
                                 </MenuItem.Header>
                             </MenuItem>
                             <MenuItem Height="30" Background="Transparent" BorderBrush="Transparent"
-                                      x:Name="btnExportarTodosDoc" Click="btnExportarExcel_Click">
+                                      x:Name="btnExportarTodosDoc" Click="btnExportarTodosDoc_Click">
                                 <MenuItem.Header>
                                     <DockPanel Background="Transparent">
                                         <Image VerticalAlignment="Center" Height="30"
@@ -354,7 +342,7 @@
                                 </DockPanel>
                             </MenuItem.Header>
                         </MenuItem>
-                        <MenuItem Background="Transparent" BorderBrush="Transparent"
+                        <MenuItem Background="Transparent" BorderBrush="Transparent" x:Name="btnLimpiar" Click="btnLimpiar_Click"
                                   VerticalAlignment="Center" Margin="0,0,15,0" BorderThickness="0,0,0,0">
                             <MenuItem.Header>
                                 <DockPanel>
@@ -365,16 +353,25 @@
                             </MenuItem.Header>
                         </MenuItem>
                         <MenuItem Background="Transparent" BorderBrush="Transparent" 
-                                  VerticalAlignment="Center" Margin="0,0,10,0" BorderThickness="0,0,0,0">
+                                  VerticalAlignment="Center" Margin="0,0,10,0" BorderThickness="0,0,0,0"
+                                  Click="irInicio_Click" x:Name="irInicio">
                             <MenuItem.Header>
                                 <DockPanel>
                                     <Image VerticalAlignment="Center" Height="20"
                                                        Source="pack://application:,,,/RegimenCondominio;component/Images/HomeGreen.png" Margin="0,0,3,0"/>
-                                    <TextBlock Text="Ir a Inicio" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="DemiBold"/>
+                                    <TextBlock Text="Inicio" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="DemiBold"/>
                                 </DockPanel>
                             </MenuItem.Header>
                         </MenuItem>
-
+                        <MenuItem Background="Transparent" BorderBrush="Transparent" x:Name="toolBProgress" Visibility="Hidden"
+                                  VerticalAlignment="Center" Margin="0,0,10,0" BorderThickness="0,0,0,0" IsHitTestVisible="False">
+                            <MenuItem.Header>
+                                <DockPanel>
+                                    <metro:ProgressRing VerticalAlignment="Center" Height="20" Width="30" Margin="0,0,3,0"/>
+                                    <TextBlock Text="Cargando.." HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="DemiBold"/>
+                                </DockPanel>
+                            </MenuItem.Header>
+                        </MenuItem>
                     </Menu>
                 </ToolBar>
             </Grid>
@@ -742,7 +739,7 @@
                                    Background="White" x:Name="txtTotalAreaComun"></TextBlock>
                             </Border>
                             <!--AreaExclusiva-->
-                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" Visibility="Collapsed">
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
                                 <TextBlock Text="{Binding Path=TotalAreaExclusiva.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
                                    Background="White" x:Name="txtTotalAreaExclusiva"></TextBlock>
                             </Border>
@@ -750,7 +747,7 @@
                             <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
                                 <TextBlock FontWeight="DemiBold" TextAlignment="Center"
                                    Background="White" x:Name="txtTotalProindiviso">
-                                    <Run Text="{Binding Path=TotalProindiviso.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}"/>
+                                    <Run Text="0"/>
                                     <Run Text=" %"/>
                                 </TextBlock>
                             </Border>
@@ -803,9 +800,9 @@
                                  Foreground="White" Grid.Column="3"  Margin="10,0,5,0"
                                  />
                 <Button  VerticalAlignment="Center" HorizontalAlignment="Right"                 
-                                 BorderBrush="Transparent" BorderThickness="0" Height="30"
+                                 BorderBrush="Transparent" BorderThickness="0" Height="30" Width="100"
                                  Focusable="False" Background="#ef5350" x:Name="btnFinalizar" Content="Finalizar"
-                                 Foreground="White" Grid.Column="3" Margin="10,0,10,0"
+                                 Foreground="White" Grid.Column="3" Margin="10,0,10,0" Click="btnFinalizar_Click"
                                  />
             </StackPanel>
         </Grid>

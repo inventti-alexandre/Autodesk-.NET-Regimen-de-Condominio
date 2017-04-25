@@ -23,6 +23,7 @@ using FormWindow = System.Windows.Forms;
 using System.Data;
 using System.Reflection;
 using System.Windows.Controls.Primitives;
+using System.Data.SqlClient;
 
 namespace RegimenCondominio.V
 {
@@ -35,11 +36,19 @@ namespace RegimenCondominio.V
 
         private int ColumnOver = -1;
 
+        private BackgroundWorker bkWorker;
+
+        private List<long> lotesDocs;
+
+        private string filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+        private bool exported = false;
+
         public ModuloInfoTabla()
         {
             InitializeComponent();
             
-            M.InfoTabla.LotesItem.CollectionChanged += new NotifyCollectionChangedEventHandler
+            M.InfoTabla.LotesSelected.CollectionChanged += new NotifyCollectionChangedEventHandler
                     (LotesChangedMethod);                     
         }
 
@@ -55,7 +64,8 @@ namespace RegimenCondominio.V
             //    M.Colindante.IdsIrregulares.Add(new Handle(M.Colindante.Lotes[i]._long).toObjectId());            
 
             #region Manzana
-            M.Manzana.RumboFrente = "Norte";
+            M.Manzana.RumboFrente = new M.ManzanaData();
+            M.Manzana.RumboFrente.rumboActual = "Norte";
             M.Manzana.NoManzana = 280;
 
             M.Manzana.ColindanciaManzana.Add(new M.ManzanaData()
@@ -141,15 +151,17 @@ namespace RegimenCondominio.V
             //Oculto las columnas
             HideDetailColumns();
             
-            #endregion
-
-            //Obtengo la calle del Rumbo de Frente
-            M.InfoTabla.CalleFrente = (M.Manzana.ColindanciaManzana
-                                                .Where(x => x.rumboActual == M.Manzana.RumboFrente)
-                                                .FirstOrDefault().textColindancia ?? "");                        
+            #endregion                      
 
             //Obtengo todos los lotes del checklist
-            C.Met_InfoTabla.GetChecklistItems(out lotesBase, out lotesTipo);                       
+            C.Met_InfoTabla.GetChecklistItems(out lotesBase, out lotesTipo);
+
+            //Limpiar listado
+            M.InfoTabla.LotesBase.Clear();
+
+            //Lo vuelvo a asignar
+            foreach (long lote in lotesBase)
+                M.InfoTabla.LotesBase.Add(lote, false);
 
             //Obtengo la información de Header (Tabla Estática)
             C.Met_InfoTabla.GetHeaderTable(M.Manzana.EsMacrolote);            
@@ -172,86 +184,65 @@ namespace RegimenCondominio.V
                 }
             }
 
-            #region Asigno ProgresssBar
+            //#region Asigno ProgresssBar
 
-            //Si ya se había ingresado anteriormente
-            if (M.InfoTabla.LotesCapturados.Count > 0)
-            {
-                //Si todos los lotes que se habían capturado son los mismos que los que se obtuvieron     
-                if (lotesBase.All(M.InfoTabla.LotesCapturados.Keys.Contains) && lotesBase.Count == M.InfoTabla.LotesCapturados.Count)
-                {
-                    //Si la cantidad de Lotes es la Misma que se había obtenido                    
-                    int cont = 0;
+            ////Si ya se había ingresado anteriormente
+            //if (M.InfoTabla.LotesBase.Count > 0)
+            //{
+            //    //Si todos los lotes que se habían capturado son los mismos que los que se obtuvieron     
+            //    if (lotesBase.All(M.InfoTabla.LotesBase.Keys.Contains) && lotesBase.Count == M.InfoTabla.LotesBase.Count)
+            //    {
+            //        //Si la cantidad de Lotes es la Misma que se había obtenido                    
+            //        int cont = 0;
 
-                    foreach (KeyValuePair<long, bool> keyItem in M.InfoTabla.LotesCapturados)
-                    {
-                        if (keyItem.Value)
-                            cont++;
-                    }
+            //        foreach (KeyValuePair<long, bool> keyItem in M.InfoTabla.LotesBase)
+            //        {
+            //            if (keyItem.Value)
+            //                cont++;
+            //        }
 
-                    //Lo asigno a la ProgressBar
-                    lblProgreso.Text = string.Format("{0}/{1} Completado", cont, lotesBase.Count);
+            //        //Lo asigno a la ProgressBar
+            //        lblProgreso.Text = string.Format("{0}/{1} Completado", cont, lotesBase.Count);
 
-                    ChangeProgressBar(cont, lotesBase.Count);
-                }
-                else //Si algo cambio
-                {
-                    int cont = 0;
-                    string msgOut;
+            //        ChangeProgressBar(cont, lotesBase.Count);
+            //    }
+            //    else //Si algo cambio
+            //    {
+            //        int cont = 0;
+            //        string msgOut;
 
-                    M.InfoTabla.LotesCapturados.Clear();
+            //        M.InfoTabla.LotesBase.Clear();
 
-                    foreach (long lote in lotesBase)
-                    {
-                        if (Met_InfoTabla.HasEmptyFields(lote, out msgOut))
-                        {
-                            M.InfoTabla.LotesCapturados.Add(lote, false);
-                        }
-                        else
-                        {
-                            M.InfoTabla.LotesCapturados.Add(lote, true);
-                            cont++;
-                        }
-                    }
-                    //Lo asigno a la ProgressBar
-                    lblProgreso.Text = string.Format("{0}/{1} Completado", cont, lotesBase.Count);
+            //        foreach (long lote in lotesBase)
+            //        {
+            //            if (Met_InfoTabla.HasEmptyFields(lote, out msgOut))
+            //            {
+            //                M.InfoTabla.LotesBase.Add(lote, false);
+            //            }
+            //            else
+            //            {
+            //                M.InfoTabla.LotesBase.Add(lote, true);
+            //                cont++;
+            //            }
+            //        }
+            //        //Lo asigno a la ProgressBar
+            //        lblProgreso.Text = string.Format("{0}/{1} Completado", cont, lotesBase.Count);
 
-                    ChangeProgressBar(cont, lotesBase.Count);
-                }
-            }
-            else //Si es la primera vez lo asigno de manera directa
-            {
-                foreach (long lote in lotesBase)
-                    M.InfoTabla.LotesCapturados.Add(lote, false);
+            //        ChangeProgressBar(cont, lotesBase.Count);
+            //    }
+            //}
+            //else //Si es la primera vez lo asigno de manera directa
+            //{
+            //    foreach (long lote in lotesBase)
+            //        M.InfoTabla.LotesBase.Add(lote, false);
 
-                //Lo asigno a la ProgressBar
-                lblProgreso.Text = string.Format("0/{0} Completado", lotesBase.Count);
-            }
+            //    //Lo asigno a la ProgressBar
+            //    lblProgreso.Text = string.Format("0/{0} Completado", lotesBase.Count);
+            //}
 
-            #endregion
+            //#endregion
         }
-
-        private void ChangeProgressBar(int completed, int total)
-        {
-            
-            if(completed > total)
-            {
-                ProgressLote.Value = 100;
-            }
-            else
-            {
-                if (total > 0)
-                {
-                    double progressDivision = (100 / total),
-                           progress = 0;
-
-                    progressDivision = progressDivision.Trunc(2);
-                    progress = progressDivision * completed;
-
-                    ProgressLote.Value = progress;
-                }
-            }
-        }
+        
 
         private void HideDetailColumns()
         {
@@ -337,7 +328,7 @@ namespace RegimenCondominio.V
                     if (itemCheck.IsChecked)
                         itemMedida.Calle = M.InfoTabla.RumboInverso.textColindancia;
                     else
-                        itemMedida.Calle = M.InfoTabla.CalleFrente;
+                        itemMedida.Calle = M.Manzana.RumboFrente.textColindancia;
                 }
             }
         }
@@ -368,7 +359,7 @@ namespace RegimenCondominio.V
 
             //Habilito colores
             lblLoteActual.Foreground = Brushes.Black;
-            lblProgreso.Foreground = Brushes.Black;
+            //lblProgreso.Foreground = Brushes.Black;
             txtTipoLoteActual.Foreground = Brushes.Red;
             txtLotesBase.Foreground = Brushes.Black;
             txtLotesTipo.Foreground = Brushes.Black;
@@ -401,8 +392,8 @@ namespace RegimenCondominio.V
                 mLoteItem.EsLoteBase = true;
 
                 mCheckedItem.Item = mLoteItem;
-                M.InfoTabla.LotesItem = new ObservableCollection<M.Checked<M.LoteItem>>() { mCheckedItem };
-                cmbLotesBase.ItemsSource = M.InfoTabla.LotesItem;
+                M.InfoTabla.LotesSelected = new ObservableCollection<M.Checked<M.LoteItem>>() { mCheckedItem };
+                cmbLotesBase.ItemsSource = M.InfoTabla.LotesSelected;
                 cmbLotesBase.SelectedIndex = 0;
             }
 
@@ -417,13 +408,13 @@ namespace RegimenCondominio.V
             cmbAsignadoPor.SelectedIndex = 0;
 
             //Asigno itemsource de Checklist a listado de calle            
-            lBoxLoteCalle.ItemsSource = M.InfoTabla.LotesItem;
+            lBoxLoteCalle.ItemsSource = M.InfoTabla.LotesSelected;
 
             //Asigno itemsource a combobox
-            cmbLotesBase.ItemsSource = M.InfoTabla.LotesItem.Where(x => x.Item.EsLoteBase);            
+            cmbLotesBase.ItemsSource = M.InfoTabla.LotesSelected.Where(x => x.Item.EsLoteBase);            
 
             //Lotes Restantes
-            cmbLotesTipo.ItemsSource = M.InfoTabla.LotesItem.Where(x => !x.Item.EsLoteBase);            
+            cmbLotesTipo.ItemsSource = M.InfoTabla.LotesSelected.Where(x => !x.Item.EsLoteBase);            
 
         }
 
@@ -432,7 +423,7 @@ namespace RegimenCondominio.V
             //Datos Generales
             txtFraccionamiento.Text = M.Inicio.Fraccionamiento.fraccionamiento;
             txtManzana.Text = M.Manzana.NoManzana.ToString();
-            txtRumboFrente.Text = M.Manzana.RumboFrente;
+            txtRumboFrente.Text = M.Manzana.RumboFrente.rumboActual;
 
             //Datos Generales Conteo
             txtNoLotes.Text = M.Colindante.Lotes.Count.ToString();
@@ -441,10 +432,12 @@ namespace RegimenCondominio.V
 
             //Asigno el path de los combobox
             cmbLotesBase.SelectedValuePath = "Item.Long";
-            cmbLotesBase.DisplayMemberPath = "Item.Name";
-            
+            cmbLotesBase.DisplayMemberPath = "Item.Name";            
             cmbLotesTipo.SelectedValuePath = "Item.Long";
             cmbLotesTipo.DisplayMemberPath = "Item.Name";
+
+            //Asigno el nombre del Área Común en la tabla
+            colAreaComun.Header = new TextBlock() { Text = M.Colindante.NomAreaComun, FontSize = 10 };
 
         }
         #endregion    
@@ -456,13 +449,13 @@ namespace RegimenCondominio.V
         {
             if (!bPaso1.IsEnabled)
             {
-                if (M.InfoTabla.LotesItem.Any(x => x.IsChecked))
+                if (M.InfoTabla.LotesSelected.Any(x => x.IsChecked))
                 {
                     bPaso1.IsEnabled = true;
 
                     //Habilito colores
                     lblLoteActual.Foreground = Brushes.Black;
-                    lblProgreso.Foreground = Brushes.Black;
+                    //lblProgreso.Foreground = Brushes.Black;
                     txtTipoLoteActual.Foreground = Brushes.Red;
                     txtLotesBase.Foreground = Brushes.Black;
                     txtLotesTipo.Foreground = Brushes.Black;
@@ -476,11 +469,11 @@ namespace RegimenCondominio.V
             if (bPaso1.IsEnabled)
             {
                 //Si se quitaron todos, no doy la opción de avanzar
-                if (M.InfoTabla.LotesItem.All(x => !x.IsChecked))
+                if (M.InfoTabla.LotesSelected.All(x => !x.IsChecked))
                 {
                     bPaso1.IsEnabled = false;
                     lblLoteActual.Foreground = Brushes.LightGray;
-                    lblProgreso.Foreground = Brushes.LightGray;
+                    //lblProgreso.Foreground = Brushes.LightGray;
                     txtTipoLoteActual.Foreground = Brushes.LightGray;
                     txtLotesBase.Foreground = Brushes.LightGray;
                     txtLotesTipo.Foreground = Brushes.LightGray;
@@ -497,11 +490,11 @@ namespace RegimenCondominio.V
                 foreach (M.Checked<M.LoteItem> item in view)
                     item.IsChecked = true;
                     
-                if (!bPaso1.IsEnabled && M.InfoTabla.LotesItem.Any(x => x.IsChecked))
+                if (!bPaso1.IsEnabled && M.InfoTabla.LotesSelected.Any(x => x.IsChecked))
                 {
                     bPaso1.IsEnabled = false;
                     lblLoteActual.Foreground = Brushes.LightGray;
-                    lblProgreso.Foreground = Brushes.LightGray;
+                    //lblProgreso.Foreground = Brushes.LightGray;
                     txtTipoLoteActual.Foreground = Brushes.LightGray;
                     txtLotesBase.Foreground = Brushes.Black;
                     txtLotesTipo.Foreground = Brushes.Black;
@@ -511,15 +504,15 @@ namespace RegimenCondominio.V
 
         private void checkAll_Unchecked(object sender, RoutedEventArgs e)
         {
-            foreach (M.Checked<M.LoteItem> item in M.InfoTabla.LotesItem)
+            foreach (M.Checked<M.LoteItem> item in M.InfoTabla.LotesSelected)
                 item.IsChecked = false;
 
             //Si se quitaron todos, no doy la opción de avanzar
-            if (bPaso1.IsEnabled && M.InfoTabla.LotesItem.All(x => !x.IsChecked))
+            if (bPaso1.IsEnabled && M.InfoTabla.LotesSelected.All(x => !x.IsChecked))
             {
                 bPaso1.IsEnabled = false;
                 lblLoteActual.Foreground = Brushes.LightGray;
-                lblProgreso.Foreground = Brushes.LightGray;
+                //lblProgreso.Foreground = Brushes.LightGray;
                 txtTipoLoteActual.Foreground = Brushes.LightGray;
                 txtLotesBase.Foreground = Brushes.LightGray;
                 txtLotesTipo.Foreground = Brushes.LightGray;
@@ -641,7 +634,7 @@ namespace RegimenCondominio.V
 
         private void FilterDataGrids()
         {
-            M.Checked<M.LoteItem> itemLote = M.InfoTabla.LotesItem.SearchByLong(LongActual);
+            M.Checked<M.LoteItem> itemLote = M.InfoTabla.LotesSelected.SearchByLong(LongActual);
 
             if (itemLote != null)
                 if (itemLote.Item != null)
@@ -672,12 +665,12 @@ namespace RegimenCondominio.V
         private void CalculateTotals(CollectionView viewDetail)
         {
             //Inicializo los totales nuevamente            
-            Dictionary<string, double> propertyTotals = Met_InfoTabla.CalculatePropertyTotals(viewDetail);
+            Dictionary<string, decimal> propertyTotals = Met_InfoTabla.CalculatePropertyTotals(viewDetail);
 
             PropertyInfo[] propertiesTotales = typeof(M.TotalesMedidas).GetProperties();
 
             //Por cada Propiedad con la suma de totales
-            foreach (KeyValuePair<string, double> propTotal in propertyTotals)
+            foreach (KeyValuePair<string, decimal> propTotal in propertyTotals)
             {
                 M.DetailColumns dtCol;
                 //Reviso si es de las columnas de detalle
@@ -703,10 +696,6 @@ namespace RegimenCondominio.V
                             ((TextBlock)(stackTotales.Children[indexCol] as Border).Child).Text = propTotal.Value.ToString();
                         }
                     }
-
-                    
-                                        
-
                                      
                 }
             }            
@@ -729,66 +718,93 @@ namespace RegimenCondominio.V
 
         private void Paste(object sender, ExecutedRoutedEventArgs e)
         {
-            double  result, 
+            decimal result, 
                     sum = 0;
+
+            //Obtengo la columna máximo del Enumerador M.DetailColumns
+            M.DetailColumns dcMax = Enum.GetValues(typeof(M.DetailColumns)).Cast<M.DetailColumns>().Max();
 
             //Obtengo el texto que este copiado 
             string clipText = Clipboard.GetText();
 
-            //Reviso que sea un valor númerico
-            if (double.TryParse(clipText, out result))
+            if (ColumnOver != -1 && ColumnOver <= ((int)dcMax))
             {
-                //Obtengo la columna máximo del Enumerador M.DetailColumns
-                M.DetailColumns dcMax = Enum.GetValues(typeof(M.DetailColumns)).Cast<M.DetailColumns>().Max();
-
-                //Si ya se tiene el Mouse sobre una columna y no sobrepasa el límite del enumerador
-                if (ColumnOver != -1 && ColumnOver <= ((int) dcMax))
+                if(ColumnOver == (int)M.DetailColumns.ExpedienteCatastral)
                 {
-                    //Parseo el indíce de la columna sobre la cual esta arriba
-                    M.DetailColumns dtCol = (M.DetailColumns)Enum.ToObject(typeof(M.DetailColumns), ColumnOver);
-
-                    //Obtengo la propiedad de esa columna a la que esta ligada
-                    PropertyInfo editProp = typeof(M.Medidas).GetProperty(dtCol.ToString());
-
-                    foreach(M.Medidas mItem in M.InfoTabla.MedidasGlobales)
+                    if(clipText.Contains("-"))
                     {
-                        if (mItem.LongLote == LongActual)
-                        {
-                            editProp.SetValue(mItem, result.ToString());
-                            sum += result;
-                            UpdateHorizontalTotals(mItem, dtCol, result);
+                        int idxLastChar = clipText.LastIndexOf('-');
 
-                            if (!M.Manzana.EsMacrolote && LongActual == M.Colindante.IdTipo.Handle.Value)
-                                Met_InfoTabla.DuplicateEditedValues(mItem, result, editProp);
-                        }
+                        string  strAfterChar = clipText.Substring(idxLastChar+1),
+                                strBeforeChar = clipText.Substring(0, idxLastChar);
+
+                        int numberAfterChar;
+
+                        if(int.TryParse(strAfterChar, out numberAfterChar))                          
+                            Met_InfoTabla.ModificarExpCatastral(LongActual, null, numberAfterChar);                                                    
+                        else                        
+                            Met_InfoTabla.ModificarExpCatastral(LongActual, clipText);                        
+                    }                        
+                    else
+                    {
+                        int resultInt;
+
+                        if (int.TryParse(clipText, out resultInt))                        
+                            Met_InfoTabla.ModificarExpCatastral(LongActual, null , resultInt);                        
                     }
+                }
+                else
+                {
+                    //Reviso que sea un valor númerico
+                    if (decimal.TryParse(clipText, out result))
+                    {                        
+                        //Parseo el indíce de la columna sobre la cual esta arriba
+                        M.DetailColumns dtCol = (M.DetailColumns)Enum.ToObject(typeof(M.DetailColumns), ColumnOver);
 
-                    //Lo asigno al total seleccionado
-                    foreach(PropertyInfo prop in typeof(M.TotalesMedidas).GetProperties())
-                    {
-                        //Obtengo el valor cada total
-                        M.Totales itemProp = (M.Totales)prop.GetValue(M.InfoTabla.TotalesTabla);
+                        //Obtengo la propiedad de esa columna a la que esta ligada
+                        PropertyInfo editProp = typeof(M.Medidas).GetProperty(dtCol.ToString());
 
-                        //Reviso que sea la misma del enumerador
-                        if (itemProp.Columna == dtCol)
+                        foreach (M.Medidas mItem in M.InfoTabla.MedidasGlobales)
                         {
-                            //Le asigno el valor de la suma
-                            prop.SetValue(M.InfoTabla.TotalesTabla, new M.Totales()
+                            if (mItem.LongLote == LongActual)
                             {
-                                Columna = itemProp.Columna,
-                                Total = sum
-                            });
+                                editProp.SetValue(mItem, result.ToString());
+                                sum += result;
+                                UpdateHorizontalTotals(mItem, dtCol, result);
 
-                            //Modifico el textblock de totales
-                            ((TextBlock)(stackTotales.Children[ColumnOver] as Border).Child).Text = sum.ToString();
-
-                            break;
+                                if (!M.Manzana.EsMacrolote && LongActual == M.Colindante.IdTipo.Handle.Value)
+                                    Met_InfoTabla.DuplicateEditedValues(mItem, result, editProp);
+                            }
                         }
+
+                        //Lo asigno al total seleccionado
+                        foreach (PropertyInfo prop in typeof(M.TotalesMedidas).GetProperties())
+                        {
+                            //Obtengo el valor cada total
+                            M.Totales itemProp = (M.Totales)prop.GetValue(M.InfoTabla.TotalesTabla);
+
+                            //Reviso que sea la misma del enumerador
+                            if (itemProp.Columna == dtCol)
+                            {
+                                //Le asigno el valor de la suma
+                                prop.SetValue(M.InfoTabla.TotalesTabla, new M.Totales()
+                                {
+                                    Columna = itemProp.Columna,
+                                    Total = sum
+                                });
+
+                                //Modifico el textblock de totales
+                                ((TextBlock)(stackTotales.Children[ColumnOver] as Border).Child).Text = sum.ToString();
+
+                                break;
+                            }
+                        }
+                        //}
                     }
                 }
             }            
+           
         }
-
 
         private void ChangeToReadOnly(bool isReadOnly)
         {
@@ -831,7 +847,7 @@ namespace RegimenCondominio.V
                 if (coldt != M.DetailColumns.ExpedienteCatastral)
                 {
                     //Valor introducido y suma de la Columna
-                    double numIntroducido = 0,
+                    decimal numIntroducido = 0,
                             suma = 0;
 
                     //Obtengo la propiedad ligada a la columna
@@ -843,7 +859,7 @@ namespace RegimenCondominio.V
                     string input = string.IsNullOrWhiteSpace(txt.Text) ? "0" : txt.Text;
 
                     //Reviso que sea realmente un valor númerico
-                    if (double.TryParse(input, out numIntroducido))
+                    if (decimal.TryParse(input, out numIntroducido))
                     {                        
                         //Agrego a la suma lo que edito
                         suma += numIntroducido;
@@ -857,7 +873,7 @@ namespace RegimenCondominio.V
 
                                 if (valueMedidas != null)
                                 {
-                                    double doubMedidas = double.Parse(valueMedidas.ToString());
+                                    decimal doubMedidas = decimal.Parse(valueMedidas.ToString());
                                     //Tomo la propiedad de todos los lotes menos el que edité
                                     suma += doubMedidas;
                                 }
@@ -907,19 +923,20 @@ namespace RegimenCondominio.V
 
         }
 
-        private void UpdateHorizontalTotals(M.Medidas mItemEditado, M.DetailColumns colEditada, double numIntroducido)
+        private void UpdateHorizontalTotals(M.Medidas mItemEditado, M.DetailColumns colEditada, decimal numIntroducido)
         {
             int enumTotalAreaCub = (int)M.DetailColumns.AreaTotalCubierta,
                 enumTotalAreaDesc = (int)M.DetailColumns.AreaTotalDescubierta,
                 enumEditado = (int)colEditada;
 
-            double  sumaHorizontalAreaCub = 0,
+            decimal  sumaHorizontalAreaCub = 0,
                     sumaHorizontalAreaDesc = 0,
                     sumaHorizontalAmbos = 0;
 
-            double  sumaVerticalAreaCub = 0,
+            decimal  sumaVerticalAreaCub = 0,
                     sumaVerticalAreaDesc = 0,
-                    SumaVerticalAmbos = 0;
+                    sumaVerticalAmbos = 0,
+                    sumaProindiviso = 0;
 
             //Obtengo la propiedad ligada a la columna
             PropertyInfo propertyEdited = typeof(M.Medidas).GetProperty(colEditada.ToString());
@@ -955,9 +972,9 @@ namespace RegimenCondominio.V
 
                             if (objProp != null)
                             {
-                                double numValue = 0;
+                                decimal numValue = 0;
 
-                                if (double.TryParse(objProp.ToString(), out numValue))
+                                if (decimal.TryParse(objProp.ToString(), out numValue))
                                     sumaHorizontalAreaCub += numValue;
                             }
                         }
@@ -988,9 +1005,9 @@ namespace RegimenCondominio.V
 
                             if (objProp != null)
                             {
-                                double numValue = 0;
+                                decimal numValue = 0;
 
-                                if (double.TryParse(objProp.ToString(), out numValue))
+                                if (decimal.TryParse(objProp.ToString(), out numValue))
                                     sumaHorizontalAreaDesc += numValue;
                             }
                         }
@@ -1013,11 +1030,11 @@ namespace RegimenCondominio.V
 
                 //Si la modificación no se encontró en el Área Cubierta la obtengo desde el Item
                 if (sumaHorizontalAreaCub == 0)
-                    sumaHorizontalAreaCub = mItemEditado.AreaTotalCubierta != null ? double.Parse(mItemEditado.AreaTotalCubierta) : 0;
+                    sumaHorizontalAreaCub = mItemEditado.AreaTotalCubierta != null ? decimal.Parse(mItemEditado.AreaTotalCubierta) : 0;
 
                 //Si la modificación no se encontró en el Área Descubierta la obtengo desde el Item
                 if (sumaHorizontalAreaDesc == 0)
-                    sumaHorizontalAreaDesc = mItemEditado.AreaTotalDescubierta != null ? double.Parse(mItemEditado.AreaTotalDescubierta) : 0;
+                    sumaHorizontalAreaDesc = mItemEditado.AreaTotalDescubierta != null ? decimal.Parse(mItemEditado.AreaTotalDescubierta) : 0;
 
                 //Sumo ambos y cambio la propiedad Área Total Descubierta + Total Cubierta       
                 propertyToModify = typeof(M.Medidas).GetProperty(M.DetailColumns.AreaCubiertaDescubierta.ToString());
@@ -1031,17 +1048,17 @@ namespace RegimenCondominio.V
                 {
                     if (mMedidasItem.LongLote == mItemEditado.LongLote && mMedidasItem.Apartamento != mItemEditado.Apartamento)
                     {
-                        sumaVerticalAreaCub += double.Parse((mMedidasItem.AreaTotalCubierta ?? "0"));
-                        sumaVerticalAreaDesc += double.Parse((mMedidasItem.AreaTotalDescubierta ?? "0"));
-                        SumaVerticalAmbos += double.Parse((mMedidasItem.AreaCubiertaDescubierta ?? "0"));
+                        sumaVerticalAreaCub += decimal.Parse((mMedidasItem.AreaTotalCubierta ?? "0"));
+                        sumaVerticalAreaDesc += decimal.Parse((mMedidasItem.AreaTotalDescubierta ?? "0"));
+                        sumaVerticalAmbos += decimal.Parse((mMedidasItem.AreaCubiertaDescubierta ?? "0"));
                     }
                 }
 
                 sumaVerticalAreaCub += sumaHorizontalAreaCub;
                 sumaVerticalAreaDesc += sumaHorizontalAreaDesc;
-                SumaVerticalAmbos += sumaHorizontalAmbos;
+                sumaVerticalAmbos += sumaHorizontalAmbos;                                
 
-                foreach(PropertyInfo propTotal in typeof(M.TotalesMedidas).GetProperties())
+                foreach (PropertyInfo propTotal in typeof(M.TotalesMedidas).GetProperties())
                 {
                     M.Totales totalActual = (M.Totales) propTotal.GetValue(M.InfoTabla.TotalesTabla);
 
@@ -1061,16 +1078,40 @@ namespace RegimenCondominio.V
                         else if(totalActual.Columna == M.DetailColumns.AreaCubiertaDescubierta)
                             propTotal.SetValue(M.InfoTabla.TotalesTabla, new M.Totales()
                             {
-                                Total = SumaVerticalAmbos,
+                                Total = sumaVerticalAmbos,
                                 Columna = totalActual.Columna
                             });
                     }
                 }
 
+                foreach (M.Medidas mMedidasItem in M.InfoTabla.MedidasGlobales)
+                {
+                    if (mMedidasItem.LongLote == mItemEditado.LongLote)
+                    {
+                        decimal sumaCubDesc = decimal.Parse(mMedidasItem.AreaCubiertaDescubierta ?? "0"),
+                                proindiviso = 0;
+
+                        int decimalsCubDesc = BitConverter.GetBytes(decimal.GetBits(sumaCubDesc)[3])[2];
+
+                        if (sumaVerticalAmbos > 0)
+                        {
+                            proindiviso = ((sumaCubDesc * 100) / sumaVerticalAmbos);
+
+                            proindiviso = decimal.Parse((double.Parse(proindiviso.ToString()).Trunc(decimalsCubDesc)).ToString());
+
+                            sumaProindiviso += proindiviso;
+
+                            mMedidasItem.Proindiviso = proindiviso.ToString();
+                        }
+                    }
+
+                }
+
                 //Modifico el textbox correspondiente de Área Cubierta
                 ((TextBlock)(stackTotales.Children[enumTotalAreaCub] as Border).Child).Text = sumaVerticalAreaCub.ToString();
                 ((TextBlock)(stackTotales.Children[enumTotalAreaDesc] as Border).Child).Text = sumaVerticalAreaDesc.ToString();
-                ((TextBlock)(stackTotales.Children[(int)M.DetailColumns.AreaCubiertaDescubierta] as Border).Child).Text = SumaVerticalAmbos.ToString();
+                ((TextBlock)(stackTotales.Children[(int)M.DetailColumns.AreaCubiertaDescubierta] as Border).Child).Text = sumaVerticalAmbos.ToString();
+                txtTotalProindiviso.Text = sumaProindiviso.ToString();
             }
         }
 
@@ -1123,17 +1164,134 @@ namespace RegimenCondominio.V
             }
         }
 
+
+        private void btnExportarDocActual_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsAllCaptured(new List<long>() { LongActual }))
+            {
+                FormWindow.FolderBrowserDialog fd = new FormWindow.FolderBrowserDialog();
+
+                if (fd.ShowDialog() == FormWindow.DialogResult.OK)
+                {
+                    lotesDocs = new List<long>() { LongActual };
+
+                    filePath = fd.SelectedPath;
+
+                    toolBProgress.Visibility = Visibility.Visible;
+
+                    CreateDocuments();
+                }
+            }
+        }
+
+        private void btnExportarTodosDoc_Click(object sender, RoutedEventArgs e)
+        {
+            List<long> todosLotes = new List<long>();
+
+            if (M.Manzana.EsMacrolote)
+                todosLotes = new List<long>() { M.Colindante.IdMacrolote.Handle.Value };
+            else
+                todosLotes = M.Colindante.Lotes.Select(x => x._long).ToList();
+
+            if (IsAllCaptured(todosLotes))
+            {
+                FormWindow.FolderBrowserDialog fd = new FormWindow.FolderBrowserDialog();
+
+                if (fd.ShowDialog() == FormWindow.DialogResult.OK)
+                {
+                    lotesDocs = todosLotes;
+
+                    filePath = fd.SelectedPath;
+
+                    toolBProgress.Visibility = Visibility.Visible;
+
+                    btnExportarDocActual.IsEnabled = false;
+                    btnExportarTodosDoc.IsEnabled = false;
+
+                    CreateDocuments();
+                }
+            }
+        }
+
+        private void CreateDocuments()
+        {
+            bkWorker = new BackgroundWorker();
+
+            bkWorker.DoWork += new DoWorkEventHandler(BGWorker_DoWork);
+
+            if (!bkWorker.IsBusy)
+            {
+                bkWorker.RunWorkerAsync();
+            }
+
+            bkWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
+            bkWorker.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
+        }
+
+        private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            toolBProgress.Visibility = Visibility.Hidden;
+
+            btnExportarDocActual.IsEnabled = true;
+            btnExportarTodosDoc.IsEnabled = true;
+
+            if (e.Result != null)
+            {
+                bool isCreated = (bool)e.Result;
+
+                if(isCreated)
+                {
+                    MessageBox.Show("Se crearon los documentos de manera correcta");
+                }
+            }
+        }
+
+        private void BGWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            if (Met_InfoTabla.ObtenerInfoMachotes(lotesDocs, filePath))
+            {
+                e.Result = Met_InfoTabla.CrearMachotes(lotesDocs, M.InfoTabla.ResultadoBloques, M.InfoTabla.ResultadoVariables,
+                                        filePath);
+            }
+        }
+
+        private bool IsAllCaptured(List<long> Lotes)
+        {
+            int cont = 0;
+            string msj, titulo;
+
+            foreach (long mLote in Lotes)
+            {
+                if (Met_InfoTabla.HasEmptyFields(mLote, out msj, out titulo))
+                {                    
+                    this.ShowMessageAsync(titulo, msj);
+                    break;
+                }
+                else
+                    cont++;
+            }            
+
+            return cont == Lotes.Count;
+        }
+
         #endregion
 
         private void dtDetalle_Selected(object sender, RoutedEventArgs e)
         {
+            //MouseEventArgs me = (MouseEventArgs)e;
+
             // Lookup for the source to be DataGridCell
-            //if (e.OriginalSource.GetType() == typeof(DataGridCell))
-            //{
-            //    // Starts the Edit on the row;
-            //    DataGrid grd = (DataGrid)sender;
-            //    grd.BeginEdit(e);
-            //}
+            if (e.OriginalSource.GetType() == typeof(DataGridCell))
+            {
+                // Starts the Edit on the row;
+                DataGrid grd = (DataGrid)sender;
+                grd.BeginEdit(e);
+            }
         }        
 
         private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -1146,7 +1304,10 @@ namespace RegimenCondominio.V
                 if (dg == MessageBoxResult.No)
                     e.Cancel = true;
                 else
+                {
                     C.Met_General.ClearData();
+                    M.Inicio.IsOpen = false;
+                }
             }
             else
                 M.Constant.IsAutoClose = false;
@@ -1168,48 +1329,16 @@ namespace RegimenCondominio.V
             Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModelessWindow(mM);
             M.Constant.IsAutoClose = true;
             this.Close();
-        }
-
-        private void ProgressBar_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            string cutProgress = "/2 Completado";
-
-            int cProgress = int.Parse(lblProgreso.Text.Substring(0, 1));
-
-            if (ProgressLote.Value < 100)
-            {
-                ProgressLote.Value = ProgressLote.Value + 50;
-                lblProgreso.Text = (cProgress + 1).ToString() + cutProgress;
-            }
-            else
-            {
-                ProgressLote.Value = ProgressLote.Value - 100;
-                lblProgreso.Text = "0" + cutProgress;
-            }
-        }
+        }        
 
         private void btnRevisarLoteActual_Click(object sender, RoutedEventArgs e)
         {
-            string msgOut;
+            List<long> lotes = M.Manzana.EsMacrolote ? new List<long>() { M.Colindante.IdMacrolote.Handle.Value } :
+                                                       M.Colindante.Lotes.Select(x => x._long).ToList();
 
-            if(Met_InfoTabla.HasEmptyFields(LongActual, out msgOut))
-            {                
-                this.ShowMessageAsync("Error en Lote", msgOut);
-            }
-            else
-            {                
-                int cont = 0;
-
-                foreach(KeyValuePair<long, bool> keyItem in M.InfoTabla.LotesCapturados)
-                {
-                    if (keyItem.Key == LongActual || keyItem.Value)
-                        cont++;
-                }                
-
-                ChangeProgressBar(cont, M.InfoTabla.LotesCapturados.Count);
-
+            if (IsAllCaptured(lotes))
                 MessageBox.Show("Lote Correcto");
-            }
+
         }
 
         private void dtDetalle_MouseMove(object sender, MouseEventArgs e)
@@ -1258,74 +1387,196 @@ namespace RegimenCondominio.V
             //row = -1; total = 0; foreach (RowDefinition rowDef in @this.RowDefinitions) { if (position.Y < total) { break; } row++; total += rowDef.ActualHeight; }
         }
 
-        private void btnEnviar_Click(object sender, RoutedEventArgs e)
+        private async void btnEnviar_Click(object sender, RoutedEventArgs e)
         {
-            int cont=0;
-            string msj;
 
-            foreach(KeyValuePair<long, bool> mLoteBase in M.InfoTabla.LotesCapturados)
+            List<long> lotes = M.Manzana.EsMacrolote ? new List<long>() { M.Colindante.IdMacrolote.Handle.Value } :
+                                                       M.Colindante.Lotes.Select(x => x._long).ToList();
+
+            if (IsAllCaptured(lotes))
             {
-                if (Met_InfoTabla.HasEmptyFields(mLoteBase.Key, out msj))
+                if (M.InfoTabla.BloquesCalculados.Count > 0)
                 {
-                    int numLote = M.Colindante.Lotes.Search(mLoteBase.Key).numLote;
-                    this.ShowMessageAsync("Datos faltantes del Lote " + numLote, msj);
-                    break;
-                }
-                else
-                    cont++;
-            }
+                    MessageDialogResult dg = await this.ShowMessageAsync("Enviar Datos",
+                        "¿Desea enviar los Datos Calculados? \n Se reescribirá reporte de " + M.Inicio.EncMachote.Encabezado
+                        , MessageDialogStyle.AffirmativeAndNegative, M.Constant.DialogMetroSettings);
 
-            if(cont == M.InfoTabla.LotesCapturados.Count)
-            {
-                this.ShowMessageAsync("Lotes Correctos", "No se encontró problema en los lotes");
-                new SqlTransaction(null, ObtenerTipoViv, ResultadoTipoViv).Run();
-            }
-        }        
-
-        private void ResultadoTipoViv(object input)
-        {
-            char separator = '|';
-
-            List<string> resultRows = (List<string>) (input ?? new List<string>());
-
-            if (resultRows.Count > 0)
-            {
-                M.InfoTabla.ResultadoBloques = new List<M.Bloques>();
-
-                foreach (string row in resultRows)
-                {
-                    string[] cells = row.Split(separator);                    
-
-                    if (cells != null && cells.Count() > 0)
+                    if (dg == MessageDialogResult.Affirmative)
                     {
-                        M.InfoTabla.ResultadoBloques.Add(new M.Bloques()
-                        {
-                            Descripcion = cells[0],
-                            Id_Tipo_Bloque = int.Parse(cells[1]),
-                            Nom_Tipo_BLoque = cells[2],
-                            Orden = int.Parse(cells[3])
-                        });
+                        btnEnviarBD.IsEnabled = false;
+                        toolBProgress.Visibility = Visibility.Visible;
+                        //Obtengo Fraccionamientos ejecutando consulta a BD
+                        new C.SqlTransaction(null, EnviarBD, DatosEnviadosDB).Run();
                     }
                 }
-
-                HashSet<string> variables = C.Met_InfoTabla.GetVariables(M.InfoTabla.ResultadoBloques);
-
-                Met_InfoTabla.ListLongs =  new List<long>() { LongActual };
-
-                new SqlTransaction(variables, Met_InfoTabla.CategorizeVariables, Met_InfoTabla.FinishedCategorize).Run();
-
-            }//Termina las celdas            
+                else
+                {
+                    await this.ShowMessageAsync("Exportar a Word",
+                        "Favor de exportar documento(s) de Régimen de Condominio primero");
+                }
+            }
+                        
         }
 
-        private object ObtenerTipoViv(SQL_Connector conn, object input, BackgroundWorker bg)
+        private void DatosEnviadosDB(object input)
         {
-            List<string> result;
+            btnEnviarBD.IsEnabled = true;
+            toolBProgress.Visibility = Visibility.Hidden;
 
-            string query = string.Format(Config.DB.QueryDescMachote, M.Inicio.EncMachote.IdMachote);
+            if (input != null)
+            {
+                bool isCreated = (bool)input;
 
-            conn.Select(query, out result, '|');
+                if(isCreated)
+                {
+                    MessageBox.Show("Se guardaron los datos de manera correcta");
+                    exported = true;
+                }else
+                {
+                    MessageBox.Show("Error al Enviar a la Base de Datos,\n Revisar el Editor Autodesk");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Error al Enviar a la Base de Datos,\n Revisar el Editor Autodesk");
+            }
+        }
 
-            return result;
+        private object EnviarBD(SQL_Connector conn, object input, BackgroundWorker bg)
+        {
+            bool    isDeleted = false,
+                    isCreated = false;
+
+            string queryDelete = "";
+
+            Dictionary<string, object> paramsInsert = new Dictionary<string, object>();
+
+            try
+            {
+
+                queryDelete = string.Format(Config.DB.QueryLimpiaRegistros, M.Inicio.EncMachote.IdMachote);
+
+                isDeleted = conn.Run(queryDelete);
+
+                if (isDeleted)
+                {                    
+                    isCreated = conn.Run(Config.DB.QueryCargaMachote, M.InfoTabla.BloquesCalculados.OrderBy(x=> x.Orden).ToList());
+                }
+                else
+                    isCreated = false;
+
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ToEditor();
+                isCreated = false;
+            }
+
+            return isCreated;
+        }
+
+        private async void irInicio_Click(object sender, RoutedEventArgs e)
+        {
+            MessageDialogResult dg = await this.ShowMessageAsync("Ir a Inicio"
+                                , "Se perderán los datos, ¿Desea ir a Inicio?"
+                                , MessageDialogStyle.AffirmativeAndNegative, M.Constant.DialogMetroSettings);
+
+            if (dg == MessageDialogResult.Affirmative)
+            {
+                C.Met_General.ClearData(false);
+                ModuloInicial mi = new ModuloInicial();
+                mi.Show();
+                M.Constant.IsAutoClose = true;
+                this.Close();
+            }
+        }
+
+        private void btnLimpiar_Click(object sender, RoutedEventArgs e)
+        {
+            if (dtDetalle.Items.Count > 0 && M.InfoTabla.MedidasGlobales.Count > 0)
+            {
+                foreach (M.Medidas mMedida in M.InfoTabla.MedidasGlobales)
+                {
+                    if (mMedida.LongLote == LongActual)
+                    {
+                        string cero = "0";
+                        //Planta Baja Cubierta
+                        mMedida.CPlantaBaja = cero;                                                
+                        mMedida.CPlantaAlta = cero;
+                        mMedida.CLavanderia = cero;
+                        mMedida.CEstacionamiento = cero;
+                        mMedida.CPasillo = cero;
+                        mMedida.CPatio = cero;
+                        mMedida.AreaTotalCubierta = cero;
+                        mMedida.CLavanderia = cero;
+                        mMedida.DLavanderia = cero;
+                        mMedida.DEstacionamiento = cero;
+                        mMedida.DPasillo = cero;
+                        mMedida.DPatio = cero;
+                        mMedida.AreaTotalDescubierta = cero;
+                        mMedida.AreaCubiertaDescubierta = cero;
+                        mMedida.NombreAreaComun = cero;
+                        mMedida.AreaExclusiva = cero;
+                        mMedida.Proindiviso = cero;
+                        mMedida.PredioFrente = cero;
+                        mMedida.PredioFondo = cero;
+                        mMedida.PredioArea = cero;
+                        mMedida.AreaConstruccion = cero;
+                        mMedida.ExpedienteCatastral = M.Inicio.Region + "-" + M.Manzana.NoManzana + "-";
+
+
+                        
+                    }
+                }
+              
+                foreach (PropertyInfo prop in typeof(M.TotalesMedidas).GetProperties())
+                {
+                    M.Totales totalActual = (M.Totales)prop.GetValue(M.InfoTabla.TotalesTabla);
+
+                    prop.SetValue(M.InfoTabla.TotalesTabla, new M.Totales()
+                    {
+                        Columna = totalActual.Columna,
+                        Total = 0
+                    });
+                }
+            }            
+        }
+
+        private async void btnFinalizar_Click(object sender, RoutedEventArgs e)
+        {
+            MetroDialogSettings mDialogSet = new MetroDialogSettings();
+
+            //mDialogSet.ColorScheme = MetroDialogColorScheme.Accented;
+            mDialogSet.DefaultButtonFocus = MessageDialogResult.Negative;            
+            mDialogSet.AffirmativeButtonText = "Sí, estoy de acuerdo";
+            mDialogSet.NegativeButtonText = "Cancelar";
+
+            if (M.InfoTabla.BloquesCalculados.Count > 0)
+            {
+                if(exported)
+                {
+                    MessageDialogResult dg = await this.ShowMessageAsync("Eliminar Datos",
+                        "Se eliminarán los datos del programa, plano y se cerrará el programa\n ¿Esta de acuerdo?"
+                        , MessageDialogStyle.AffirmativeAndNegative, mDialogSet);
+
+                    if (dg == MessageDialogResult.Affirmative)
+                    {
+                        M.Constant.IsAutoClose = true;
+                        this.Close();                        
+                        C.Met_General.ClearData();                        
+                    }
+                }
+                else
+                {
+                    await this.ShowMessageAsync("Enviar a BD",
+                    "Favor presionar \"Enviar\" para cargarlo a la Base de datos");
+                }
+            }
+            else
+            {
+                await this.ShowMessageAsync("Exportar a Word",
+                    "Favor de exportar documento(s) de Régimen de Condominio primero");
+            }
         }
     }
 }

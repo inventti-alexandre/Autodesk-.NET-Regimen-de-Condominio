@@ -19,8 +19,15 @@ namespace RegimenCondominio.M
             typeof(Arc)        
         };
 
+        private static MahApps.Metro.Controls.Dialogs.MetroDialogSettings dialogMetroSettings = new MahApps.Metro.Controls.Dialogs.MetroDialogSettings() { AffirmativeButtonText = "Si", NegativeButtonText = "No", AnimateShow = true };
+
         private static bool isAutoClose = false;
 
+        private static string lineasXParrafo = "---------------------------------------------------------------------------------------------------------------------------------------";
+
+        private static string propiedadPrivada = "------------------------------------------------Bienes de Propiedad Privada------------------------------------------------";
+
+        private static string propiedadComun = "------------------------------------------------Bienes de Propiedad Común------------------------------------------------";
         //Orden de búsqueda de los layers dentro de los Apartamentos
         private static List<string> busquedaApartamento = new List<string>(new string[] {            
             layerAPBaja,
@@ -445,6 +452,58 @@ namespace RegimenCondominio.M
             get
             {
                 return regexBrackets;
+            }
+        }
+
+        public static string LineasXParrafo
+        {
+            get
+            {
+                return lineasXParrafo;
+            }
+
+            set
+            {
+                lineasXParrafo = value;
+            }
+        }
+
+        public static string PropiedadPrivada
+        {
+            get
+            {
+                return propiedadPrivada;
+            }
+
+            set
+            {
+                propiedadPrivada = value;
+            }
+        }
+
+        public static string PropiedadComun
+        {
+            get
+            {
+                return propiedadComun;
+            }
+
+            set
+            {
+                propiedadComun = value;
+            }
+        }
+
+        public static MahApps.Metro.Controls.Dialogs.MetroDialogSettings DialogMetroSettings
+        {
+            get
+            {
+                return dialogMetroSettings;
+            }
+
+            set
+            {
+                dialogMetroSettings = value;
             }
         }
     }

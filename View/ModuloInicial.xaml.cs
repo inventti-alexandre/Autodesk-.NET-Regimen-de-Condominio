@@ -249,7 +249,10 @@ namespace RegimenCondominio.V
                 if (dg == MessageBoxResult.No)
                     e.Cancel = true;
                 else
+                {
                     C.Met_General.ClearData();
+                    M.Inicio.IsOpen = false;
+                }
             }
             else
                 M.Constant.IsAutoClose = false;

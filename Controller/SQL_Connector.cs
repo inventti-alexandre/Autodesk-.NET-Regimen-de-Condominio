@@ -9,6 +9,7 @@ namespace RegimenCondominio.C
 {
     public class SQL_Connector : IDisposable
     {
+
         /// <summary>
         /// The connection object
         /// </summary>
@@ -88,8 +89,8 @@ namespace RegimenCondominio.C
             DataSet dtSet = new DataSet();
             try
             {
-                SqlDataAdapter sqlAdapter = new SqlDataAdapter(query, this.Connection);                
-                sqlAdapter.Fill(dtSet);               
+                SqlDataAdapter sqlAdapter = new SqlDataAdapter(query, this.Connection);
+                sqlAdapter.Fill(dtSet);
             }
             catch (Exception exc)
             {
@@ -123,7 +124,7 @@ namespace RegimenCondominio.C
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns>Verdadero si funciona el comando</returns>
-        public Boolean Run(String query)
+        public bool Run(string query)
         {
             try
             {
@@ -136,9 +137,45 @@ namespace RegimenCondominio.C
             catch (Exception exc)
             {
                 Error = exc.Message;
+                Error.ToEditor();
             }
             return false;
         }
+
+        /// <summary>
+        /// Runs the specified query.
+        /// </summary>
+        /// <param name="query">The query.</param>
+        /// <returns>Verdadero si funciona el comando</returns>
+        public bool Run(string query, List<M.Bloques> bloques)
+        {
+            try
+            {
+                SqlCommand cmd = new SqlCommand();
+                cmd.Connection = this.Connection;
+                cmd.CommandText = query;
+                foreach (M.Bloques bloque in bloques)
+                {
+                    cmd.Parameters.AddWithValue("@IdBloque", bloque.IdBloque);//0 ID_BLOQUE
+                    cmd.Parameters.AddWithValue("@Descripcion", bloque.Descripcion); //1 DESCRIPCION_CALC @Descripcion
+                    cmd.Parameters.AddWithValue("@Orden", bloque.Orden);//2 ORDEN 
+                    cmd.Parameters.AddWithValue("@Usuario", M.Constant.Usuario); //USUARIO_CREACION Y USUARIO_MOD
+                    cmd.Parameters.AddWithValue("@TiempoActual", DateTime.Now); //FECHA_CREACION Y FECHA_MOD
+                    cmd.ExecuteNonQuery();
+                    cmd.Parameters.Clear();
+                }
+                
+                return true;
+            }
+            catch (Exception exc)
+            {
+                Error = exc.Message;
+                exc.Message.ToEditor();              
+            }
+            return false;
+        }
+
+
         /// <summary>
         /// Runs the specified query.
         /// </summary>

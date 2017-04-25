@@ -28,12 +28,25 @@ namespace RegimenCondominio.V
             InitializeComponent();
         }
 
-        private void btnAtras_Click(object sender, RoutedEventArgs e)
-        {
-            ModuloManzana mM = new ModuloManzana();
-            Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModelessWindow(mM);
-            M.Constant.IsAutoClose = true;
-            this.Close();
+        private async void btnAtras_Click(object sender, RoutedEventArgs e)
+        {             
+
+            string msg = M.Colindante.MainData.Count > 0 ? "Se perderán los datos, ¿Desea ir a Módulo Manzana?" :
+                                                            "¿Desea ir a Módulo Manzana?";            
+
+            MessageDialogResult mdr = await this.ShowMessageAsync("Ir atrás", msg, MessageDialogStyle.AffirmativeAndNegative, M.Constant.DialogMetroSettings);
+
+            if (mdr == MessageDialogResult.Affirmative)
+            {
+                //Si ya había calculado los puntos
+                if (M.Colindante.MainData.Count > 0)
+                    C.Met_General.ClearData(false, false);
+
+                ModuloManzana mM = new ModuloManzana();
+                Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModelessWindow(mM);
+                M.Constant.IsAutoClose = true;
+                this.Close();
+            }
         }
 
         private void btnAvanzar_Click(object sender, RoutedEventArgs e)
@@ -42,27 +55,35 @@ namespace RegimenCondominio.V
             {
                 CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(this.tb1GridColindancia.ItemsSource);
 
-                M.ColindanciaData mOutData = new M.ColindanciaData();
-                string outValue = "";
+                bool hasError = false;
+
+                string outMsj = "";
 
                 foreach (M.ColindanciaData mData in view)
                 {
-                    if (C.Met_Colindante.FoundEmptyItem(mData, out outValue))
+                    if (C.Met_Colindante.FoundEmptyItem(mData, out outMsj))
                     {
-                        mOutData = mData;
-                        break;
+                        hasError = true;
+
+                        M.Colindante.ListadoErrores.Add(new M.Error()
+                        {
+                            error = "Registro en Blanco",
+                            description = string.Format("Error de {0} en el {1} {2} {3}",
+                                                        outMsj, M.Manzana.EsMacrolote ? "Edificio": "Lote",
+                                                        mData.Edificio_Lote, mData.Apartamento),
+                            timeError = DateTime.Now.ToString(),
+                            longObject = mData.idVivienda,
+                            tipoError = M.TipoError.Error,
+                            metodo = "Met_Colindante.FoundEmptyItem - ModuloColindante"
+                        });
                     }
                         
                 }
 
                 //Valido valores en blanco
-                if(outValue != "")//outValue != ""
+                if(hasError)//outValue != ""
                 {
-                    this.ShowMessageAsync("Valor Faltante",
-                        string.Format("Se obtuvo el error {0} en el {1} {2} {3}", outValue,
-                                                                              M.Manzana.EsMacrolote ? "Edificio" : "Lote",
-                                                                              mOutData.Edificio_Lote.ToString(),
-                                                                              mOutData.Apartamento));
+                    this.ShowMessageAsync("Valor Faltante", "Registros con Datos Faltantes \n Ir a detalles");
                 }
                 else
                 {
@@ -87,7 +108,11 @@ namespace RegimenCondominio.V
             tb1GridColindancia.ItemsSource = M.Colindante.MainData;
 
             //Crea Layers en dado caso que no exista
-            string.Format("Creó {0} Layers \n", Met_Colindante.CreateAdjacencyLayers()).ToEditor();
+            int cantLayers = Met_Colindante.CreateAdjacencyLayers();
+
+            //Lo muestro en el editor del plano activo
+            if (cantLayers > 0)                
+                string.Format("Creó {0} Layers \n", cantLayers).ToEditor();
 
             //Encuentro segmentos 
             CreateAndValidatePolyline();                                  
@@ -103,7 +128,10 @@ namespace RegimenCondominio.V
 
             this.WindowState = WindowState.Normal;
 
-            FillControlsData();            
+            FillControlsData();
+
+            if (M.Colindante.MainData.Count > 0)
+                AssignMainData();
         }
 
         private void CreateAndValidatePolyline()
@@ -306,6 +334,8 @@ namespace RegimenCondominio.V
         {
             ObjectId idPl = new ObjectId();
 
+            string msgAreaComun = "";
+
             this.WindowState = WindowState.Minimized;
 
             //Valido que se haya obtenido de manera correcta una Polilínea
@@ -332,7 +362,14 @@ namespace RegimenCondominio.V
                             M.Colindante.ListCommonArea = new List<M.AreaComun>();
 
                             //Obtengo Área Común
-                            Met_Colindante.GetCommonArea(idPl);
+                            if(!Met_Colindante.GetCommonArea(idPl, out msgAreaComun))                            
+                                this.ShowMessageAsync("Área Común", msgAreaComun);                            
+
+                            //Asigno el nombre del Área Común
+                            if (M.Colindante.ListCommonArea.Count > 0)
+                                M.Colindante.NomAreaComun = M.Colindante.ListCommonArea[0].NombreAreaComun;
+                            else
+                                M.Colindante.NomAreaComun = "Área Común";
 
                             //Muestro Número de Lote en el paso
                             lblMacrolote.Visibility = System.Windows.Visibility.Visible;
@@ -408,7 +445,8 @@ namespace RegimenCondominio.V
                         long l = listaTipo.Where(x => new Handle(x).toObjectId() == idPl)
                                     .FirstOrDefault();
 
-                        string numVivienda = "";
+                        string  numVivienda = "",
+                                msgAreaComun = "";
 
                         if (M.Manzana.EsMacrolote)
                         {
@@ -418,7 +456,10 @@ namespace RegimenCondominio.V
                         {
                             numVivienda = M.Colindante.Lotes.Search(l).numLote.ToString();
 
-                            C.Met_Colindante.GetCommonArea(idPl);
+                            if(!C.Met_Colindante.GetCommonArea(idPl, out msgAreaComun))
+                            {
+                                this.ShowMessageAsync("Área Común", msgAreaComun);
+                            }
                         }
 
                         lblLoteTipo.Text = numVivienda;
@@ -495,16 +536,25 @@ namespace RegimenCondominio.V
                     tb1CheckLoteIrregular.IsChecked = true;
 
                     //Si no es macrolote obtengo Área Común de cada uno de ellos
-                    if(!M.Manzana.EsMacrolote)
-                        foreach(ObjectId idPl in idsSelected)
-                            Met_Colindante.GetCommonArea(idPl);
+                    if (!M.Manzana.EsMacrolote)
+                    {
+                        string msgAreaComun = "";
+
+                        foreach (ObjectId idPl in idsSelected)
+                        {
+                            if (!C.Met_Colindante.GetCommonArea(idPl, out msgAreaComun))
+                            {
+                                this.ShowMessageAsync("Área Común", msgAreaComun);
+                            }
+                        }
+                    }
                 }
                 else
                 {
                     string _in = M.Manzana.EsMacrolote ? "del Macrolote" : "de la Manzana";
 
                     string msgOut = idsAreOut.Count == 1 ? "Polilínea seleccionado esta fuera" + _in:
-                                                            "Polilínea seleccionados están fuera" + _in;
+                                                            "Polilíneas seleccionadas están fuera" + _in;
 
                     for(int i = 0; i < idsAreOut.Count;i++)
                     {
@@ -768,7 +818,7 @@ namespace RegimenCondominio.V
             if (tb1GridColindancia.Items.Count > 0)
             {
                 MessageDialogResult dg = await this.ShowMessageAsync("Eliminar Datos",
-                            "¿Desea Eliminar Puntos Calculados?", MessageDialogStyle.AffirmativeAndNegative);
+                            "¿Desea Eliminar Puntos Calculados?", MessageDialogStyle.AffirmativeAndNegative, M.Constant.DialogMetroSettings);
 
                 if (dg == MessageDialogResult.Affirmative)
                 {
@@ -790,11 +840,11 @@ namespace RegimenCondominio.V
 
         private async void tb1IrHome_Click(object sender, RoutedEventArgs e)
         {
-            MessageDialogResult dg = await this.ShowMessageAsync("Ir a Inicio",
-                            "¿Desea ir a Módulo Inicial?", MessageDialogStyle.AffirmativeAndNegative);
+            MessageDialogResult dg = await this.ShowMessageAsync("Ir a Inicio", "Se perderán los datos, ¿Desea ir a Inicio?", MessageDialogStyle.AffirmativeAndNegative, M.Constant.DialogMetroSettings);
 
-            if(dg == MessageDialogResult.Affirmative)
+            if (dg == MessageDialogResult.Affirmative)
             {
+                C.Met_General.ClearData(false);
                 ModuloInicial mi = new ModuloInicial();
                 mi.Show();
                 M.Constant.IsAutoClose = true;
@@ -803,9 +853,7 @@ namespace RegimenCondominio.V
         }
 
         private void DataGridTextColumn_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            
-
+        {           
             if (sender is TextBlock)
             {
                 TextBlock txt = sender as TextBlock;
@@ -904,7 +952,7 @@ namespace RegimenCondominio.V
         private async void tb2CleanDGVError_Click(object sender, RoutedEventArgs e)
         {
             MessageDialogResult dg = await this.ShowMessageAsync("Eliminar Log de Errores",
-                           "¿Desea eliminar el listado de errores?", MessageDialogStyle.AffirmativeAndNegative);
+                           "¿Desea eliminar el listado de errores?", MessageDialogStyle.AffirmativeAndNegative, M.Constant.DialogMetroSettings);
 
             if (dg == MessageDialogResult.Affirmative)
             {
@@ -923,6 +971,21 @@ namespace RegimenCondominio.V
         {
             if (M.Colindante.MainData.Count > 0 && tb1GridColindancia.Items.Count > 0)
             {
+                //M.Variables varAreaComun = new M.Variables()
+                //{
+                //    Conv_Letra = true,
+                //    NombreCorto = "SeccionAreaComun",
+                //    NombreVariable = "Descripción de Área Común",
+                //    EsCalculado = true,
+                //    Valor = "",
+                //    Nom_Tipo_Bloque = "GLOBAL",
+                //    Desc_Unidad = "Metro",
+                //    Rep_Unidad = "m",
+                //    Nom_Corto_Unidad = "METRO"
+                //};
+
+                //MessageBox.Show(Met_InfoTabla.ObtenerDescAreaComun(varAreaComun, M.Colindante.IdTipo.Handle.Value, M.Constant.LayerAreaComun));
+
                 FormWindow.FolderBrowserDialog fd = new FormWindow.FolderBrowserDialog();
 
                 if (fd.ShowDialog() == FormWindow.DialogResult.OK)
@@ -988,7 +1051,10 @@ namespace RegimenCondominio.V
                 if (dg == MessageBoxResult.No)
                     e.Cancel = true;
                 else
+                {
                     C.Met_General.ClearData();
+                    M.Inicio.IsOpen = false;
+                }
             }
             else
                 M.Constant.IsAutoClose = false;

@@ -16,7 +16,7 @@ namespace RegimenCondominio.C
 
         internal static void EliminaColindancias()
         {
-            ObjectIdCollection ids = DManager.IdsByXRecord(M.Constant.XRecordColindancia);
+            ObjectIdCollection idsColindancias = DManager.IdsByXRecord(M.Constant.XRecordColindancia);
 
             Document doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
             //Abrimos la BD y el editor
@@ -31,8 +31,8 @@ namespace RegimenCondominio.C
                 {
                     try
                     {
-                        foreach(ObjectId id in ids)                        
-                            id.GetAndRemove();
+                        foreach (ObjectId id in idsColindancias)
+                            DManager.RemoveXRecord(id, M.Constant.XRecordColindancia);
 
                         tr.Commit();
                     }

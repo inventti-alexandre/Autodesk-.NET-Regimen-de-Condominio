@@ -6,16 +6,7 @@ using System.Windows;
 namespace RegimenCondominio.C
 {
     public class SqlTransaction
-    {
-
-        string CONN_STR
-        {
-            get
-            {
-                return string.Format("Server={0};Database={1};User Id={2};Password={3};", Config.DB.Server, 
-                                        Config.DB.Database, Config.DB.User, Config.DB.Pass);
-            }
-        }
+    {        
         /// <summary>
         /// Definición de la transacción a ejecutar
         /// </summary>
@@ -66,7 +57,7 @@ namespace RegimenCondominio.C
 
         private void Bg_DoWork(object sender, DoWorkEventArgs e)
         {            
-            using (SQL_Connector conn = new SQL_Connector(CONN_STR))
+            using (SQL_Connector conn = new SQL_Connector(Config.DB.ConnectionString))
             {
                 try
                 {

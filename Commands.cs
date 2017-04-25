@@ -17,10 +17,17 @@ namespace RegimenCondominio
         [CommandMethod("REGIMEN", CommandFlags.Session)]
         public void IniciaReg()
         {
-            //V.ModuloColindante win = new V.ModuloColindante();
-            V.ModuloInicial win = new V.ModuloInicial();
-            //V.ModuloInfoTabla win = new V.ModuloInfoTabla();
-            win.Show();
+            if (!M.Inicio.IsOpen)
+            {
+                //V.ModuloColindante win = new V.ModuloColindante();
+                V.ModuloInicial win = new V.ModuloInicial();
+                //V.ModuloInfoTabla win = new V.ModuloInfoTabla();
+                win.Show();
+
+                M.Inicio.IsOpen = true;
+            }
+            else
+                System.Windows.MessageBox.Show("Ya se encuentra abierto el programa");
             
         }
 
@@ -111,7 +118,7 @@ namespace RegimenCondominio
                     seg.ToString(), i+1, Math.Round(ptActual.X, 2), Math.Round(ptActual.Y, 2)).ToEditor();
             }
 
-        }
+        }        
 
         [CommandMethod("APARTMENTS")]
         public void Apartamentos()
