@@ -115,7 +115,7 @@ namespace RegimenCondominio.C
                                Bold = true,
                                Size = 10
                            },
-                           boldRedFormat = new Formatting() { FontFamily = new FontFamily("Arial"), Size = 10, Bold = true, FontColor = Color.Red }; ;
+                           boldRedFormat = new Formatting() { FontFamily = new FontFamily("Arial"), Size = 10, Bold = true, FontColor = Color.Red };
 
                 Func<string, string> funcReplace = RegexHandler;
 

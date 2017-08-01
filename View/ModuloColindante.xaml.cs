@@ -315,7 +315,7 @@ namespace RegimenCondominio.V
             txtHeaderPaso4.Text = "4. Calcular Puntos";
 
             //Cambio el color
-            txtHeaderPaso1.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#00897B"));            
+            txtHeaderPaso1.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#bd443e"));            
 
             //Posición de Datos Generales                
             lblGnLotes.VerticalAlignment = VerticalAlignment.Bottom;

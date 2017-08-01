@@ -37,15 +37,15 @@
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
             <!--ACCENT COLORS-->
-            <SolidColorBrush x:Key="HighlightBrush" Color="#00897B"/>
-            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#00897B" />
+            <SolidColorBrush x:Key="HighlightBrush" Color="#bdbdbd"/>
+            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#bdbdbd" />
 
-            <SolidColorBrush x:Key="AccentColorBrush" Color="#6cb1e6" />
-            <SolidColorBrush x:Key="AccentColorBrush2" Color="#6cb1e6" />
-            <SolidColorBrush x:Key="AccentColorBrush3" Color="#6cb1e6" />
-            <SolidColorBrush x:Key="AccentColorBrush4" Color="#6cb1e6"/>
+            <SolidColorBrush x:Key="AccentColorBrush" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush2" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush3" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush4" Color="#bdbdbd"/>
 
-            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#00897B" />
+            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#870b17" />
 
             <ResourceDictionary.MergedDictionaries>
                 <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
@@ -53,7 +53,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
                 <!-- Accent and AppTheme setting -->
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Teal.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Steel.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -88,7 +88,7 @@
                         HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
                         Width="120" Grid.ColumnSpan="2" Grid.RowSpan="2">
                     <TextBlock Text="1. Datos de Manzana" 
-                               FontWeight="DemiBold" Foreground="#00897B" />
+                               FontWeight="DemiBold" Foreground="#bd443e" />
                 </Border>
 
                 <TextBlock Text="No. de Manzana:" Grid.Row="1" Grid.Column="1" FontWeight="DemiBold" 
@@ -106,7 +106,7 @@
                 <RadioButton x:Name="rbLote" Content="Lote" VerticalAlignment="Center" GroupName="TipoLote"
                                      HorizontalAlignment="Right" Grid.Column="2"
                                      FontWeight="DemiBold" Checked="rbLote_Checked" Grid.Row="3" Margin="0,8,10,7"/>
-                <RadioButton x:Name="rbMacroLote" Content="MacroLote" Grid.Row="3" FontWeight="DemiBold"
+                <RadioButton x:Name="rbMacroLote" Content="MacroLote" Grid.Row="3" FontWeight="DemiBold" IsChecked="true"
                                      VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Column="2"
                                      GroupName="TipoLote" Checked="rbLote_Checked"/>
 

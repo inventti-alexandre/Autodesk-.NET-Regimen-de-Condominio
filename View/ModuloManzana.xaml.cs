@@ -128,7 +128,7 @@ namespace RegimenCondominio.V
                 GridColindancia.IsEnabled = true;
                 
                 //En el titulo cambio el color
-                TituloColindancia.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0, 137, 123));
+                TituloColindancia.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(189, 68, 62));
 
                 string RumboFrente = CmbRumboFrente.SelectedItem.ToString();
 

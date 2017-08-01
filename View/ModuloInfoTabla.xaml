@@ -20,17 +20,17 @@
 
         <ResourceDictionary>
             <!--ACCENT COLORS-->
-            <SolidColorBrush x:Key="HighlightBrush" Color="#6cb1e6"/>
-            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#6cb1e6" />
+            <SolidColorBrush x:Key="HighlightBrush" Color="#bdbdbd"/>
+            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#bdbdbd" />
 
-            <SolidColorBrush x:Key="AccentColorBrush" Color="#6cb1e6" />
-            <SolidColorBrush x:Key="AccentColorBrush2" Color="#6cb1e6" />
-            <SolidColorBrush x:Key="AccentColorBrush3" Color="#6cb1e6" />
-            <SolidColorBrush x:Key="AccentColorBrush4" Color="#6cb1e6"/>
+            <SolidColorBrush x:Key="AccentColorBrush" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush2" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush3" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush4" Color="#bdbdbd"/>
 
-            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#00897B" />
+            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#870b17" />
 
-            <SolidColorBrush x:Key="MetroDataGrid.HighlightBrush" Color="#6cb1e6"/>
+            <SolidColorBrush x:Key="MetroDataGrid.HighlightBrush" Color="#bdbdbd"/>
 
             <Image x:Key="GoBack" Source="pack://application:,,,/RegimenCondominio;component/Images/NewGoBack.png"                    
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -42,7 +42,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
                 <!-- Accent and AppTheme setting -->
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Teal.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Steel.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
@@ -88,7 +88,7 @@
                                 Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
                                 Background="Transparent" Grid.ColumnSpan="2" Width="288">
                         <TextBlock Text="1. Lotes con calle a espaldas de Rumbo de Frente"
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                               FontWeight="DemiBold" Foreground="#bd443e" Height="19" 
                                        VerticalAlignment="Top" x:Name="txtPaso0" Width="477" />
                     </Border>
                     <TextBlock x:Name="txtCalleInversa" Text="Sin Asignar" HorizontalAlignment="Left" Foreground="Black"
@@ -137,7 +137,7 @@
                                 Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
                                 Background="Transparent" Grid.ColumnSpan="2" Width="338">
                         <TextBlock x:Name="txtPaso1"
-                    		FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                    		FontWeight="DemiBold" Foreground="#bd443e" Height="19" 
                     		VerticalAlignment="Top" Width="477" Text="2. Llenado de la Tabla"/>
                     </Border>
                     <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="0,0,0,1">
@@ -210,7 +210,7 @@
                                 Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
                                 Background="Transparent" Grid.ColumnSpan="4">
                         <TextBlock Text="Datos Generales"
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                               FontWeight="DemiBold" Foreground="#bd443e" Height="19" 
                                        VerticalAlignment="Top" x:Name="txtDetalleInicial" Width="1000"/>
                     </Border>
                     <!--FRACCIONAMIENTO-->

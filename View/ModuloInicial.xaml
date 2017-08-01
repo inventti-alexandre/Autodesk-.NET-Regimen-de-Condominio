@@ -24,16 +24,18 @@
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <Image x:Key="NextBtn" Source="pack://application:,,,/RegimenCondominio;component/Images/GoNext.png" Width="60" Height="60" 
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Image x:Key="btnData" Source="pack://application:,,,/RegimenCondominio;component/Images/data-config.png"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <!--ACCENT COLORS-->
-            <SolidColorBrush x:Key="HighlightBrush" Color="#00897B"/>
-            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#90caf9" />
+            <SolidColorBrush x:Key="HighlightBrush" Color="#bdbdbd"/>
+            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#bdbdbd" />
 
-            <SolidColorBrush x:Key="AccentColorBrush" Color="#90caf9" />
-            <SolidColorBrush x:Key="AccentColorBrush2" Color="#90caf9" />
-            <SolidColorBrush x:Key="AccentColorBrush3" Color="#90caf9" />
-            <SolidColorBrush x:Key="AccentColorBrush4" Color="#90caf9"/>
+            <SolidColorBrush x:Key="AccentColorBrush" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush2" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush3" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush4" Color="#bdbdbd"/>
 
-            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#00897B" />
+            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#870b17" />
             <!--Fraccionamiento-->
             <Storyboard x:Name="showFracc" x:Key="expandFracc">
                 <DoubleAnimation Storyboard.TargetName="lblFracc" 
@@ -103,7 +105,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
                 <!-- Accent and AppTheme setting -->
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Teal.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Steel.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -140,7 +142,11 @@
                Grid.ColumnSpan="2"  Grid.Row="10" Width="170" Height="42" 
                x:Name="Logo" Stretch="Fill" Margin="20,27,156,26"
                 />
-
+        <Button Content="{StaticResource btnData}" Focusable="False"  x:Name="btnCambiarAmbiente"                
+                        BorderBrush="Transparent" BorderThickness="0"
+                        Background="Transparent"  Width="32" Height="32" 
+                        HorizontalAlignment="Right" Click="btnCambiarAmbiente_Click"
+                        Grid.Column="2" Grid.Row="0"/>
         <!--*************************************Fraccionamiento*************************************-->
         <TextBlock Grid.Column="1" Text="Fraccionamiento" FontSize="14" FontWeight="DemiBold"
                    HorizontalAlignment="Center" 
@@ -200,7 +206,7 @@
                               SelectedValuePath="IdMachote" DisplayMemberPath="Encabezado"
                               Margin="26,3,10,3" SelectChanged="tipoVivCombo_SelectChanged"                             
                              />
-        <metro:ProgressRing Foreground="#6cb1e6" 
+        <metro:ProgressRing Foreground="#ff5f52" 
                             Grid.Column="1"  Grid.Row="10" Grid.RowSpan="2" 
                             HorizontalAlignment="Center" VerticalAlignment="Center"
                             x:Name="Progress"/>

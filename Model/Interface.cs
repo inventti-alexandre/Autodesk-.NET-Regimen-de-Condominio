@@ -1056,4 +1056,18 @@ namespace RegimenCondominio.M
             }
         }
     }
+
+    public class Ambientes
+    {
+        public string NombreCorto { get; set;}
+        public string Nombre { get; set; }
+
+        public string Host { get; set; }
+
+        public string Database { get; set; }
+
+        public string Usuario { get; set; }
+
+        public string Password { get; set; }
+    }
 }

@@ -1472,7 +1472,7 @@ namespace RegimenCondominio.C
                     {
                         decimal.Parse(numOficial.ToString()).EnLetra(out strEntero, out strDecimales);
 
-                        valor = string.Format("{0}-{1} ({2} guión letra {3})", mMedidas.NoOficial, mMedidas.Apartamento, 
+                        valor = string.Format("{0}-{1} ({2} guion letra {3})", mMedidas.NoOficial, mMedidas.Apartamento, 
                                                                         strEntero, mMedidas.Apartamento);
                     }
                     else {

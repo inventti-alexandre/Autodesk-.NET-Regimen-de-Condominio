@@ -46,17 +46,15 @@
                    />
 
             <!--ACCENT COLORS-->
-            <SolidColorBrush x:Key="HighlightBrush" Color="#6cb1e6"/>
-            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#6cb1e6" />
+            <SolidColorBrush x:Key="HighlightBrush" Color="#bdbdbd"/>
+            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#bdbdbd" />
 
-            <SolidColorBrush x:Key="AccentColorBrush" Color="#6cb1e6" />
-            <SolidColorBrush x:Key="AccentColorBrush2" Color="#6cb1e6" />
-            <SolidColorBrush x:Key="AccentColorBrush3" Color="#6cb1e6" />
-            <SolidColorBrush x:Key="AccentColorBrush4" Color="#6cb1e6"/>
+            <SolidColorBrush x:Key="AccentColorBrush" Color="#ff5f52" />
+            <SolidColorBrush x:Key="AccentColorBrush2" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush3" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush4" Color="#bdbdbd"/>
 
-            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#00897B" />
-
-            <SolidColorBrush x:Key="MetroDataGrid.HighlightBrush" Color="#6cb1e6"/>
+            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#870b17" />
 
             <Style TargetType="GroupItem">
                 <Setter Property="Template">
@@ -81,7 +79,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
                 <!-- Accent and AppTheme setting -->
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Teal.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Steel.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -144,7 +142,7 @@
                                 Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
                                 Background="Transparent" Width="155" Grid.RowSpan="1" Grid.Column="0">
                             <TextBlock Text="1. Selecciona Lote Tipo"
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                               FontWeight="DemiBold" Foreground="#bd443e" Height="19" 
                                        VerticalAlignment="Top" x:Name="txtHeaderPaso2" />
                         </Border>
                         <Button  HorizontalAlignment="Right"  VerticalAlignment="Center"
@@ -171,7 +169,7 @@
                         HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
                         Width="157" Grid.RowSpan="1" Grid.Column="0">
                             <TextBlock Text="2. Selecciona Lotes Irregulares" FontSize="11.5"
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                               FontWeight="DemiBold" Foreground="#bd443e" Height="19" 
                                        VerticalAlignment="Top" Margin="0,0,0,-1" x:Name="txtHeaderPaso3"/>
                         </Border>
 
@@ -195,7 +193,7 @@
                         HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent"
                         Width="100" Grid.RowSpan="1" Grid.Column="0">
                             <TextBlock Text="3. Calcular Puntos" 
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                               FontWeight="DemiBold" Foreground="#bd443e" Height="19" 
                                        VerticalAlignment="Top" Margin="0,0,0,-1" x:Name="txtHeaderPaso4"/>
                         </Border>
 
@@ -418,7 +416,7 @@
                                 Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
                                 Background="Transparent" Grid.ColumnSpan="4">
                             <TextBlock Text="Datos Iniciales"
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                               FontWeight="DemiBold" Foreground="#bd443e" Height="19" 
                                        VerticalAlignment="Top" x:Name="txtDetalleInicial" Width="477" />
                         </Border>
                         <!--FRACCIONAMIENTO-->
@@ -473,7 +471,7 @@
                                 Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" 
                                 Background="Transparent" >
                             <TextBlock Text="Información del Lote"
-                               FontWeight="DemiBold" Foreground="#00897B" Height="19" 
+                               FontWeight="DemiBold" Foreground="#bd443e" Height="19" 
                                        VerticalAlignment="Top" x:Name="txtInfoLote" />
                         </Border>
                         <ListView Background="White"  x:Name="tb2GridLotes" Grid.Row="1">

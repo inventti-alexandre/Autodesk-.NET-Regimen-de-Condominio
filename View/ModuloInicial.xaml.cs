@@ -166,7 +166,7 @@ namespace RegimenCondominio.V
                 //Calculo Tipo de Vivienda
                 M.EncabezadoMachote mItemMachote = 
 
-                M.Inicio.EncMachote = (M.EncabezadoMachote)(M.EncabezadoMachote)tipoVivCombo.SelectedItem;
+                M.Inicio.EncMachote = (M.EncabezadoMachote)tipoVivCombo.SelectedItem;
                               
                 ModuloManzana M_Manzana = new ModuloManzana();
                 M_Manzana.Show();
@@ -256,6 +256,13 @@ namespace RegimenCondominio.V
             }
             else
                 M.Constant.IsAutoClose = false;
+        }
+
+        private void btnCambiarAmbiente_Click(object sender, RoutedEventArgs e)
+        {
+            Autodesk.AutoCAD.ApplicationServices.Application.ShowModalWindow(new ConfigurarOrigen() { Owner = this });
+
+            this.btnRefresh_Click(btnCambiarAmbiente, new RoutedEventArgs());
         }
 
         private void ShowControls()

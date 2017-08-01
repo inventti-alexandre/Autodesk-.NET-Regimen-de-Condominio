@@ -14,15 +14,15 @@
         <ResourceDictionary>
 
             <!--ACCENT COLORS-->
-            <SolidColorBrush x:Key="HighlightBrush" Color="#6cb1e6"/>
-            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#6cb1e6" />
+            <SolidColorBrush x:Key="HighlightBrush" Color="#bdbdbd"/>
+            <SolidColorBrush x:Key="AccentBaseColorBrush" Color="#bdbdbd" />
 
-            <SolidColorBrush x:Key="AccentColorBrush" Color="LightGray" />
-            <SolidColorBrush x:Key="AccentColorBrush2" Color="#6cb1e6" />
-            <SolidColorBrush x:Key="AccentColorBrush3" Color="#6cb1e6" />
-            <SolidColorBrush x:Key="AccentColorBrush4" Color="#6cb1e6"/>
+            <SolidColorBrush x:Key="AccentColorBrush" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush2" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush3" Color="#bdbdbd" />
+            <SolidColorBrush x:Key="AccentColorBrush4" Color="#bdbdbd"/>
 
-            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#00897B" />
+            <SolidColorBrush x:Key="WindowTitleColorBrush" Color="#870b17" />
 
             <SolidColorBrush x:Key="MetroDataGrid.HighlightBrush" Color="#6cb1e6"/>
 
@@ -64,7 +64,7 @@
                 <TextBlock Text="Tamaño de Texto: " VerticalAlignment="Center" FontWeight="DemiBold" Grid.Row="0"
                            Grid.Column="2" Height="16" Margin="0,11"/>
                 <TextBox  VerticalAlignment="Center" Height="26" Name="txtTamanio" Grid.Row="0" Grid.Column="3" Margin="11,6"/>
-                <Button Grid.Row="1" Grid.ColumnSpan="2" Content="Guardar" Background="#6cb1e6" 
+                <Button Grid.Row="1" Grid.ColumnSpan="2" Content="Guardar" Background="#ff5f52" 
                         Foreground="White" Click="Button_Click" Grid.Column="1" Margin="53,5,54,4"/>
             </Grid>
         </GroupBox>
