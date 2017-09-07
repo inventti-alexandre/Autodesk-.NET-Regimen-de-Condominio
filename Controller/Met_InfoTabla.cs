@@ -591,6 +591,7 @@ namespace RegimenCondominio.C
         {
             BaseItems = new List<long>();
             NotBaseItems = new List<long>();
+            M.InfoTabla.LotesSelected.Clear();
 
             if (M.Manzana.EsMacrolote)
             {
@@ -955,13 +956,19 @@ namespace RegimenCondominio.C
                         {
                             decimal sumaCubDesc = decimal.Parse(mMedidasItem.AreaCubiertaDescubierta ?? "0");
 
-                            mMedidasItem.Proindiviso = ((sumaCubDesc * 100) / SumaVerticalAmbos).ToString();
+                            if (SumaVerticalAmbos > 0)
+                                mMedidasItem.Proindiviso = ((sumaCubDesc * 100) / SumaVerticalAmbos).ToString();
+                            else
+                                mMedidasItem.Proindiviso = "0";
                         }
                         else
                         {
                             decimal sumaCubDesc = decimal.Parse(mItemEditado.AreaCubiertaDescubierta ?? "0");
 
-                            mMedidasItem.Proindiviso = ((sumaCubDesc * 100) / SumaVerticalAmbos).ToString();
+                            if (SumaVerticalAmbos > 0)
+                                mMedidasItem.Proindiviso = ((sumaCubDesc * 100) / SumaVerticalAmbos).ToString();
+                            else
+                                mMedidasItem.Proindiviso = "0";
                         }
                     }
 

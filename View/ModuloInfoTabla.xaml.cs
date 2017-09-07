@@ -873,9 +873,17 @@ namespace RegimenCondominio.V
 
                                 if (valueMedidas != null)
                                 {
-                                    decimal doubMedidas = decimal.Parse(valueMedidas.ToString());
-                                    //Tomo la propiedad de todos los lotes menos el que edité
-                                    suma += doubMedidas;
+                                    decimal doubMedidas;
+
+                                    //Reviso que el valor obtenido sea realmente decimal
+                                    if (decimal.TryParse(valueMedidas.ToString(), out doubMedidas))
+                                    {
+                                        //Tomo la propiedad de todos los lotes menos el que edité
+                                        suma += doubMedidas;
+                                    }
+                                    else
+                                        suma += 0;
+                                    
                                 }
                             }
                         }
@@ -1030,11 +1038,11 @@ namespace RegimenCondominio.V
 
                 //Si la modificación no se encontró en el Área Cubierta la obtengo desde el Item
                 if (sumaHorizontalAreaCub == 0)
-                    sumaHorizontalAreaCub = mItemEditado.AreaTotalCubierta != null ? decimal.Parse(mItemEditado.AreaTotalCubierta) : 0;
+                    sumaHorizontalAreaCub = !string.IsNullOrEmpty(mItemEditado.AreaTotalCubierta) ? decimal.Parse(mItemEditado.AreaTotalCubierta) : 0;
 
                 //Si la modificación no se encontró en el Área Descubierta la obtengo desde el Item
                 if (sumaHorizontalAreaDesc == 0)
-                    sumaHorizontalAreaDesc = mItemEditado.AreaTotalDescubierta != null ? decimal.Parse(mItemEditado.AreaTotalDescubierta) : 0;
+                    sumaHorizontalAreaDesc = !string.IsNullOrEmpty(mItemEditado.AreaTotalDescubierta) ? decimal.Parse(mItemEditado.AreaTotalDescubierta) : 0;
 
                 //Sumo ambos y cambio la propiedad Área Total Descubierta + Total Cubierta       
                 propertyToModify = typeof(M.Medidas).GetProperty(M.DetailColumns.AreaCubiertaDescubierta.ToString());

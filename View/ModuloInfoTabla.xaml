@@ -739,7 +739,7 @@
                                    Background="White" x:Name="txtTotalAreaComun"></TextBlock>
                             </Border>
                             <!--AreaExclusiva-->
-                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100">
+                            <Border BorderBrush="LightGray" BorderThickness="1,1,0,1" Width="100" Visibility="Collapsed">
                                 <TextBlock Text="{Binding Path=TotalAreaExclusiva.Total, Mode=TwoWay, NotifyOnSourceUpdated=True}" FontWeight="DemiBold" TextAlignment="Center"
                                    Background="White" x:Name="txtTotalAreaExclusiva"></TextBlock>
                             </Border>
